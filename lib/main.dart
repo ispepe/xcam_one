@@ -47,11 +47,6 @@ void main() async {
     );
   });
 
-  /// sp初始化
-  await SpUtil.getInstance();
-
-  await GlobalStore.init(!kReleaseMode);
-
   runApp(_MyApp());
 
   // Android状态栏透明 splash为白色,所以调整状态栏文字为黑色
@@ -60,19 +55,24 @@ void main() async {
       statusBarBrightness: Brightness.light));
 }
 
-class _MyApp extends StatelessWidget {
-  _MyApp({Key? key}) : super(key: key) {
-    _initDio();
+class _MyApp extends StatefulWidget {
+  @override
+  __MyAppState createState() => __MyAppState();
+}
 
-    final FluroRouter router = FluroRouter();
-    Routes.configureRoutes();
-  } // This widget is the root of your application.
-
+class __MyAppState extends State<_MyApp> {
   final ThemeState _themeState = ThemeState();
+
   final LocaleState _localeState = LocaleState();
+
   final GlobalState _globalState = GlobalState();
 
-  void _initDio() {}
+  @override
+  void initState() {
+    super.initState();
+
+    Routes.configureRoutes();
+  }
 
   @override
   Widget build(BuildContext context) {

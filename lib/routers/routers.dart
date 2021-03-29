@@ -10,6 +10,8 @@
 
 import 'package:flutter/material.dart' hide Router;
 import 'package:fluro/fluro.dart';
+import 'package:xcam_one/pages/index/index_router.dart';
+import 'package:xcam_one/pages/welcome/welcome_router.dart';
 import 'package:xcam_one/routers/page_not_found.dart';
 import 'package:xcam_one/routers/router_init.dart';
 import 'package:xcam_one/widgets/webview_page.dart';
@@ -34,17 +36,19 @@ class Routes {
     router.define(webViewPage, handler: Handler(handlerFunc: (_, params) {
       final String? title = params['title']?.first;
       final String? url = params['url']?.first;
-      return WebViewPage(title: title, url: url, key: null,);
+      return WebViewPage(
+        title: title,
+        url: url,
+        key: null,
+      );
     }));
 
     _listRouter.clear();
 
-    /// TODO: 各自路由由各自模块管理，统一在此添加初始化
-    /// TODO: 看情况合并Page至对应页面
-    // _listRouter.add(IndexRouter());
-    // _listRouter.add(WelcomeRouter());
+    _listRouter.add(IndexRouter());
+    _listRouter.add(WelcomeRouter());
 
-    /// 初始化路由
+    /// NOTE: 3/29/21 异步是否有影响？
     _listRouter.forEach((routerProvider) {
       routerProvider.initRouter(router);
     });

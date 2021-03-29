@@ -29,7 +29,7 @@ class LocaleState extends ChangeNotifier {
 
   Locale? get locale {
     if (_localeIndex > 0) {
-      final value = localeValueList[_localeIndex!].split('-');
+      final value = localeValueList[_localeIndex].split('-');
       return Locale(value[0], value.length == 2 ? value[1] : '');
     }
     // 跟随系统

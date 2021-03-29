@@ -32,7 +32,7 @@ class GlobalStore {
   static bool _isDebug = true;
 
   // /// TODO: 3/28/21  第一次需要显示引导操作
-  static bool _first = true;
+  static bool first = true;
 
   /// 临时目录 eg: cookie
   static Directory? temporaryDirectory;
@@ -43,8 +43,6 @@ class GlobalStore {
   /// 所有获取配置的唯一入口
   static Map<ECON, String> config = {};
 
-  static String? token;
-
   /// 缩略图OSS URL
   static final String thumbsUrl = "https://cdn.jing-pei.cn/avatar/";
 
@@ -54,19 +52,25 @@ class GlobalStore {
   static init(bool isDebug) async {
     _isDebug = isDebug;
 
+    /// sp初始化
+    await SpUtil.getInstance();
+
     if (!kIsWeb) {
       temporaryDirectory = await getTemporaryDirectory();
 
       if (Platform.isAndroid || Platform.isIOS) {}
     }
 
+    /// /// NOTE: 3/29/21 可以进行json字符的存储
     localStorage = LocalStorage('LocalStorage');
     await localStorage!.ready;
 
-    // TODO：获取默认token，登录后需要进行Token的存储
-    token = SpUtil.getString(SharedPreferencesKeys.tokenKey);
+    first = SpUtil.getBool(SharedPreferencesKeys.showWelcome) ?? true;
+    if (first) {
+      SpUtil.putBool(SharedPreferencesKeys.showWelcome, false);
+    }
 
-    /// TODO: 生产与测试分开
+    /// TODO: 3/29/21 待处理 此处配置相机连接信息
     if (_isDebug) {
       config = {
         ECON.baseUrl: 'http://127.0.0.1:8181/api/',
@@ -82,15 +86,7 @@ class GlobalStore {
         ECON.protocolUrl: 'https://www.baidu.com',
       };
     }
-  }
 
-  static initWidget(BuildContext context) {
-    if (_first) {
-      _first = false;
-    }
-
-    if (!kIsWeb) {
-      if (Platform.isAndroid || Platform.isIOS) {}
-    }
+    await Future.delayed(Duration(seconds: 2));
   }
 }
