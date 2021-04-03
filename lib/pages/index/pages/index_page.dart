@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:xcam_one/pages/camera/pages/camera_page.dart';
 import 'package:xcam_one/pages/photo/pages/photo_page.dart';
+import 'package:xcam_one/pages/setting/pages/setting_page.dart';
 import 'package:xcam_one/res/resources.dart';
 import 'package:xcam_one/widgets/my_button.dart';
 
@@ -60,14 +61,7 @@ class _IndexPageState extends State<IndexPage> {
 
   int _currentIndex = 0;
 
-  final _pages = [
-    PhotoPage(),
-    CameraPage(),
-    Container(
-      color: Colors.red,
-      child: Text('设置'),
-    )
-  ];
+  final _pages = [PhotoPage(), CameraPage(), SettingPage()];
 
   @override
   Widget build(BuildContext context) {
