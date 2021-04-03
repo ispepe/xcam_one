@@ -45,6 +45,6 @@ class Colours {
   static const Color unselectedItemColor = Color(0xFF999999);
   static const Color darkUnselectedItemColor = Color(0xFF4D4D4D);
 
-  static const Color buttonColor = Color(0xFFEEEEEE);
-  static const Color darkButtonColor = Color(0xFF4D4D4D);
+  static const Color buttonColor = Color(0xFFF34235);
+  static const Color darkButtonColor = Color(0xFFE03E4E);
 }

@@ -38,7 +38,6 @@ class _SplashPageState extends State<SplashPage> {
         NavigatorUtils.push(context, WelcomeRouter.welcomePage,
             clearStack: true);
       } else {
-        /// 进入欢迎页面
         NavigatorUtils.push(context, IndexRouter.indexPage, clearStack: true);
       }
     });

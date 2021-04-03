@@ -25,3 +25,4 @@ doc/api/
 .flutter-plugins-dependencies
 local.properties
 generated_plugin_registrant.dart
+.DS_Store

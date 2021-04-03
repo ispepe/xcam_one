@@ -14,6 +14,7 @@ import 'package:transparent_image/transparent_image.dart';
 import 'package:xcam_one/pages/index/index_router.dart';
 import 'package:xcam_one/res/resources.dart';
 import 'package:xcam_one/routers/fluro_navigator.dart';
+import 'package:xcam_one/widgets/my_button.dart';
 
 class WelcomePage extends StatefulWidget {
   @override
@@ -48,6 +49,8 @@ class _WelcomePageState extends State<WelcomePage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final minWidth = 248.0;
+
     return Scaffold(
       body: Container(
         child: Stack(
@@ -76,6 +79,7 @@ class _WelcomePageState extends State<WelcomePage> {
                   ),
                   Container(
                     height: size.height * 0.8,
+                    width: size.width,
                     child: FadeInImage(
                       image: AssetImage(currentEGuide.image),
                       placeholder: MemoryImage(kTransparentImage),
@@ -95,32 +99,22 @@ class _WelcomePageState extends State<WelcomePage> {
                     children: [
                       Padding(
                         padding: const EdgeInsets.only(top: 24),
-                        child: MaterialButton(
-                          minWidth: 248,
-                          padding: const EdgeInsets.symmetric(vertical: 11),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(22),
-                          ),
-                          color: Theme.of(context).primaryColor,
-                          onPressed: () {
-                            if (currentEGuide.index ==
-                                EGuide.values.length - 1) {
-                              NavigatorUtils.push(
-                                  context, IndexRouter.indexPage,
-                                  clearStack: true);
-                            } else {
-                              currentEGuide =
-                                  EGuide.values[currentEGuide.index + 1];
+                        child: MyButton(
+                            minWidth: minWidth,
+                            onPressed: () {
+                              if (currentEGuide.index ==
+                                  EGuide.values.length - 1) {
+                                NavigatorUtils.push(
+                                    context, IndexRouter.indexPage,
+                                    clearStack: true);
+                              } else {
+                                currentEGuide =
+                                    EGuide.values[currentEGuide.index + 1];
 
-                              setState(() {});
-                            }
-                          },
-                          child: Text(
-                            currentEGuide.buttonText,
-                            style: TextStyles.textBold16
-                                .copyWith(color: Colors.white),
-                          ),
-                        ),
+                                setState(() {});
+                              }
+                            },
+                            buttonText: currentEGuide.buttonText),
                       ),
                       Padding(
                         padding: const EdgeInsets.only(top: 14),

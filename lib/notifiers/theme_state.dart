@@ -71,8 +71,6 @@ class ThemeState with ChangeNotifier {
       accentColor: isDarkMode ? Colours.darkAccentColor : Colours.accentColor,
       // Tab指示器颜色
       indicatorColor: isDarkMode ? Colours.darkAppMain : Colours.appMain,
-      // primaryColorDark: themeColor[800],
-      // primaryColorLight: themeColor[400],
       textSelectionTheme: TextSelectionThemeData(
         // 文字选择色（输入框复制粘贴菜单）
         selectionColor: isDarkMode ? Colours.darkAppMain : Colours.appMain,
@@ -85,11 +83,20 @@ class ThemeState with ChangeNotifier {
       // 主要用于Material背景色
       canvasColor: isDarkMode ? Colours.dark_material_bg : Colors.white,
       textTheme: TextTheme(
-          // TextField输入文字颜色
-          // subtitle1: isDarkMode ? TextStyles.textDark : TextStyles.text,
-          // Text文字样式
-          // bodyText2: isDarkMode ? TextStyles.textDark : TextStyles.text,
-          ),
+        headline1: TextStyles.headline1,
+        headline2: TextStyles.headline2,
+        headline3: TextStyles.headline3,
+        headline4: TextStyles.headline4,
+        headline5: TextStyles.headline5,
+        headline6: TextStyles.headline6,
+        subtitle1: TextStyles.subtitle1,
+        subtitle2: TextStyles.subtitle2,
+        bodyText1: TextStyles.bodyText1,
+        bodyText2: TextStyles.bodyText2,
+        caption: TextStyles.caption,
+        button: TextStyles.button,
+        overline: TextStyles.overline,
+      ),
       inputDecorationTheme: InputDecorationTheme(
         // hintStyle:
         //     isDarkMode ? TextStyles.textHint14 : TextStyles.textDarkGray14,
@@ -98,6 +105,21 @@ class ThemeState with ChangeNotifier {
       ),
       appBarTheme: AppBarTheme(
         elevation: 0.0,
+        textTheme: TextTheme(
+          headline1: TextStyles.headline1,
+          headline2: TextStyles.headline2,
+          headline3: TextStyles.headline3,
+          headline4: TextStyles.headline4,
+          headline5: TextStyles.headline5,
+          headline6: TextStyles.headline6,
+          subtitle1: TextStyles.subtitle1,
+          subtitle2: TextStyles.subtitle2,
+          bodyText1: TextStyles.bodyText1,
+          bodyText2: TextStyles.bodyText2,
+          caption: TextStyles.caption,
+          button: TextStyles.button,
+          overline: TextStyles.overline,
+        ),
         color: isDarkMode ? Colours.darkBgColor : Colors.white,
         brightness: isDarkMode ? Brightness.dark : Brightness.light,
         actionsIconTheme: IconThemeData(
@@ -116,6 +138,7 @@ class ThemeState with ChangeNotifier {
         brightness: isDarkMode ? Brightness.dark : Brightness.light,
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        elevation: 0,
         selectedItemColor: isDarkMode
             ? Colours.darkSelectedItemColor
             : Colours.selectedItemColor,
