@@ -7,10 +7,14 @@
  *
  *  Created by Pepe
  */
+import 'dart:convert' as convert;
 
 import 'package:flutter/material.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:xcam_one/pages/photo_view/pages/photo_view_page.dart';
+import 'package:xcam_one/pages/photo_view/photo_view_router.dart';
 import 'package:xcam_one/res/resources.dart';
+import 'package:xcam_one/routers/fluro_navigator.dart';
 import 'package:xcam_one/widgets/my_button.dart';
 
 class CameraPage extends StatefulWidget {
@@ -67,7 +71,17 @@ class _CameraPageState extends State<CameraPage>
             MyButton(
                 minWidth: 248,
                 onPressed: () {
-                  /// TODO: 3/29/21 跳转到wi-fi连接
+                  final image = "assets/images/IMG_4440.JPG";
+                  NavigatorUtils.push(
+                    context,
+                    '${PhotoViewRouter.photoView}?galleryItems=${Uri.encodeComponent(convert.jsonEncode(
+                      PhotoViewGalleryOptions(image, 'tag1').toJson(),
+                    ))}&galleryItems=${Uri.encodeComponent(convert.jsonEncode(
+                      PhotoViewGalleryOptions(image, 'tag2').toJson(),
+                    ))}&galleryItems=${Uri.encodeComponent(convert.jsonEncode(
+                      PhotoViewGalleryOptions(image, 'tag3').toJson(),
+                    ))}',
+                  );
                 },
                 buttonText: '去连接'),
           ],

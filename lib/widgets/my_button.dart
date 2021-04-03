@@ -17,7 +17,7 @@ class MyButton extends StatelessWidget {
     required this.minWidth,
     required this.onPressed,
     required this.buttonText,
-    this.vertical = 22.0,
+    this.vertical = 11.0,
   }) : super(key: key);
 
   final double minWidth;

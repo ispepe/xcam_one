@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart' hide Router;
 import 'package:fluro/fluro.dart';
 import 'package:xcam_one/pages/index/index_router.dart';
+import 'package:xcam_one/pages/photo_view/photo_view_router.dart';
 import 'package:xcam_one/pages/welcome/welcome_router.dart';
 import 'package:xcam_one/routers/page_not_found.dart';
 import 'package:xcam_one/routers/router_init.dart';
@@ -47,6 +48,7 @@ class Routes {
 
     _listRouter.add(IndexRouter());
     _listRouter.add(WelcomeRouter());
+    _listRouter.add(PhotoViewRouter());
 
     /// NOTE: 3/29/21 异步是否有影响？
     _listRouter.forEach((routerProvider) {

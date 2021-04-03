@@ -25,35 +25,33 @@ class _PhotoPageState extends State<PhotoPage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return MaterialApp(
-      home: DefaultTabController(
-        length: 2,
-        child: Scaffold(
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          elevation: 0,
           backgroundColor: Colors.white,
-          appBar: AppBar(
-            elevation: 0,
-            backgroundColor: Colors.white,
-            title: TabBar(
-              indicatorColor: Theme.of(context).primaryColor,
-              unselectedLabelColor: Color(0xFF999999),
-              labelColor: Theme.of(context).primaryColor,
-              indicatorSize: TabBarIndicatorSize.label,
-              labelStyle:
-                  TextStyles.textSize16.copyWith(fontWeight: FontWeight.w500),
-              indicatorWeight: 4,
-              tabs: [
-                Tab(
-                  text: '手机',
-                ),
-                Tab(
-                  text: '相机',
-                ),
-              ],
-            ),
+          title: TabBar(
+            indicatorColor: Theme.of(context).primaryColor,
+            unselectedLabelColor: Color(0xFF999999),
+            labelColor: Theme.of(context).primaryColor,
+            indicatorSize: TabBarIndicatorSize.label,
+            labelStyle:
+                TextStyles.textSize16.copyWith(fontWeight: FontWeight.w500),
+            indicatorWeight: 4,
+            tabs: [
+              Tab(
+                text: '手机',
+              ),
+              Tab(
+                text: '相机',
+              ),
+            ],
           ),
-          body: TabBarView(
-            children: [PhonePhotoPage(), CameraPhotoPage()],
-          ),
+        ),
+        body: TabBarView(
+          children: [PhonePhotoPage(), CameraPhotoPage()],
         ),
       ),
     );

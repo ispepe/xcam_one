@@ -8,10 +8,14 @@
  *  Created by Pepe
  */
 
-import 'package:flustars/flustars.dart';
+import 'dart:convert' as convert;
+
 import 'package:flutter/material.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:xcam_one/pages/photo_view/pages/photo_view_page.dart';
+import 'package:xcam_one/pages/photo_view/photo_view_router.dart';
 import 'package:xcam_one/res/resources.dart';
+import 'package:xcam_one/routers/fluro_navigator.dart';
 
 class PhonePhotoPage extends StatefulWidget {
   @override
@@ -43,7 +47,21 @@ class _PhonePhotoPageState extends State<PhonePhotoPage> {
                     crossAxisAlignment: WrapCrossAlignment.start,
                     runSpacing: 4,
                     children: [
-                      _buildPhoto(image, size.width * 0.32),
+                      GestureDetector(
+                        onTap: () {
+                          NavigatorUtils.push(
+                            context,
+                            '${PhotoViewRouter.photoView}?galleryItems=${Uri.encodeComponent(convert.jsonEncode(
+                              PhotoViewGalleryOptions(image, 'tag1').toJson(),
+                            ))}&galleryItems=${Uri.encodeComponent(convert.jsonEncode(
+                              PhotoViewGalleryOptions(image, 'tag2').toJson(),
+                            ))}&galleryItems=${Uri.encodeComponent(convert.jsonEncode(
+                              PhotoViewGalleryOptions(image, 'tag3').toJson(),
+                            ))}',
+                          );
+                        },
+                        child: _buildPhoto(image, size.width * 0.32),
+                      ),
                       _buildPhoto(image, size.width * 0.32),
                       _buildPhoto(image, size.width * 0.32),
                       _buildPhoto(image, size.width * 0.32),

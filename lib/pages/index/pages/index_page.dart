@@ -58,9 +58,9 @@ class _IndexPageState extends State<IndexPage> {
     ),
   ];
 
-  int currentIndex = 0;
+  int _currentIndex = 0;
 
-  final pages = [
+  final _pages = [
     PhotoPage(),
     CameraPage(),
     Container(
@@ -72,10 +72,10 @@ class _IndexPageState extends State<IndexPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: pages[currentIndex],
+      body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         items: bottomNavItems,
-        currentIndex: currentIndex,
+        currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,
         showSelectedLabels: false,
         showUnselectedLabels: false,
@@ -87,9 +87,9 @@ class _IndexPageState extends State<IndexPage> {
   }
 
   void _changePage(int index) {
-    if (index != currentIndex) {
+    if (index != _currentIndex) {
       setState(() {
-        currentIndex = index;
+        _currentIndex = index;
       });
     }
   }
