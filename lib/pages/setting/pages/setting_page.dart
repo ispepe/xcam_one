@@ -9,6 +9,8 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/res/resources.dart';
 
 class SettingPage extends StatefulWidget {
@@ -17,9 +19,6 @@ class SettingPage extends StatefulWidget {
 }
 
 class _SettingPageState extends State<SettingPage> {
-  /// TODO: 4/4/21 待处理 临时处理
-  final bool isConnect = false;
-
   @override
   void initState() {
     super.initState();
@@ -27,6 +26,8 @@ class _SettingPageState extends State<SettingPage> {
 
   @override
   Widget build(BuildContext context) {
+    bool isConnect = Provider.of<GlobalState>(context).isConnect;
+
     return Scaffold(
       backgroundColor: Color(0xFFF2F2F2),
       appBar: AppBar(
@@ -46,42 +47,52 @@ class _SettingPageState extends State<SettingPage> {
           _buildRow('APP版本'),
           Padding(
             padding: const EdgeInsets.only(top: 12.0),
-            child: _buildRow('相机存储', color: Color(0xFFBFBFBF)),
+            child: _buildRow('相机存储', isEnable: isConnect),
           ),
-          _buildRow('倒计时拍摄', color: Color(0xFFBFBFBF)),
-          _buildRow('HDR', color: Color(0xFFBFBFBF)),
-          _buildRow('格式化相机', color: Color(0xFFBFBFBF)),
-          _buildRow('相机信息', color: Color(0xFFBFBFBF)),
+          _buildRow('倒计时拍摄', isEnable: isConnect),
+          _buildRow('HDR', isEnable: isConnect),
+          _buildRow('格式化相机', isEnable: isConnect),
+          _buildRow('相机信息', isEnable: isConnect),
         ],
       ),
     );
   }
 
-  Container _buildRow(String title, {Color? color}) {
+  Widget _buildRow(String title, {bool isEnable = true}) {
+    final disableColor = Color(0xFFBFBFBF);
+
     final line = Divider(color: Color(0x173C3C43));
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          Container(
-            height: 44,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(title,
-                    style: TextStyles.textSize16
-                        .copyWith(color: color ?? Colors.black)),
-                Icon(
-                  Icons.arrow_forward_ios_outlined,
-                  color: Color(0xFFD2D2D2),
-                  size: 16,
-                )
-              ],
+
+    return GestureDetector(
+      onTap: () {
+        if (isEnable) {
+          /// TODO: 4/4/21 待处理
+        }
+      },
+      child: Container(
+        color: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: [
+            Container(
+              height: 44,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(title,
+                      style: TextStyles.textSize16.copyWith(
+                          color: isEnable ? Colors.black : disableColor)),
+                  Icon(
+                    Icons.arrow_forward_ios_outlined,
+                    color: Color(0xFFD2D2D2),
+                    size: 16,
+                  )
+                ],
+              ),
             ),
-          ),
-          line,
-        ],
+            line,
+          ],
+        ),
       ),
     );
   }

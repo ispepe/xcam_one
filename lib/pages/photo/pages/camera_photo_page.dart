@@ -8,6 +8,7 @@
  *  Created by Pepe
  */
 
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -73,7 +74,11 @@ class _CameraPhotoPageState extends State<CameraPhotoPage> {
               Padding(
                 padding: const EdgeInsets.only(top: 140.0),
                 child: MyButton(
-                    minWidth: 248, onPressed: () {}, buttonText: '去连接'),
+                    minWidth: 248,
+                    onPressed: () {
+                      AppSettings.openWIFISettings();
+                    },
+                    buttonText: '去连接'),
               ),
             ],
           ),

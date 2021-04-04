@@ -62,6 +62,15 @@ dependencies:
   # 加载图标 https://github.com/jogboms/flutter_spinkit
   flutter_spinkit: ^5.0.0
 
+  # 连接wifi https://github.com/flutter/plugins/tree/master/packages/connectivity/connectivity
+  connectivity: ^3.0.3
+
+  # Wi-Fi 查看wifi列表 https://github.com/alternadom/WiFiFlutter
+  #  wifi_iot: ^0.3.0
+
+  # 打开app设置 https://github.com/spencerccf/app_settings
+  app_settings: ^4.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

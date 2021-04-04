@@ -7,14 +7,18 @@
  *
  *  Created by Pepe
  */
-import 'dart:convert' as convert;
+import 'dart:async';
+// import 'dart:io' show Platform;
 
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
+
+import 'package:connectivity/connectivity.dart';
+import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
-import 'package:xcam_one/pages/photo_view/pages/photo_view_page.dart';
-import 'package:xcam_one/pages/photo_view/photo_view_router.dart';
+import 'package:xcam_one/notifiers/global_state.dart';
+
 import 'package:xcam_one/res/resources.dart';
-import 'package:xcam_one/routers/fluro_navigator.dart';
 import 'package:xcam_one/widgets/my_button.dart';
 
 class CameraPage extends StatefulWidget {
@@ -28,6 +32,30 @@ class CameraPage extends StatefulWidget {
 
 class _CameraPageState extends State<CameraPage>
     with AutomaticKeepAliveClientMixin {
+  StreamSubscription<ConnectivityResult>? subscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    subscription = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult result) {
+      // Got a new connectivity status!
+      debugPrint('result = ${result.toString()}');
+      if (ConnectivityResult.wifi == result) {
+        /// call 192.168.1.245
+        Provider.of<GlobalState>(context, listen: false).isConnect = true;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    subscription?.cancel();
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -39,53 +67,55 @@ class _CameraPageState extends State<CameraPage>
         title: Text('连接相机'),
         centerTitle: true,
       ),
-      body: Container(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: size.width,
-              height: imageHeight,
-              child: FadeInImage(
-                image: AssetImage('assets/images/main_wifi.png'),
-                placeholder: MemoryImage(kTransparentImage),
+      body: Consumer<GlobalState>(
+          builder: (BuildContext context, globalState, Widget? child) {
+            return globalState.isConnect
+                ? Container(
+                    color: Colors.red,
+                  )
+                : child!;
+          },
+          child: _buildConnect(context, size, imageHeight)),
+    );
+  }
+
+  Container _buildConnect(BuildContext context, Size size, double imageHeight) {
+    return Container(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: size.width,
+            height: imageHeight,
+            child: FadeInImage(
+              image: AssetImage('assets/images/main_wifi.png'),
+              placeholder: MemoryImage(kTransparentImage),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 31),
+            child: Text(
+              'Wi-Fi密码：12345678',
+              style: TextStyles.textBold18.copyWith(
+                color: Theme.of(context).primaryColor,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 31),
-              child: Text(
-                'Wi-Fi密码：12345678',
-                style: TextStyles.textBold18.copyWith(
-                  color: Theme.of(context).primaryColor,
-                ),
-              ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Text(
+              '相机开机后，在手机Wi-Fi列表中点击“HTF”开头的相机WiFi进行连接，默认密码：12345678',
+              style: TextStyles.textSize12,
+              textAlign: TextAlign.center,
             ),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Text(
-                '相机开机后，在手机Wi-Fi列表中点击“HTF”开头的相机WiFi进行连接，默认密码：12345678',
-                style: TextStyles.textSize12,
-                textAlign: TextAlign.center,
-              ),
-            ),
-            MyButton(
-                minWidth: 248,
-                onPressed: () {
-                  final image = "assets/images/IMG_4440.JPG";
-                  NavigatorUtils.push(
-                    context,
-                    '${PhotoViewRouter.photoView}?galleryItems=${Uri.encodeComponent(convert.jsonEncode(
-                      PhotoViewGalleryOptions(image, 'tag1').toJson(),
-                    ))}&galleryItems=${Uri.encodeComponent(convert.jsonEncode(
-                      PhotoViewGalleryOptions(image, 'tag2').toJson(),
-                    ))}&galleryItems=${Uri.encodeComponent(convert.jsonEncode(
-                      PhotoViewGalleryOptions(image, 'tag3').toJson(),
-                    ))}',
-                  );
-                },
-                buttonText: '去连接'),
-          ],
-        ),
+          ),
+          MyButton(
+              minWidth: 248,
+              onPressed: () {
+                AppSettings.openWIFISettings();
+              },
+              buttonText: '去连接'),
+        ],
       ),
     );
   }
