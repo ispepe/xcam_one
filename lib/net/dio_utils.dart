@@ -130,11 +130,11 @@ class DioUtils {
     Method method,
     String url, {
     NetSuccessCallback<T>? onSuccess,
-    required NetErrorCallback onError,
+    NetErrorCallback? onError,
     dynamic params,
-    required Map<String, dynamic> queryParameters,
-    required CancelToken cancelToken,
-    required Options options,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    Options? options,
   }) {
     return _request<T>(
       method.value,

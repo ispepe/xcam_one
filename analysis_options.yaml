@@ -85,5 +85,5 @@ linter:
     # - public_member_api_docs
     - prefer_final_in_for_each
     - sort_constructors_first
-    - avoid_as
+#    - avoid_as
     - prefer_final_locals

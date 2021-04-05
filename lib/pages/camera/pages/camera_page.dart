@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
 import 'package:connectivity/connectivity.dart';
+import 'package:xcam_one/models/version_entity.dart';
 import 'package:xcam_one/net/net.dart';
 
 import 'package:xcam_one/notifiers/global_state.dart';
@@ -38,13 +39,13 @@ class _CameraPageState extends State<CameraPage>
         .listen((ConnectivityResult result) {
       debugPrint('result = ${result.toString()}');
       if (ConnectivityResult.wifi == result) {
-        DioUtils.instance.asyncRequestNetwork<bool>(
+        DioUtils.instance.requestNetwork<VersionEntity>(
           Method.get,
-          HttpApi.custom,
+          HttpApi.queryVersion,
           onSuccess: (data) {
-            // view.setUser(data);
-            debugPrint(data.toString());
-            /// call 192.168.1.245
+            Provider.of<GlobalState>(context, listen: false).cameraVersion =
+                data?.function?.version ?? '';
+
             Provider.of<GlobalState>(context, listen: false).isConnect = true;
           },
         );

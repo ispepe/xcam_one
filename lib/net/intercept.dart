@@ -12,9 +12,11 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flustars/flustars.dart';
+import 'package:flutter/foundation.dart';
 import 'package:xcam_one/global/constants.dart';
 import 'package:xcam_one/utils/log_utils.dart';
 import 'package:sprintf/sprintf.dart';
+import 'package:xml2json/xml2json.dart';
 
 import 'dio_utils.dart';
 import 'error_handle.dart';
@@ -24,23 +26,30 @@ class AuthInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final String? accessToken = SpUtil.getString(Constant.accessToken);
     if (accessToken != null && accessToken.isNotEmpty) {
-      options.headers['Authorization'] = 'Bearer $accessToken';
+      options.headers['Authorization'] = 'token $accessToken';
     }
-
+    if (!kIsWeb) {
+      // https://developer.github.com/v3/#user-agent-required
+      options.headers['User-Agent'] = 'Mozilla/5.0';
+    }
     return super.onRequest(options, handler);
   }
 }
 
 class TokenInterceptor extends Interceptor {
+  final Dio _tokenDio = Dio();
+
   Future<String?> getToken() async {
     final Map<String, String?> params = <String, String>{};
     params['refresh_token'] = SpUtil.getString(Constant.refreshToken);
     try {
       _tokenDio.options = DioUtils.instance.dio!.options;
+
+      /// TODO: 4/6/21 待处理 此处刷新Token的地址应该配置
       final Response response =
-          await _tokenDio.post('auth/refreshToken', data: params);
+          await _tokenDio.post<dynamic>('lgn/refreshToken', data: params);
       if (response.statusCode == ExceptionHandle.success) {
-        return json.decode(response.data.toString())['access_token'];
+        return json.decode(response.data.toString())['access_token'] as String;
       }
     } catch (e) {
       Log.e('刷新Token失败！');
@@ -48,46 +57,47 @@ class TokenInterceptor extends Interceptor {
     return null;
   }
 
-  final Dio _tokenDio = Dio();
-
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) async {
-    //401代表token过期
     if (response.statusCode == ExceptionHandle.unauthorized) {
       Log.d('-----------自动刷新Token------------');
       final Dio? dio = DioUtils.instance.dio;
-      dio?.interceptors.requestLock.lock();
-
+      dio!.lock();
       final String? accessToken = await getToken(); // 获取新的accessToken
       Log.e('-----------NewToken: $accessToken ------------');
       await SpUtil.putString(Constant.accessToken, accessToken ?? '');
-      dio?.interceptors.requestLock.unlock();
+      dio.unlock();
 
       if (accessToken != null) {
         // 重新请求失败接口
         final RequestOptions request = response.requestOptions;
         request.headers['Authorization'] = 'Bearer $accessToken';
+
+        final Options options = Options(
+          headers: request.headers,
+          method: request.method,
+        );
+
         try {
           Log.e('----------- 重新请求接口 ------------');
 
           /// 避免重复执行拦截器，使用tokenDio
-          final Response response = await _tokenDio.request(request.path,
-              data: request.data,
-              queryParameters: request.queryParameters,
-              cancelToken: request.cancelToken,
-              options: request as Options,
-              // options: Options(method:'GET'),
-              onReceiveProgress: request.onReceiveProgress);
+          final Response response = await _tokenDio.request<dynamic>(
+            request.path,
+            data: request.data,
+            queryParameters: request.queryParameters,
+            cancelToken: request.cancelToken,
+            options: options,
+            onReceiveProgress: request.onReceiveProgress,
+          );
 
-          // 再调用一次
-          return onResponse(response, handler);
+          return handler.next(response);
         } on DioError catch (e) {
-          /// TODO: 4/5/21 待处理 未验证
-          return super.onError(e, ErrorInterceptorHandler());
+          return handler.reject(e);
         }
       }
     }
-    return super.onResponse(response, handler);
+    super.onResponse(response, handler);
   }
 }
 
@@ -127,8 +137,15 @@ class LoggingInterceptor extends Interceptor {
     } else {
       Log.e('ResponseCode: ${response.statusCode}');
     }
-    // 输出结果
-    Log.json(response.data.toString());
+
+    /// NOTE: 4/6/21 添加了对XML返回值的支持
+    final data = response.data.toString();
+    if (data.startsWith('<?xml')) {
+      Log.xmlString(response.data.toString());
+    } else {
+      Log.json(response.data.toString());
+    }
+
     Log.d('----------End: $duration 毫秒----------');
     return super.onResponse(response, handler);
   }
@@ -140,7 +157,6 @@ class LoggingInterceptor extends Interceptor {
   }
 }
 
-/// TODO: 4/5/21 待处理 转换xml 至固定格式
 class AdapterInterceptor extends Interceptor {
   static const String _kMsg = 'msg';
   static const String _kSlash = '\'';
@@ -176,7 +192,12 @@ class AdapterInterceptor extends Interceptor {
         response.statusCode == ExceptionHandle.success_not_content) {
       if (content.isEmpty) {
         content = _kDefaultText;
+      } else if (content.startsWith('<?xml')) {
+        final _myTransformer = Xml2Json();
+        _myTransformer.parse(content);
+        content = _myTransformer.toParker();
       }
+
       result = sprintf(_kSuccessFormat, [content]);
       response.statusCode = ExceptionHandle.success;
     } else {
@@ -191,15 +212,16 @@ class AdapterInterceptor extends Interceptor {
         } else {
           String msg;
           try {
-            content = content.replaceAll("\\", '');
+            content = content.replaceAll(r'\', '');
             if (_kSlash == content.substring(0, 1)) {
               content = content.substring(1, content.length - 1);
             }
-            Map<String, dynamic> map = json.decode(content);
+            final Map<String, dynamic> map =
+                json.decode(content) as Map<String, dynamic>;
             if (map.containsKey(_kMessage)) {
-              msg = map[_kMessage];
+              msg = map[_kMessage] as String;
             } else if (map.containsKey(_kMsg)) {
-              msg = map[_kMsg];
+              msg = map[_kMsg] as String;
             } else {
               msg = '未知异常';
             }
@@ -211,7 +233,7 @@ class AdapterInterceptor extends Interceptor {
               response.statusCode = ExceptionHandle.success;
             }
           } catch (e) {
-            Log.d('异常信息：$e');
+//            Log.d('异常信息：$e');
             // 解析异常直接按照返回原数据处理（一般为返回500,503 HTML页面代码）
             result = sprintf(_kFailureFormat,
                 [response.statusCode, '服务器异常(${response.statusCode})']);

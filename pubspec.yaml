@@ -77,8 +77,20 @@ dependencies:
   # 格式化String https://github.com/Naddiseo/dart-sprintf
   sprintf: ^6.0.0
 
-#dependency_overrides:
-#  http_parser: ^4.0.0
+  # RTSP流播放 https://github.com/solid-software/flutter_vlc_player/
+  flutter_vlc_player: ^6.0.1
+
+  # bilibi RTSP流播放 https://github.com/befovy/fijkplayer
+  # fijkplayer: ^0.8.7
+
+  # XML解析 https://github.com/renggli/dart-xml
+  xml: ^5.0.2
+
+  # xml to json  https://github.com/shamblett/xml2json
+  xml2json: ^5.0.0
+
+  #dependency_overrides:
+  #  http_parser: ^4.0.0
   #  plugin_platform_interface: ^2.0.0
   #  xml: ^5.0.2
   #  test_api: ^0.3.0 # 将测试dev dependencies 注释掉
@@ -86,8 +98,8 @@ dependencies:
   #  convert: ^3.0.0
   #  args: ^2.0.0
   #  vm_service: ^6.1.0+1
-#  archive: ^3.1.2
-#  pub_semver: ^2.0.0
+  #  archive: ^3.1.2
+  #  pub_semver: ^2.0.0
 
 dev_dependencies:
   flutter_test:

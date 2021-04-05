@@ -21,4 +21,14 @@ class GlobalState extends ChangeNotifier {
     _isConnect = value;
     notifyListeners();
   }
+
+  /// 固件版本
+  String _cameraVersion = '';
+
+  String get cameraVersion => _cameraVersion;
+
+  set cameraVersion(String value) {
+    _cameraVersion = value;
+    notifyListeners();
+  }
 }

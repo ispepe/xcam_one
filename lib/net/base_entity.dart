@@ -31,22 +31,16 @@ class BaseEntity<T> {
   String? message;
   T? data;
 
-  T? _generateOBJ<T>(Object json) {
-    /// NOTE: 4/5/21 待注意
-    // final jsonData = json.toString();
-    //
-    // if (jsonData == 'String') {
-    //   if (jsonData is T) {
-    //     return jsonData;
-    //   }
-    // } else if (jsonData == 'Map<dynamic, dynamic>') {
-    //   if (jsonData is T) {
-    //     return jsonData;
-    //   }
-    // } else {
-    //   /// List类型数据由fromJsonAsT判断处理
-    //   // return JsonConvert.fromJsonAsT<T>(json);
-    //   return null;
-    // }
+  T _generateOBJ<O>(Object json) {
+    if (T.toString() == 'String') {
+      // ignore: avoid_as
+      return json.toString() as T;
+    } else if (T.toString() == 'Map<dynamic, dynamic>') {
+      // ignore: avoid_as
+      return json as T;
+    } else {
+      /// List类型数据由fromJsonAsT判断处理
+      return JsonConvert.fromJsonAsT<T>(json);
+    }
   }
 }

@@ -10,14 +10,16 @@
 
 import 'dart:convert' as convert;
 import 'package:common_utils/common_utils.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:xcam_one/global/constants.dart';
+import 'package:xml/xml.dart' as xml;
 
 /// 输出Log工具类
 class Log {
   static const String tag = 'DEER-LOG';
 
   static void init() {
-    LogUtil.init(isDebug: !Constant.inProduction);
+    LogUtil.init(isDebug: !Constant.inProduction, maxLen: 256);
   }
 
   static void d(String msg, {String tag = tag}) {
@@ -41,6 +43,13 @@ class Log {
         _printList(data);
       } else
         LogUtil.v(msg, tag: tag);
+    }
+  }
+
+  static void xmlString(String msg, {String tag = tag}) {
+    if (!Constant.inProduction) {
+      final document = xml.XmlDocument.parse(msg);
+      LogUtil.v(document.toXmlString(), tag: tag);
     }
   }
 
