@@ -71,6 +71,24 @@ dependencies:
   # 打开app设置 https://github.com/spencerccf/app_settings
   app_settings: ^4.1.0
 
+  # 网络库 https://github.com/flutterchina/dio
+  dio: ^4.0.0
+
+  # 格式化String https://github.com/Naddiseo/dart-sprintf
+  sprintf: ^6.0.0
+
+#dependency_overrides:
+#  http_parser: ^4.0.0
+  #  plugin_platform_interface: ^2.0.0
+  #  xml: ^5.0.2
+  #  test_api: ^0.3.0 # 将测试dev dependencies 注释掉
+  #  crypto: ^3.0.0
+  #  convert: ^3.0.0
+  #  args: ^2.0.0
+  #  vm_service: ^6.1.0+1
+#  archive: ^3.1.2
+#  pub_semver: ^2.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

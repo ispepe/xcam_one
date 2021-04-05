@@ -7,25 +7,20 @@
  *
  *  Created by Pepe
  */
-import 'dart:async';
-// import 'dart:io' show Platform;
 
-import 'package:app_settings/app_settings.dart';
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
-import 'package:connectivity/connectivity.dart';
 import 'package:provider/provider.dart';
-import 'package:transparent_image/transparent_image.dart';
-import 'package:xcam_one/notifiers/global_state.dart';
+import 'package:connectivity/connectivity.dart';
+import 'package:xcam_one/net/net.dart';
 
-import 'package:xcam_one/res/resources.dart';
-import 'package:xcam_one/widgets/my_button.dart';
+import 'package:xcam_one/notifiers/global_state.dart';
+import 'package:xcam_one/pages/camera_connect/pages/camera_connect_page.dart';
 
 class CameraPage extends StatefulWidget {
-  const CameraPage({
-    Key? key,
-  }) : super(key: key);
-
   @override
   _CameraPageState createState() => _CameraPageState();
 }
@@ -41,33 +36,36 @@ class _CameraPageState extends State<CameraPage>
     subscription = Connectivity()
         .onConnectivityChanged
         .listen((ConnectivityResult result) {
-      // Got a new connectivity status!
       debugPrint('result = ${result.toString()}');
       if (ConnectivityResult.wifi == result) {
-        /// call 192.168.1.245
-        Provider.of<GlobalState>(context, listen: false).isConnect = true;
+        DioUtils.instance.asyncRequestNetwork<bool>(
+          Method.get,
+          HttpApi.custom,
+          onSuccess: (data) {
+            // view.setUser(data);
+            debugPrint(data.toString());
+            /// call 192.168.1.245
+            Provider.of<GlobalState>(context, listen: false).isConnect = true;
+          },
+        );
+      } else {
+        Provider.of<GlobalState>(context, listen: false).isConnect = false;
       }
     });
   }
 
   @override
   void dispose() {
-    super.dispose();
     subscription?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    final size = MediaQuery.of(context).size;
-    final imageHeight = 283 * size.width / 375;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('连接相机'),
-        centerTitle: true,
-      ),
-      body: Consumer<GlobalState>(
+    return Container(
+      child: Consumer<GlobalState>(
           builder: (BuildContext context, globalState, Widget? child) {
             return globalState.isConnect
                 ? Container(
@@ -75,49 +73,15 @@ class _CameraPageState extends State<CameraPage>
                   )
                 : child!;
           },
-          child: _buildConnect(context, size, imageHeight)),
+          child: CameraConnectPage()),
     );
   }
 
-  Container _buildConnect(BuildContext context, Size size, double imageHeight) {
-    return Container(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: size.width,
-            height: imageHeight,
-            child: FadeInImage(
-              image: AssetImage('assets/images/main_wifi.png'),
-              placeholder: MemoryImage(kTransparentImage),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 31),
-            child: Text(
-              'Wi-Fi密码：12345678',
-              style: TextStyles.textBold18.copyWith(
-                color: Theme.of(context).primaryColor,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Text(
-              '相机开机后，在手机Wi-Fi列表中点击“HTF”开头的相机WiFi进行连接，默认密码：12345678',
-              style: TextStyles.textSize12,
-              textAlign: TextAlign.center,
-            ),
-          ),
-          MyButton(
-              minWidth: 248,
-              onPressed: () {
-                AppSettings.openWIFISettings();
-              },
-              buttonText: '去连接'),
-        ],
-      ),
-    );
+  @override
+  void didUpdateWidget(covariant CameraPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    debugPrint('didUpdateWidget');
   }
 
   @override

@@ -9,12 +9,10 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:transparent_image/transparent_image.dart';
+
 import 'package:xcam_one/pages/camera/pages/camera_page.dart';
 import 'package:xcam_one/pages/photo/pages/photo_page.dart';
 import 'package:xcam_one/pages/setting/pages/setting_page.dart';
-import 'package:xcam_one/res/resources.dart';
-import 'package:xcam_one/widgets/my_button.dart';
 
 class IndexPage extends StatefulWidget {
   @override
