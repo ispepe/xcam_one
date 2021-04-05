@@ -36,18 +36,22 @@ class _CameraPageState extends State<CameraPage> {
   void initState() {
     super.initState();
 
+    _videoPlayerController = VlcPlayerController.network(
+      'rtsp://192.168.1.254/xxxx.mp4',
+      hwAcc: HwAcc.FULL,
+      autoPlay: true,
+      options: VlcPlayerOptions(
+          video: VlcVideoOptions([
+        VlcVideoOptions.dropLateFrames(true),
+        VlcVideoOptions.skipFrames(true)
+      ])),
+    );
+
     subscription = Connectivity()
         .onConnectivityChanged
         .listen((ConnectivityResult result) {
       debugPrint('网络连接：${result.toString()}');
       if (ConnectivityResult.wifi == result) {
-        _videoPlayerController = VlcPlayerController.network(
-          'rtsp://192.168.1.254/xxxx.mp4',
-          hwAcc: HwAcc.FULL,
-          autoPlay: true,
-          options: VlcPlayerOptions(),
-        );
-
         DioUtils.instance.requestNetwork<VersionEntity>(
           Method.get,
           HttpApi.queryVersion,
@@ -87,13 +91,11 @@ class _CameraPageState extends State<CameraPage> {
   Container _buildCamera() {
     return Container(
       color: Colors.red,
-      child: _videoPlayerController == null
-          ? SizedBox()
-          : VlcPlayer(
-              aspectRatio: 2 / 1,
-              controller: _videoPlayerController!,
-              placeholder: Center(child: CircularProgressIndicator()),
-            ),
+      child:  VlcPlayer(
+        aspectRatio: 2 / 1,
+        controller: _videoPlayerController!,
+        placeholder: Center(child: CircularProgressIndicator()),
+      ),
     );
   }
 
