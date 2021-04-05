@@ -19,7 +19,8 @@ class IndexPage extends StatefulWidget {
   _IndexPageState createState() => _IndexPageState();
 }
 
-class _IndexPageState extends State<IndexPage> {
+class _IndexPageState extends State<IndexPage>
+    with AutomaticKeepAliveClientMixin {
   final List<BottomNavigationBarItem> bottomNavItems = [
     BottomNavigationBarItem(
       icon: Image.asset(
@@ -85,4 +86,7 @@ class _IndexPageState extends State<IndexPage> {
       });
     }
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

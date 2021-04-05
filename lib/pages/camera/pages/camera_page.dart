@@ -12,6 +12,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
 import 'package:provider/provider.dart';
 import 'package:connectivity/connectivity.dart';
@@ -26,9 +27,10 @@ class CameraPage extends StatefulWidget {
   _CameraPageState createState() => _CameraPageState();
 }
 
-class _CameraPageState extends State<CameraPage>
-    with AutomaticKeepAliveClientMixin {
+class _CameraPageState extends State<CameraPage> {
   StreamSubscription<ConnectivityResult>? subscription;
+
+  VlcPlayerController? _videoPlayerController;
 
   @override
   void initState() {
@@ -37,8 +39,15 @@ class _CameraPageState extends State<CameraPage>
     subscription = Connectivity()
         .onConnectivityChanged
         .listen((ConnectivityResult result) {
-      debugPrint('result = ${result.toString()}');
+      debugPrint('网络连接：${result.toString()}');
       if (ConnectivityResult.wifi == result) {
+        _videoPlayerController = VlcPlayerController.network(
+          'rtsp://192.168.1.254/xxxx.mp4',
+          hwAcc: HwAcc.FULL,
+          autoPlay: true,
+          options: VlcPlayerOptions(),
+        );
+
         DioUtils.instance.requestNetwork<VersionEntity>(
           Method.get,
           HttpApi.queryVersion,
@@ -56,35 +65,41 @@ class _CameraPageState extends State<CameraPage>
   }
 
   @override
-  void dispose() {
-    subscription?.cancel();
+  void dispose() async {
     super.dispose();
+
+    await subscription?.cancel();
+    await _videoPlayerController?.stopRendererScanning();
+    await _videoPlayerController?.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
     return Container(
       child: Consumer<GlobalState>(
           builder: (BuildContext context, globalState, Widget? child) {
-            return globalState.isConnect
-                ? Container(
-                    color: Colors.red,
-                  )
-                : child!;
+            return globalState.isConnect ? _buildCamera() : child!;
           },
           child: CameraConnectPage()),
+    );
+  }
+
+  Container _buildCamera() {
+    return Container(
+      color: Colors.red,
+      child: _videoPlayerController == null
+          ? SizedBox()
+          : VlcPlayer(
+              aspectRatio: 2 / 1,
+              controller: _videoPlayerController!,
+              placeholder: Center(child: CircularProgressIndicator()),
+            ),
     );
   }
 
   @override
   void didUpdateWidget(covariant CameraPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     debugPrint('didUpdateWidget');
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }
