@@ -37,14 +37,32 @@ class _CameraPageState extends State<CameraPage> {
     super.initState();
 
     _videoPlayerController = VlcPlayerController.network(
-      'rtsp://192.168.1.254/xxxx.mp4',
-      hwAcc: HwAcc.FULL,
+      'rtsp://192.168.1.254/xxxx.mov',
+      hwAcc: HwAcc.AUTO,
       autoPlay: true,
+      onInit: () async {
+        await _videoPlayerController!.startRendererScanning();
+      },
       options: VlcPlayerOptions(
-          video: VlcVideoOptions([
-        VlcVideoOptions.dropLateFrames(true),
-        VlcVideoOptions.skipFrames(true)
-      ])),
+          advanced: VlcAdvancedOptions([
+            VlcAdvancedOptions.clockJitter(0),
+            VlcAdvancedOptions.clockSynchronization(0),
+            // VlcAdvancedOptions.fileCaching(0),
+            VlcAdvancedOptions.networkCaching(2000),
+            // VlcAdvancedOptions.liveCaching(0)
+          ]),
+          extras: [
+            '--network-caching=3000',
+            '--live-caching=3000',
+            '--udp-caching=1000',
+            '--tcp-caching=1000',
+            '--realrtsp-caching=1000',
+          ]
+          // video: VlcVideoOptions([
+          //   VlcVideoOptions.dropLateFrames(true),
+          //   VlcVideoOptions.skipFrames(true)
+          // ]),
+          ),
     );
 
     subscription = Connectivity()
@@ -91,7 +109,7 @@ class _CameraPageState extends State<CameraPage> {
   Container _buildCamera() {
     return Container(
       color: Colors.red,
-      child:  VlcPlayer(
+      child: VlcPlayer(
         aspectRatio: 2 / 1,
         controller: _videoPlayerController!,
         placeholder: Center(child: CircularProgressIndicator()),
@@ -102,6 +120,14 @@ class _CameraPageState extends State<CameraPage> {
   @override
   void didUpdateWidget(covariant CameraPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    debugPrint('didUpdateWidget');
+
+    // debugPrint('================================');
+    // _videoPlayerController!.startRendererScanning();
+
+    // _videoPlayerController?.isPlaying().then((isPlaying) {
+    //   if (isPlaying != null && !isPlaying) {
+    //     _videoPlayerController?.play();
+    //   }
+    // });
   }
 }
