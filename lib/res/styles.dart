@@ -56,6 +56,8 @@ class TextStyles {
       TextStyle(fontSize: 18, fontWeight: FontWeight.bold);
   static const TextStyle textBold24 =
       TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold);
+  static const TextStyle textBold20 =
+  TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold);
   static const TextStyle textBold26 =
       TextStyle(fontSize: 26.0, fontWeight: FontWeight.bold);
   static const TextStyle textBold28 =

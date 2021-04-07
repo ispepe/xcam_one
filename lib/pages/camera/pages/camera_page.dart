@@ -11,6 +11,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
 import 'package:provider/provider.dart';
@@ -32,8 +33,6 @@ class CameraPage extends StatefulWidget {
 
 class _CameraPageState extends State<CameraPage>
     with AutomaticKeepAliveClientMixin {
-  // VlcPlayerController? _videoPlayerController;
-
   @override
   void initState() {
     super.initState();
@@ -42,10 +41,11 @@ class _CameraPageState extends State<CameraPage>
       HttpApi.rtsp,
       hwAcc: HwAcc.AUTO,
       autoPlay: true,
-      // onInit: () async {
-      //   debugPrint('startRendererScanning');
-      //   await _videoPlayerController!.startRendererScanning();
-      // },
+      autoInitialize: true,
+      onInit: () async {
+        await GlobalStore.videoPlayerController?.startRendererScanning();
+        // await GlobalStore.videoPlayerController?.play();
+      },
       options: VlcPlayerOptions(
           advanced: VlcAdvancedOptions([
             VlcAdvancedOptions.clockJitter(0),
@@ -67,6 +67,10 @@ class _CameraPageState extends State<CameraPage>
           // ]),
           ),
     );
+
+    // if (!GlobalStore.videoPlayerController!.value.isInitialized) {
+    //   GlobalStore.videoPlayerController?.initialize();
+    // }
   }
 
   @override
@@ -235,24 +239,64 @@ class _CameraPageState extends State<CameraPage>
     final size = MediaQuery.of(context).size;
 
     return Container(
-      color: Colors.grey,
+      color: Color(0xFF686868),
       height: size.width / 2,
       width: size.width,
-      // child: !Provider.of<GlobalState>(context).isCapture
-      //     ? VlcPlayer(
-      //         aspectRatio: 2 / 1,
-      //         controller:
-      //             Provider.of<GlobalState>(context).videoPlayerController,
-      //         placeholder: Center(child: CircularProgressIndicator()),
-      //       )
-      //     : SizedBox(),
-      child: GlobalStore.videoPlayerController != null
-          ? VlcPlayer(
-              aspectRatio: 2 / 1,
-              controller: GlobalStore.videoPlayerController!,
-              placeholder: Center(child: CircularProgressIndicator()),
+      child: (GlobalStore.videoPlayerController != null
+          ? Stack(
+              children: [
+                VlcPlayer(
+                  aspectRatio: 2 / 1,
+                  controller: GlobalStore.videoPlayerController!,
+                  placeholder: Center(child: CircularProgressIndicator()),
+                ),
+                Provider.of<GlobalState>(context).isCapture
+                    ? _buildCaptureInfo()
+                    : SizedBox()
+              ],
             )
-          : SizedBox(),
+          : SizedBox()),
+    );
+  }
+
+  Center _buildCaptureInfo() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                '拍摄中',
+                style: TextStyles.textBold20.copyWith(
+                  color: Colors.white,
+                ),
+              ),
+              SpinKitThreeBounce(
+                color: Colors.white,
+                size: 24,
+              )
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '1.尽量把相机放置在拍摄环境的中央位置',
+                style: TextStyles.textSize12.copyWith(color: Colors.white),
+              ),
+              Text(
+                '2.请拍摄人员不要在拍摄画面内',
+                style: TextStyles.textSize12.copyWith(color: Colors.white),
+              )
+            ],
+          ),
+        ],
+      ),
     );
   }
 

@@ -262,6 +262,7 @@ class _IndexPageState extends State<IndexPage>
             onSuccess: (data) {
               debugPrint(data.toString());
 
+              /// NOTE: 4/7/21 待注意 此处必须要停留1秒，否则会卡死相机
               Future.delayed(Duration(seconds: 1), () {
                 DioUtils.instance.requestNetwork<WifiAppModeEntity>(
                     Method.get,
