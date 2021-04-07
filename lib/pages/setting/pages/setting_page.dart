@@ -18,7 +18,8 @@ class SettingPage extends StatefulWidget {
   _SettingPageState createState() => _SettingPageState();
 }
 
-class _SettingPageState extends State<SettingPage> {
+class _SettingPageState extends State<SettingPage>
+    with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
@@ -26,7 +27,8 @@ class _SettingPageState extends State<SettingPage> {
 
   @override
   Widget build(BuildContext context) {
-    bool isConnect = Provider.of<GlobalState>(context).isConnect;
+    super.build(context);
+    final isConnect = Provider.of<GlobalState>(context).isConnect;
 
     return Scaffold(
       backgroundColor: Color(0xFFF2F2F2),
@@ -96,4 +98,7 @@ class _SettingPageState extends State<SettingPage> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

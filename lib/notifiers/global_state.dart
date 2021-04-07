@@ -9,6 +9,9 @@
  */
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_vlc_player/flutter_vlc_player.dart';
+import 'package:xcam_one/models/battery_level_entity.dart';
+import 'package:xcam_one/net/http_api.dart';
 
 /// 全局状态，设置会自动检测刷新
 class GlobalState extends ChangeNotifier {
@@ -22,13 +25,22 @@ class GlobalState extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 固件版本
-  String _cameraVersion = '';
+  BatteryStatus _batteryStatus = BatteryStatus.batteryFull;
 
-  String get cameraVersion => _cameraVersion;
+  BatteryStatus get batteryStatus => _batteryStatus;
 
-  set cameraVersion(String value) {
-    _cameraVersion = value;
+  set batteryStatus(BatteryStatus value) {
+    _batteryStatus = value;
+    notifyListeners();
+  }
+
+  /// 是否正在捕获
+  bool _isCapture = false;
+
+  bool get isCapture => _isCapture;
+
+  set isCapture(bool value) {
+    _isCapture = value;
     notifyListeners();
   }
 }

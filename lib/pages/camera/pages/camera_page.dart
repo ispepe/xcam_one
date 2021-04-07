@@ -9,40 +9,43 @@
  */
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
 import 'package:provider/provider.dart';
 import 'package:connectivity/connectivity.dart';
-import 'package:xcam_one/models/version_entity.dart';
-import 'package:xcam_one/net/net.dart';
+import 'package:xcam_one/global/global_store.dart';
+import 'package:xcam_one/models/battery_level_entity.dart';
 
+import 'package:xcam_one/models/version_entity.dart';
+import 'package:xcam_one/models/wifi_app_mode_entity.dart';
+import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/pages/camera_connect/pages/camera_connect_page.dart';
+import 'package:xcam_one/res/styles.dart';
 
 class CameraPage extends StatefulWidget {
   @override
   _CameraPageState createState() => _CameraPageState();
 }
 
-class _CameraPageState extends State<CameraPage> {
-  StreamSubscription<ConnectivityResult>? subscription;
-
-  VlcPlayerController? _videoPlayerController;
+class _CameraPageState extends State<CameraPage>
+    with AutomaticKeepAliveClientMixin {
+  // VlcPlayerController? _videoPlayerController;
 
   @override
   void initState() {
     super.initState();
 
-    _videoPlayerController = VlcPlayerController.network(
-      'rtsp://192.168.1.254/xxxx.mov',
+    GlobalStore.videoPlayerController = VlcPlayerController.network(
+      HttpApi.rtsp,
       hwAcc: HwAcc.AUTO,
       autoPlay: true,
-      onInit: () async {
-        await _videoPlayerController!.startRendererScanning();
-      },
+      // onInit: () async {
+      //   debugPrint('startRendererScanning');
+      //   await _videoPlayerController!.startRendererScanning();
+      // },
       options: VlcPlayerOptions(
           advanced: VlcAdvancedOptions([
             VlcAdvancedOptions.clockJitter(0),
@@ -64,70 +67,195 @@ class _CameraPageState extends State<CameraPage> {
           // ]),
           ),
     );
-
-    subscription = Connectivity()
-        .onConnectivityChanged
-        .listen((ConnectivityResult result) {
-      debugPrint('网络连接：${result.toString()}');
-      if (ConnectivityResult.wifi == result) {
-        DioUtils.instance.requestNetwork<VersionEntity>(
-          Method.get,
-          HttpApi.queryVersion,
-          onSuccess: (data) {
-            Provider.of<GlobalState>(context, listen: false).cameraVersion =
-                data?.function?.version ?? '';
-
-            Provider.of<GlobalState>(context, listen: false).isConnect = true;
-          },
-        );
-      } else {
-        Provider.of<GlobalState>(context, listen: false).isConnect = false;
-      }
-    });
   }
 
   @override
   void dispose() async {
     super.dispose();
 
-    await subscription?.cancel();
-    await _videoPlayerController?.stopRendererScanning();
-    await _videoPlayerController?.dispose();
+    await GlobalStore.videoPlayerController?.stopRendererScanning();
+    await GlobalStore.videoPlayerController?.dispose();
+    GlobalStore.videoPlayerController = null;
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Container(
       child: Consumer<GlobalState>(
           builder: (BuildContext context, globalState, Widget? child) {
-            return globalState.isConnect ? _buildCamera() : child!;
+            return globalState.isConnect
+                ? Scaffold(
+                    backgroundColor: Colors.black,
+                    appBar: AppBar(
+                      backgroundColor: Colors.black,
+                      title: Text('xCam One',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white)),
+                      centerTitle: true,
+                    ),
+                    body: Column(children: [
+                      _buildCamera(context),
+                      _buildCameraStatus(context)
+                    ]))
+                : child!;
           },
           child: CameraConnectPage()),
     );
   }
 
-  Container _buildCamera() {
+  Container _buildCameraStatus(BuildContext context) {
+    final globalState = context.watch<GlobalState>();
+    final width = MediaQuery.of(context).size.width * 0.9;
+
+    final textStyle = TextStyles.textSize12.copyWith(color: Color(0xFF999999));
+
     return Container(
-      color: Colors.red,
-      child: VlcPlayer(
-        aspectRatio: 2 / 1,
-        controller: _videoPlayerController!,
-        placeholder: Center(child: CircularProgressIndicator()),
+      padding: const EdgeInsets.only(top: 8),
+      width: width,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Image.asset('assets/images/wifi.png', width: 32, height: 32),
+              Padding(
+                padding: const EdgeInsets.only(left: 4.0),
+                child: globalState.isConnect
+                    ? Text(
+                        '已连接',
+                        style: textStyle,
+                      )
+                    : Text(
+                        '未连接',
+                        style: textStyle,
+                      ),
+              ),
+              Expanded(
+                child: SizedBox(),
+              ),
+              _buildBatteryStatus(context)
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 24),
+            child: Container(
+              width: width,
+              height: 4,
+              alignment: Alignment.centerLeft,
+              decoration: BoxDecoration(
+                  color: Color(0x33787880),
+                  borderRadius: BorderRadius.all(Radius.circular(3))),
+              child: Container(
+                width: width * 0.5,
+                decoration: BoxDecoration(
+                    color: Color(0xFF00BBD4),
+                    borderRadius: BorderRadius.all(Radius.circular(3))),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Row(
+              children: [
+                Text(
+                  '可用存储空间',
+                  style: textStyle,
+                ),
+                Expanded(
+                  child: SizedBox(),
+                ),
+                RichText(
+                  text: TextSpan(text: '28GB', style: textStyle, children: [
+                    TextSpan(
+                        text: '/128GB',
+                        style: textStyle.copyWith(
+                          fontSize: 8,
+                        ))
+                  ]),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  @override
-  void didUpdateWidget(covariant CameraPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
+  Container _buildBatteryStatus(BuildContext context) {
+    double batteryWidth = 0;
+    final _batteryStatus = context.read<GlobalState>().batteryStatus;
+    switch (_batteryStatus) {
+      case BatteryStatus.batteryMed:
+        batteryWidth = 22 * 0.5;
+        break;
+      case BatteryStatus.batteryFull:
+        batteryWidth = 22;
+        break;
+      case BatteryStatus.batteryLow:
+        batteryWidth = 22 * 0.2;
+        break;
+      case BatteryStatus.batteryEmpty:
+        batteryWidth = 22 * 0.1;
+        break;
+      case BatteryStatus.batteryExhausted:
+      case BatteryStatus.batteryCharge:
+      case BatteryStatus.batteryStatusTotalNum:
+        batteryWidth = 0;
+        break;
+    }
 
-    // debugPrint('================================');
-    // _videoPlayerController!.startRendererScanning();
-
-    // _videoPlayerController?.isPlaying().then((isPlaying) {
-    //   if (isPlaying != null && !isPlaying) {
-    //     _videoPlayerController?.play();
-    //   }
-    // });
+    return Container(
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.only(top: 11, bottom: 12, left: 4, right: 6),
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+          image: DecorationImage(
+              image: _batteryStatus == BatteryStatus.batteryMed ||
+                      _batteryStatus == BatteryStatus.batteryFull
+                  ? AssetImage('assets/images/battery.png')
+                  : (_batteryStatus == BatteryStatus.batteryCharge
+                      ? AssetImage('assets/images/battery_charge.png')
+                      : AssetImage('assets/images/battery_low.png')),
+              fit: BoxFit.fill)),
+      child: Container(
+        width: batteryWidth,
+        decoration: BoxDecoration(
+            color: _batteryStatus == BatteryStatus.batteryMed ||
+                    _batteryStatus == BatteryStatus.batteryFull
+                ? Colors.white
+                : Colors.red,
+            borderRadius: BorderRadius.all(Radius.circular(1.33))),
+      ),
+    );
   }
+
+  Container _buildCamera(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
+    return Container(
+      color: Colors.grey,
+      height: size.width / 2,
+      width: size.width,
+      // child: !Provider.of<GlobalState>(context).isCapture
+      //     ? VlcPlayer(
+      //         aspectRatio: 2 / 1,
+      //         controller:
+      //             Provider.of<GlobalState>(context).videoPlayerController,
+      //         placeholder: Center(child: CircularProgressIndicator()),
+      //       )
+      //     : SizedBox(),
+      child: GlobalStore.videoPlayerController != null
+          ? VlcPlayer(
+              aspectRatio: 2 / 1,
+              controller: GlobalStore.videoPlayerController!,
+              placeholder: Center(child: CircularProgressIndicator()),
+            )
+          : SizedBox(),
+    );
+  }
+
+  @override
+  bool get wantKeepAlive => true;
 }

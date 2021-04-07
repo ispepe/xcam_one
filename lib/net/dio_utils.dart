@@ -18,9 +18,9 @@ import 'base_entity.dart';
 import 'error_handle.dart';
 
 /// 默认dio配置
-int _connectTimeout = 15000;
-int _receiveTimeout = 15000;
-int _sendTimeout = 10000;
+int _connectTimeout = 150000;
+int _receiveTimeout = 150000;
+int _sendTimeout = 100000;
 String _baseUrl = 'http://127.0.0.1/';
 List<Interceptor> _interceptors = [];
 

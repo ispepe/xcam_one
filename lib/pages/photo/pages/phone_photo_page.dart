@@ -22,9 +22,12 @@ class PhonePhotoPage extends StatefulWidget {
   _PhonePhotoPageState createState() => _PhonePhotoPageState();
 }
 
-class _PhonePhotoPageState extends State<PhonePhotoPage> {
+class _PhonePhotoPageState extends State<PhonePhotoPage>
+    with AutomaticKeepAliveClientMixin {
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final size = MediaQuery.of(context).size;
 
     final image = "assets/images/IMG_4440.JPG";
@@ -145,4 +148,7 @@ class _PhonePhotoPageState extends State<PhonePhotoPage> {
       fit: BoxFit.cover,
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

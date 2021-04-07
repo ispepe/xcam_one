@@ -198,6 +198,8 @@ class AdapterInterceptor extends Interceptor {
         content = _myTransformer.toParker();
       }
 
+      debugPrint(content);
+
       result = sprintf(_kSuccessFormat, [content]);
       response.statusCode = ExceptionHandle.success;
     } else {

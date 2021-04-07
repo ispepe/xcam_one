@@ -21,9 +21,11 @@ class CameraPhotoPage extends StatefulWidget {
   _CameraPhotoPageState createState() => _CameraPhotoPageState();
 }
 
-class _CameraPhotoPageState extends State<CameraPhotoPage> {
+class _CameraPhotoPageState extends State<CameraPhotoPage>
+    with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Container(
       padding: const EdgeInsets.all(8),
       child: Center(
@@ -86,4 +88,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:flustars/flustars.dart';
+import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:localstorage/localstorage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -89,4 +90,6 @@ class GlobalStore {
 
     await Future.delayed(Duration(seconds: 2));
   }
+
+  static VlcPlayerController? videoPlayerController;
 }
