@@ -21,10 +21,12 @@ class PhotoPage extends StatefulWidget {
 
 class _PhotoPageState extends State<PhotoPage>
     with AutomaticKeepAliveClientMixin {
+  final _phonePhotoPage = PhonePhotoPage();
+  final _cameraPhotoPage = CameraPhotoPage();
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
-
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -51,7 +53,7 @@ class _PhotoPageState extends State<PhotoPage>
           ),
         ),
         body: TabBarView(
-          children: [PhonePhotoPage(), CameraPhotoPage()],
+          children: [_phonePhotoPage, _cameraPhotoPage],
         ),
       ),
     );

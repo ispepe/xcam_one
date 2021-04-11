@@ -21,15 +21,8 @@ class PhotoViewRouter implements IRouterProvider {
   @override
   void initRouter(FluroRouter router) {
     router.define(photoView, handler: Handler(handlerFunc: (_, params) {
-      params['galleryItems']!.forEach((element) {
-        debugPrint('element == ${element.toString()}');
-      });
-
       return PhotoViewPage(
-          galleryItems: params['galleryItems']!
-              .map((galleryItem) => PhotoViewGalleryOptions.fromJson(
-                  convert.jsonDecode(galleryItem)))
-              .toList());
+          currentIndex: int.parse(params['currentIndex']?.first ?? '0'));
     }));
   }
 }

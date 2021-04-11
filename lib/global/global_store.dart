@@ -21,6 +21,7 @@ import 'package:provider/provider.dart';
 
 import 'package:xcam_one/global/constants.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
+import 'package:xcam_one/notifiers/photo_provider.dart';
 
 enum ECON {
   baseUrl, // 后台服务路径
@@ -50,7 +51,7 @@ class GlobalStore {
   /// 移除所有监听
   static void removeListener() {}
 
-  static init(bool isDebug) async {
+  static Future<void> init(bool isDebug) async {
     _isDebug = isDebug;
 
     /// sp初始化
@@ -68,7 +69,7 @@ class GlobalStore {
 
     first = SpUtil.getBool(SharedPreferencesKeys.showWelcome) ?? true;
     if (first) {
-      SpUtil.putBool(SharedPreferencesKeys.showWelcome, false);
+      await SpUtil.putBool(SharedPreferencesKeys.showWelcome, false);
     }
 
     /// TODO: 3/29/21 待处理 此处配置相机连接信息
@@ -92,4 +93,6 @@ class GlobalStore {
   }
 
   static VlcPlayerController? videoPlayerController;
+
+  final provider = PhotoProvider();
 }

@@ -8,6 +8,8 @@
  * Created by Angus
  */
 
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/foundation.dart';
@@ -108,7 +110,7 @@ class __MyAppState extends State<_MyApp> {
       backgroundColor: Colors.black54,
       textPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
       radius: 20.0,
-      position: ToastPosition.bottom,
+      position: ToastPosition.center,
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider.value(value: _themeState),

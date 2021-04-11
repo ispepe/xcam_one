@@ -18,9 +18,9 @@ import 'base_entity.dart';
 import 'error_handle.dart';
 
 /// 默认dio配置
-int _connectTimeout = 150000;
-int _receiveTimeout = 150000;
-int _sendTimeout = 100000;
+int _connectTimeout = 15000;
+int _receiveTimeout = 15000;
+int _sendTimeout = 10000;
 String _baseUrl = 'http://127.0.0.1/';
 List<Interceptor> _interceptors = [];
 
@@ -50,7 +50,9 @@ class DioUtils {
       connectTimeout: _connectTimeout,
       receiveTimeout: _receiveTimeout,
       sendTimeout: _sendTimeout,
-
+      headers: {
+        "accept":"*/*",
+      },
       /// dio默认json解析，这里指定返回UTF8字符串，自己处理解析。（可也以自定义Transformer实现）
       responseType: ResponseType.plain,
       validateStatus: (_) {

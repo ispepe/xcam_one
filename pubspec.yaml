@@ -63,7 +63,9 @@ dependencies:
   flutter_spinkit: ^5.0.0
 
   # 连接wifi https://github.com/flutter/plugins/tree/master/packages/connectivity/connectivity
-  connectivity: ^3.0.3
+  #  connectivity: ^3.0.3
+  wifi_info_flutter: ^2.0.0
+  connectivity_plus: ^1.0.0
 
   # Wi-Fi 查看wifi列表 https://github.com/alternadom/WiFiFlutter
   #  wifi_iot: ^0.3.0
@@ -88,6 +90,15 @@ dependencies:
 
   # xml to json  https://github.com/shamblett/xml2json
   xml2json: ^5.0.0
+
+  #  # 权限检测 https://github.com/Baseflow/flutter-permission-handler
+  #  permission_handler: ^6.1.1
+
+  # 相册管理
+  photo_manager: ^1.1.1
+
+  #
+  sticky_headers: ^0.2.0
 
   #dependency_overrides:
   #  http_parser: ^4.0.0

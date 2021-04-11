@@ -10,7 +10,7 @@
 
 class HttpApi {
   /// 心跳检测,返回成功即可
-  static const String heartbeat = '?custom=1/cmd=3016';
+  static const String heartbeat = '?custom=1&cmd=3016';
 
   /// 检测固件版本 WIFIAPP_CMD_VERSION
   static const String queryVersion = '?custom=1&cmd=3012';

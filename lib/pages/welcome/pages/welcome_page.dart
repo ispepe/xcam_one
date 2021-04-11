@@ -48,44 +48,48 @@ class _WelcomePageState extends State<WelcomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final top = MediaQuery.of(context).padding.top;
     final size = MediaQuery.of(context).size;
     final minWidth = 248.0;
 
+    final double height = size.height - top - kToolbarHeight;
     return Scaffold(
       body: Container(
         child: Stack(
           children: [
-            Container(
-              height: size.height,
-              width: size.width,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      currentEGuide.title,
-                      style: TextStyles.textBold28
-                          .copyWith(color: Theme.of(context).primaryColor),
+            Center(
+              child: Container(
+                height: height,
+                width: size.width,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        currentEGuide.title,
+                        style: TextStyles.textBold28
+                            .copyWith(color: Theme.of(context).primaryColor),
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 25),
-                    child: Text(currentEGuide.subTitle,
-                        textAlign: TextAlign.center,
-                        style: TextStyles.textMedium18
-                            .copyWith(color: Color(0xFF888888))),
-                  ),
-                  Container(
-                    height: size.height * 0.8,
-                    width: size.width,
-                    child: FadeInImage(
-                      image: AssetImage(currentEGuide.image),
-                      placeholder: MemoryImage(kTransparentImage),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 25),
+                      child: Text(currentEGuide.subTitle,
+                          textAlign: TextAlign.center,
+                          style: TextStyles.textMedium18
+                              .copyWith(color: Color(0xFF888888))),
                     ),
-                  ),
-                ],
+                    Container(
+                      height: height * 0.8,
+                      width: size.width,
+                      child: FadeInImage(
+                        image: AssetImage(currentEGuide.image),
+                        placeholder: MemoryImage(kTransparentImage),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             Align(

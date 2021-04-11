@@ -8,19 +8,15 @@
  *  Created by Pepe
  */
 
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
 import 'package:provider/provider.dart';
-import 'package:connectivity/connectivity.dart';
 import 'package:xcam_one/global/global_store.dart';
 import 'package:xcam_one/models/battery_level_entity.dart';
 
-import 'package:xcam_one/models/version_entity.dart';
-import 'package:xcam_one/models/wifi_app_mode_entity.dart';
 import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/pages/camera_connect/pages/camera_connect_page.dart';

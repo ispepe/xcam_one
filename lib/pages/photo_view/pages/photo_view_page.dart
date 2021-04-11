@@ -8,31 +8,20 @@
  *  Created by Pepe
  */
 
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
-import 'package:photo_view/photo_view.dart';
-import 'package:photo_view/photo_view_gallery.dart';
+import 'package:provider/provider.dart';
+import 'package:transparent_image/transparent_image.dart';
+import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/res/resources.dart';
 import 'package:xcam_one/routers/fluro_navigator.dart';
 
-class PhotoViewGalleryOptions {
-  PhotoViewGalleryOptions(this.image, this.tag);
-
-  PhotoViewGalleryOptions.fromJson(Map<dynamic, dynamic> json)
-      : image = json['image'],
-        tag = json['tag'];
-
-  String? image;
-  String? tag;
-
-  Map toJson() {
-    return {'image': image, 'tag': tag};
-  }
-}
-
 class PhotoViewPage extends StatefulWidget {
-  const PhotoViewPage({Key? key, required this.galleryItems}) : super(key: key);
+  const PhotoViewPage({Key? key, required this.currentIndex}) : super(key: key);
 
-  final List<PhotoViewGalleryOptions> galleryItems;
+  final int currentIndex;
 
   @override
   _PhotoViewPageState createState() => _PhotoViewPageState();
@@ -41,16 +30,22 @@ class PhotoViewPage extends StatefulWidget {
 class _PhotoViewPageState extends State<PhotoViewPage> {
   PageController? pageController;
 
+  late int _photoIndex;
+
+  String _currentImageSize = '0k';
+
   @override
   void initState() {
     super.initState();
-    // initialIndex
-    pageController = PageController(initialPage: 0);
+    _photoIndex = widget.currentIndex;
+    pageController = PageController(initialPage: widget.currentIndex);
   }
 
   @override
   Widget build(BuildContext context) {
     final line = Divider(color: Color(0xFF545458).withOpacity(0.65));
+    final globalState = context.read<GlobalState>();
+
     return Scaffold(
       appBar: AppBar(
         leading: GestureDetector(
@@ -70,6 +65,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                 backgroundColor: Colors.black54,
                 context: context,
                 builder: (BuildContext context) {
+                  final entity = globalState.photos[_photoIndex];
                   return Container(
                     padding: const EdgeInsets.all(12),
                     child: Column(
@@ -110,7 +106,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                                     .copyWith(color: Colors.white),
                               ),
                               Text(
-                                '8f4741b4eae85ee4871d034a1e51a44',
+                                entity.title!,
                                 style: TextStyles.textSize14
                                     .copyWith(color: Color(0xFFBFBFBF)),
                               ),
@@ -129,7 +125,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                                     .copyWith(color: Colors.white),
                               ),
                               Text(
-                                '2021.03.20',
+                                entity.createDateTime.toString(),
                                 style: TextStyles.textSize14
                                     .copyWith(color: Color(0xFFBFBFBF)),
                               ),
@@ -148,7 +144,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                                     .copyWith(color: Colors.white),
                               ),
                               Text(
-                                '375x812',
+                                '${entity.width}x${entity.height}',
                                 style: TextStyles.textSize14
                                     .copyWith(color: Color(0xFFBFBFBF)),
                               ),
@@ -167,7 +163,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                                     .copyWith(color: Colors.white),
                               ),
                               Text(
-                                '12.96MB',
+                                '$_currentImageSize',
                                 style: TextStyles.textSize14
                                     .copyWith(color: Color(0xFFBFBFBF)),
                               ),
@@ -192,41 +188,39 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
           )
         ],
       ),
-      body: PhotoViewGallery.builder(
-        itemCount: widget.galleryItems.length,
-        scrollPhysics: const BouncingScrollPhysics(),
-        builder: (BuildContext context, int index) {
-          return PhotoViewGalleryPageOptions(
-            imageProvider: AssetImage(widget.galleryItems[index].image!),
-            initialScale: PhotoViewComputedScale.contained * 1,
-            minScale: PhotoViewComputedScale.contained * 0.8,
-            maxScale: PhotoViewComputedScale.covered * 1.2,
-            heroAttributes:
-                PhotoViewHeroAttributes(tag: widget.galleryItems[index].tag!),
+      body: PageView.builder(
+        controller: pageController,
+        itemCount: globalState.photos.length,
+        physics: const BouncingScrollPhysics(),
+        onPageChanged: onPageChanged,
+        itemBuilder: (BuildContext context, int index) {
+          final globalState = context.read<GlobalState>();
+          return FutureBuilder<Uint8List?>(
+            future: globalState.photos[index].originBytes,
+            builder: (_, s) {
+              if (!s.hasData) {
+                return Container();
+              }
+
+              final int length = s.data!.length;
+
+              _currentImageSize = (length / 1024) > 1024
+                  ? '${(length / 1024 / 1024).toStringAsFixed(2)}M'
+                  : '${(length / 1024).toStringAsFixed(2)}KB';
+
+              return FadeInImage(
+                placeholder: MemoryImage(kTransparentImage),
+                image: MemoryImage(s.data!),
+              );
+            },
           );
         },
-        loadingBuilder: (context, progress) => Center(
-          child: Container(
-            width: 20.0,
-            height: 20.0,
-            // child: CircularProgressIndicator(
-            //   value: _progress == null
-            //       ? null
-            //       : _progress.cumulativeBytesLoaded /
-            //           _progress.expectedTotalBytes,
-            // ),
-          ),
-        ),
-        backgroundDecoration: const BoxDecoration(
-          color: Colors.white,
-        ),
-        pageController: pageController,
-        onPageChanged: onPageChanged,
       ),
     );
   }
 
   void onPageChanged(int index) {
     debugPrint('index = $index');
+    _photoIndex = index;
   }
 }

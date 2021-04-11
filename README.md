@@ -26,3 +26,7 @@ Widget text = DefaultTextStyle.merge(
   ),
 );
 ```
+
+### 启动页
+
+``https://flutter.dev/docs/development/ui/advanced/splash-screen``
