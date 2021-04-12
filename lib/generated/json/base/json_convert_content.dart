@@ -13,6 +13,10 @@ import 'package:xcam_one/models/capture_entity.dart';
 import 'package:xcam_one/generated/json/capture_entity_helper.dart';
 import 'package:xcam_one/models/version_entity.dart';
 import 'package:xcam_one/generated/json/version_entity_helper.dart';
+import 'package:xcam_one/models/camera_file_entity.dart';
+import 'package:xcam_one/generated/json/camera_file_entity_helper.dart';
+import 'package:xcam_one/models/disk_free_space_entity.dart';
+import 'package:xcam_one/generated/json/disk_free_space_entity_helper.dart';
 
 class JsonConvert<T> {
 	T fromJson(Map<String, dynamic> json) {
@@ -46,7 +50,19 @@ class JsonConvert<T> {
 			case VersionEntity:
 				return versionEntityFromJson(data as VersionEntity, json) as T;
 			case VersionFunction:
-				return versionFunctionFromJson(data as VersionFunction, json) as T;    }
+				return versionFunctionFromJson(data as VersionFunction, json) as T;
+			case CameraFileListEntity:
+				return cameraFileListEntityFromJson(data as CameraFileListEntity, json) as T;
+			case CameraFileList:
+				return cameraFileListFromJson(data as CameraFileList, json) as T;
+			case CameraFile:
+				return cameraFileFromJson(data as CameraFile, json) as T;
+			case CameraFileInfo:
+				return cameraFileInfoFromJson(data as CameraFileInfo, json) as T;
+			case DiskFreeSpaceEntity:
+				return diskFreeSpaceEntityFromJson(data as DiskFreeSpaceEntity, json) as T;
+			case DiskFreeSpaceFunction:
+				return diskFreeSpaceFunctionFromJson(data as DiskFreeSpaceFunction, json) as T;    }
     return data as T;
   }
 
@@ -74,6 +90,18 @@ class JsonConvert<T> {
 				return versionEntityToJson(data as VersionEntity);
 			case VersionFunction:
 				return versionFunctionToJson(data as VersionFunction);
+			case CameraFileListEntity:
+				return cameraFileListEntityToJson(data as CameraFileListEntity);
+			case CameraFileList:
+				return cameraFileListToJson(data as CameraFileList);
+			case CameraFile:
+				return cameraFileToJson(data as CameraFile);
+			case CameraFileInfo:
+				return cameraFileInfoToJson(data as CameraFileInfo);
+			case DiskFreeSpaceEntity:
+				return diskFreeSpaceEntityToJson(data as DiskFreeSpaceEntity);
+			case DiskFreeSpaceFunction:
+				return diskFreeSpaceFunctionToJson(data as DiskFreeSpaceFunction);
 			}
 			return data as T;
 		}
@@ -102,6 +130,18 @@ class JsonConvert<T> {
 			return VersionEntity().fromJson(json);
 		}	else if(type == (VersionFunction).toString()){
 			return VersionFunction().fromJson(json);
+		}	else if(type == (CameraFileListEntity).toString()){
+			return CameraFileListEntity().fromJson(json);
+		}	else if(type == (CameraFileList).toString()){
+			return CameraFileList().fromJson(json);
+		}	else if(type == (CameraFile).toString()){
+			return CameraFile().fromJson(json);
+		}	else if(type == (CameraFileInfo).toString()){
+			return CameraFileInfo().fromJson(json);
+		}	else if(type == (DiskFreeSpaceEntity).toString()){
+			return DiskFreeSpaceEntity().fromJson(json);
+		}	else if(type == (DiskFreeSpaceFunction).toString()){
+			return DiskFreeSpaceFunction().fromJson(json);
 		}	
 		return null;
 	}
@@ -130,6 +170,18 @@ class JsonConvert<T> {
 			return data.map<VersionEntity>((e) => VersionEntity().fromJson(e)).toList() as M;
 		}	else if(<VersionFunction>[] is M){
 			return data.map<VersionFunction>((e) => VersionFunction().fromJson(e)).toList() as M;
+		}	else if(<CameraFileListEntity>[] is M){
+			return data.map<CameraFileListEntity>((e) => CameraFileListEntity().fromJson(e)).toList() as M;
+		}	else if(<CameraFileList>[] is M){
+			return data.map<CameraFileList>((e) => CameraFileList().fromJson(e)).toList() as M;
+		}	else if(<CameraFile>[] is M){
+			return data.map<CameraFile>((e) => CameraFile().fromJson(e)).toList() as M;
+		}	else if(<CameraFileInfo>[] is M){
+			return data.map<CameraFileInfo>((e) => CameraFileInfo().fromJson(e)).toList() as M;
+		}	else if(<DiskFreeSpaceEntity>[] is M){
+			return data.map<DiskFreeSpaceEntity>((e) => DiskFreeSpaceEntity().fromJson(e)).toList() as M;
+		}	else if(<DiskFreeSpaceFunction>[] is M){
+			return data.map<DiskFreeSpaceFunction>((e) => DiskFreeSpaceFunction().fromJson(e)).toList() as M;
 		}
 		throw Exception("not fond");
 	}

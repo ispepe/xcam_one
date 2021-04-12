@@ -11,13 +11,11 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
-import 'package:transparent_image/transparent_image.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
 
-import 'package:xcam_one/pages/photo_view/pages/photo_view_page.dart';
 import 'package:xcam_one/pages/photo_view/photo_view_router.dart';
 import 'package:xcam_one/res/resources.dart';
 import 'package:xcam_one/routers/fluro_navigator.dart';
@@ -59,6 +57,12 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
       return Container(
         height: size.height,
         width: size.width,
+        child: Center(
+          child: SpinKitThreeBounce(
+            color: Theme.of(context).accentColor,
+            size: 48,
+          ),
+        ),
       );
     }
 
@@ -82,7 +86,7 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.data != null) {
-          return InkWell(
+          return GestureDetector(
             onTap: () {
               NavigatorUtils.push(
                   context, '${PhotoViewRouter.photoView}?currentIndex=$index');
@@ -97,29 +101,12 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
         }
 
         return Center(
-          child: Text('加载中...'),
-        );
+            child: SpinKitCircle(
+          color: Theme.of(context).accentColor,
+          size: 24,
+        ));
       },
     );
-  }
-
-  Future<void> showInfo(AssetEntity entity) async {
-    if (entity.type == AssetType.video) {
-      var file = await entity.file;
-      if (file == null) {
-        return;
-      }
-      var length = file.lengthSync();
-      var size = entity.size;
-      print(
-        "${entity.id} length = $length, "
-        "size = $size, "
-        "dateTime = ${entity.createDateTime}",
-      );
-    } else {
-      final Size size = entity.size;
-      print("${entity.id} size = $size, dateTime = ${entity.createDateTime}");
-    }
   }
 
   Widget _buildPhotoGroup(BuildContext context, GlobalState globalState,
@@ -128,11 +115,11 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
       children: [
         Container(
           color: Colors.white,
-          padding: EdgeInsets.all(12.0),
+          padding: EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
           child: Text(
             key,
-            style: TextStyles.textBold16.copyWith(color: Colors.black),
+            style: TextStyles.textSize16.copyWith(color: Colors.black),
           ),
         ),
         Container(

@@ -8,7 +8,6 @@
  *  Created by Pepe
  */
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
@@ -16,6 +15,8 @@ import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:provider/provider.dart';
 import 'package:xcam_one/global/global_store.dart';
 import 'package:xcam_one/models/battery_level_entity.dart';
+import 'package:xcam_one/models/disk_free_space_entity.dart';
+import 'package:xcam_one/models/wifi_app_mode_entity.dart';
 
 import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
@@ -27,46 +28,103 @@ class CameraPage extends StatefulWidget {
   _CameraPageState createState() => _CameraPageState();
 }
 
-class _CameraPageState extends State<CameraPage>
-    with AutomaticKeepAliveClientMixin {
+class _CameraPageState extends State<CameraPage> {
+  String _freeSpace = '0KB';
+
+  /// 剩余空间
+  int _freeSpaceData = 0;
+
+  /// 总空间
+  int _countSpaceData = 0;
+
   @override
   void initState() {
     super.initState();
 
-    GlobalStore.videoPlayerController = VlcPlayerController.network(
-      HttpApi.rtsp,
-      hwAcc: HwAcc.AUTO,
-      autoPlay: true,
-      autoInitialize: true,
-      onInit: () async {
-        await GlobalStore.videoPlayerController?.startRendererScanning();
-        // await GlobalStore.videoPlayerController?.play();
-      },
-      options: VlcPlayerOptions(
-          advanced: VlcAdvancedOptions([
-            VlcAdvancedOptions.clockJitter(0),
-            VlcAdvancedOptions.clockSynchronization(0),
-            // VlcAdvancedOptions.fileCaching(0),
-            VlcAdvancedOptions.networkCaching(2000),
-            // VlcAdvancedOptions.liveCaching(0)
-          ]),
-          extras: [
-            '--network-caching=3000',
-            '--live-caching=3000',
-            '--udp-caching=1000',
-            '--tcp-caching=1000',
-            '--realrtsp-caching=1000',
-          ]
-          // video: VlcVideoOptions([
-          //   VlcVideoOptions.dropLateFrames(true),
-          //   VlcVideoOptions.skipFrames(true)
-          // ]),
-          ),
-    );
+    GlobalStore.videoPlayerController = null;
 
     // if (!GlobalStore.videoPlayerController!.value.isInitialized) {
     //   GlobalStore.videoPlayerController?.initialize();
     // }
+
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      /// 刷新可用空间（每次拍照后都需跟新空间）
+      _diskFreeSpaceCheck();
+
+      DioUtils.instance.requestNetwork<WifiAppModeEntity>(Method.get,
+          HttpApi.appModeChange + WifiAppMode.wifiAppModeMovie.index.toString(),
+          onSuccess: (modeEntity) {
+        GlobalStore.videoPlayerController = VlcPlayerController.network(
+          HttpApi.rtsp,
+          hwAcc: HwAcc.AUTO,
+          autoPlay: true,
+          autoInitialize: true,
+          onInit: () async {
+            await GlobalStore.videoPlayerController?.startRendererScanning();
+            // await GlobalStore.videoPlayerController?.play();
+          },
+          options: VlcPlayerOptions(
+              advanced: VlcAdvancedOptions([
+                VlcAdvancedOptions.clockJitter(0),
+                VlcAdvancedOptions.clockSynchronization(0),
+                // VlcAdvancedOptions.fileCaching(0),
+                VlcAdvancedOptions.networkCaching(2000),
+                // VlcAdvancedOptions.liveCaching(0)
+              ]),
+              extras: [
+                '--network-caching=3000',
+                '--live-caching=3000',
+                '--udp-caching=1000',
+                '--tcp-caching=1000',
+                '--realrtsp-caching=1000',
+              ]
+              // video: VlcVideoOptions([
+              //   VlcVideoOptions.dropLateFrames(true),
+              //   VlcVideoOptions.skipFrames(true)
+              // ]),
+              ),
+        );
+      }, onError: (code, msg) {});
+    });
+  }
+
+  /// 3022获取硬件容量
+  Future<void> _diskFreeSpaceCheck() async {
+    await DioUtils.instance.requestNetwork<DiskFreeSpaceEntity>(
+        Method.get, HttpApi.getDiskFreeSpace, onSuccess: (data) {
+      _freeSpaceData = data?.function?.space ?? 0;
+      double size = _freeSpaceData.toDouble();
+
+      int i = 0;
+      while (size > 1024) {
+        size = size / 1024;
+        i++;
+        if (i == 4) break;
+      }
+
+      _freeSpace = size.toStringAsFixed(2);
+      switch (i) {
+        case 0:
+          _freeSpace += 'B';
+          break;
+        case 1:
+          _freeSpace += 'KB';
+          break;
+        case 2:
+          _freeSpace += 'M';
+          break;
+        case 3:
+          _freeSpace += 'GB';
+          break;
+        case 4:
+          _freeSpace += 'TB';
+          break;
+      }
+
+      setState(() {});
+    }, onError: (code, message) {
+      debugPrint('code: $code, message: $message');
+    });
   }
 
   @override
@@ -80,7 +138,6 @@ class _CameraPageState extends State<CameraPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return Container(
       child: Consumer<GlobalState>(
           builder: (BuildContext context, globalState, Widget? child) {
@@ -166,11 +223,11 @@ class _CameraPageState extends State<CameraPage>
                   child: SizedBox(),
                 ),
                 RichText(
-                  text: TextSpan(text: '28GB', style: textStyle, children: [
+                  text: TextSpan(text: '64GB', style: textStyle, children: [
                     TextSpan(
-                        text: '/128GB',
+                        text: '/$_freeSpace',
                         style: textStyle.copyWith(
-                          fontSize: 8,
+                          fontSize: 10,
                         ))
                   ]),
                 ),
@@ -234,6 +291,22 @@ class _CameraPageState extends State<CameraPage>
   Container _buildCamera(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
+    final loading = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          '画面加载中',
+          style: TextStyles.textBold18.copyWith(
+            color: Colors.white,
+          ),
+        ),
+        SpinKitThreeBounce(
+          color: Colors.white,
+          size: 24,
+        )
+      ],
+    );
     return Container(
       color: Color(0xFF686868),
       height: size.width / 2,
@@ -244,14 +317,16 @@ class _CameraPageState extends State<CameraPage>
                 VlcPlayer(
                   aspectRatio: 2 / 1,
                   controller: GlobalStore.videoPlayerController!,
-                  placeholder: Center(child: CircularProgressIndicator()),
+                  placeholder: Center(child: loading),
                 ),
                 Provider.of<GlobalState>(context).isCapture
                     ? _buildCaptureInfo()
                     : SizedBox()
               ],
             )
-          : SizedBox()),
+          : Center(
+              child: loading,
+            )),
     );
   }
 
@@ -295,7 +370,4 @@ class _CameraPageState extends State<CameraPage>
       ),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }
