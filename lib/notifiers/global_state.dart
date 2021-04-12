@@ -13,6 +13,7 @@ import 'package:photo_manager/photo_manager.dart';
 import "package:collection/collection.dart";
 
 import 'package:xcam_one/models/battery_level_entity.dart';
+import 'package:xcam_one/models/camera_file_entity.dart';
 
 /// 全局状态，设置会自动检测刷新
 class GlobalState extends ChangeNotifier {
@@ -102,6 +103,24 @@ class GlobalState extends ChangeNotifier {
       }
     });
 
+    notifyListeners();
+  }
+
+  List<CameraFile>? _allFile;
+
+  Map<String, List<CameraFile>>? _groupFileList;
+
+  List<CameraFile>? get allFile => _allFile;
+
+  set allFile(List<CameraFile>? value) {
+    _allFile = value;
+    notifyListeners();
+  }
+
+  Map<String, List<CameraFile>>? get groupFileList => _groupFileList;
+
+  set groupFileList(Map<String, List<CameraFile>>? value) {
+    _groupFileList = value;
     notifyListeners();
   }
 }

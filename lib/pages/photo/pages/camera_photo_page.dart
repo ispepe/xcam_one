@@ -18,12 +18,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import "package:collection/collection.dart";
 
-import 'package:transparent_image/transparent_image.dart';
 import 'package:xcam_one/models/camera_file_entity.dart';
 import 'package:xcam_one/models/wifi_app_mode_entity.dart';
 import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
-import 'package:xcam_one/pages/photo_view/pages/photo_view_page.dart';
 import 'package:xcam_one/pages/photo_view/photo_view_router.dart';
 
 import 'package:xcam_one/res/styles.dart';
@@ -39,9 +37,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     with AutomaticKeepAliveClientMixin {
   bool _isShowLoading = true;
 
-  List<CameraFile>? _allFile;
-
-  Map<String, List<CameraFile>>? _groupFileList;
+  late GlobalState globalState;
 
   /// 获取全景相机
   @override
@@ -65,12 +61,13 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
   Future<void> _getFileList() async {
     DioUtils.instance.asyncRequestNetwork<CameraFileListEntity>(
         Method.get, HttpApi.getFileList, onSuccess: (data) {
-      /// 进行分组
-      _allFile = data?.list?.allFile;
-      if (_allFile != null) {
+      globalState.allFile = data?.list?.allFile;
+
+      if (globalState.allFile != null) {
         final now = DateTime.now();
-        final format = DateFormat('yyyy/MM/dd hh:mm:ss');
-        _groupFileList = groupBy(_allFile!, (CameraFile photo) {
+        globalState.groupFileList =
+            groupBy(globalState.allFile!, (CameraFile photo) {
+          final format = DateFormat('yyyy/MM/dd hh:mm:ss');
           final createTime = format.parse(photo.file!.time!);
           if (now.year != createTime.year) {
             // ignore: lines_longer_than_80_chars
@@ -104,7 +101,8 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final globalState = context.read<GlobalState>();
+    globalState = context.read<GlobalState>();
+
     if (globalState.isConnect) {
       return _buildCameraPhoto(context);
     } else {
@@ -191,12 +189,12 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     }
 
     return Container(
-      child: _groupFileList != null
+      child: globalState.groupFileList != null
           ? ListView.builder(
-              itemCount: _groupFileList?.length,
+              itemCount: globalState.groupFileList?.length,
               shrinkWrap: true,
               itemBuilder: (context, index) {
-                final keys = _groupFileList?.keys.toList();
+                final keys = globalState.groupFileList?.keys.toList();
                 return _buildPhotoGroup(context, keys![index], index);
               },
             )
@@ -218,11 +216,12 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
         ),
         Container(
           padding: EdgeInsets.symmetric(horizontal: 4.0),
-          child: _groupFileList != null && _groupFileList![key] != null
+          child: globalState.groupFileList != null &&
+                  globalState.groupFileList![key] != null
               ? GridView.builder(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
-                  itemCount: _groupFileList![key]!.length,
+                  itemCount: globalState.groupFileList![key]!.length,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
                     childAspectRatio: 1.0,
@@ -231,18 +230,20 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
                   ),
                   itemBuilder: (BuildContext context, int index) {
                     int currentIndex = 0;
-                    final List<String> keys = _groupFileList!.keys.toList();
+                    final List<String> keys =
+                        globalState.groupFileList!.keys.toList();
                     for (int i = 0; i < keys.length; i++) {
                       if (keys[i].contains(key)) {
                         currentIndex += index;
                         break;
                       }
-                      currentIndex += _groupFileList![keys[i]]!.length;
+                      currentIndex +=
+                          globalState.groupFileList![keys[i]]!.length;
                     }
 
                     return _buildPhoto(
                       context,
-                      _groupFileList![key]![index],
+                      globalState.groupFileList![key]![index],
                       currentIndex,
                     );
                   })
@@ -259,7 +260,10 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     final url = 'http://192.168.1.254/$filePath${HttpApi.getThumbnail}';
 
     return GestureDetector(
-
+      onTap: () {
+        NavigatorUtils.push(context,
+            '${PhotoViewRouter.photoView}?currentIndex=$index&type=camera');
+      },
       child: CachedNetworkImage(
         width: double.infinity,
         height: double.infinity,

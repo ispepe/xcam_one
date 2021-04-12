@@ -88,8 +88,9 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
             snapshot.data != null) {
           return GestureDetector(
             onTap: () {
-              NavigatorUtils.push(
-                  context, '${PhotoViewRouter.photoView}?currentIndex=$index');
+              NavigatorUtils.push(context,
+                  // ignore: lines_longer_than_80_chars
+                  '${PhotoViewRouter.photoView}?currentIndex=$index&type=photo');
             },
             child: Image.memory(
               snapshot.data!,

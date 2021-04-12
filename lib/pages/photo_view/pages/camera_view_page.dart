@@ -8,32 +8,34 @@
  *  Created by Pepe
  */
 
+import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
-import 'package:intl/intl.dart';
-
+import 'package:xcam_one/models/camera_file_entity.dart';
+import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/res/resources.dart';
 import 'package:xcam_one/routers/fluro_navigator.dart';
 
-class PhotoViewPage extends StatefulWidget {
-  const PhotoViewPage({Key? key, required this.currentIndex}) : super(key: key);
+class CameraViewPage extends StatefulWidget {
+  const CameraViewPage({Key? key, required this.currentIndex})
+      : super(key: key);
 
   final int currentIndex;
 
   @override
-  _PhotoViewPageState createState() => _PhotoViewPageState();
+  _CameraViewPageState createState() => _CameraViewPageState();
 }
 
-class _PhotoViewPageState extends State<PhotoViewPage> {
+class _CameraViewPageState extends State<CameraViewPage> {
   PageController? pageController;
 
   late int _photoIndex;
-
-  String _currentImageSize = '0k';
 
   late GlobalState globalState;
 
@@ -63,12 +65,18 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
         actions: [
           GestureDetector(
             onTap: () {
-              final format = DateFormat('yyyy/MM/dd hh:mm:ss');
               showModalBottomSheet(
                 backgroundColor: Colors.black54,
                 context: context,
                 builder: (BuildContext context) {
-                  final entity = globalState.photos[_photoIndex];
+                  final CameraFileInfo entity =
+                      globalState.allFile![_photoIndex].file!;
+                  final int length = int.parse(entity.size!);
+
+                  final String _currentImageSize = (length / 1024) > 1024
+                      ? '${(length / 1024 / 1024).toStringAsFixed(2)}M'
+                      : '${(length / 1024).toStringAsFixed(2)}KB';
+
                   return Container(
                     padding: const EdgeInsets.all(12),
                     child: Column(
@@ -109,7 +117,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                                     .copyWith(color: Colors.white),
                               ),
                               Text(
-                                entity.title!,
+                                entity.name!,
                                 style: TextStyles.textSize14
                                     .copyWith(color: Color(0xFFBFBFBF)),
                               ),
@@ -128,7 +136,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                                     .copyWith(color: Colors.white),
                               ),
                               Text(
-                                format.format(entity.createDateTime),
+                                entity.time.toString(),
                                 style: TextStyles.textSize14
                                     .copyWith(color: Color(0xFFBFBFBF)),
                               ),
@@ -136,6 +144,8 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                           ),
                         ),
                         line,
+
+                        /// NOTE: 4/12/21 待注意 FW说固定即可
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           child: Row(
@@ -147,7 +157,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                                     .copyWith(color: Colors.white),
                               ),
                               Text(
-                                '${entity.width}x${entity.height}',
+                                '4608x3456',
                                 style: TextStyles.textSize14
                                     .copyWith(color: Color(0xFFBFBFBF)),
                               ),
@@ -198,30 +208,28 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
   PageView _buildBody() {
     return PageView.builder(
       controller: pageController,
-      itemCount: globalState.photos.length,
+      itemCount: globalState.allFile?.length,
       physics: const BouncingScrollPhysics(),
       onPageChanged: onPageChanged,
       itemBuilder: (BuildContext context, int index) {
-        /// TODO: 4/12/21 待处理 图片需要做缓存
-        return FutureBuilder<Uint8List?>(
-          future: globalState.photos[index].originBytes,
-          builder: (_, s) {
-            if (!s.hasData) {
-              return Container();
-            }
+        String filePath = globalState.allFile![index].file!.filePath!;
+        filePath = filePath.substring(3, filePath.length);
+        filePath = filePath.replaceAll('\\', '/');
+        final url = 'http://192.168.1.254/$filePath${HttpApi.getScreennail}';
 
-            final int length = s.data!.length;
-
-            _currentImageSize = (length / 1024) > 1024
-                ? '${(length / 1024 / 1024).toStringAsFixed(2)}M'
-                : '${(length / 1024).toStringAsFixed(2)}KB';
-
-            return FadeInImage(
-              placeholder: MemoryImage(kTransparentImage),
-              image: MemoryImage(s.data!),
-              fit: BoxFit.contain,
-            );
+        return CachedNetworkImage(
+          width: double.infinity,
+          height: double.infinity,
+          fit: BoxFit.contain,
+          placeholder: (BuildContext context, url) {
+            return Center(
+                child: SpinKitCircle(
+              color: Theme.of(context).accentColor,
+              size: 24,
+            ));
           },
+          errorWidget: (context, url, error) => Icon(Icons.photo_outlined),
+          imageUrl: Uri.encodeFull(url),
         );
       },
     );

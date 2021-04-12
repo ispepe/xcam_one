@@ -46,7 +46,7 @@ class HttpApi {
   static const String getThumbnail = '?custom=1&cmd=4001';
 
   /// 获取显示手机显示图片 http://192.168.1.254/NOVATEK/PHOTO/20210402_144607A.JPG?custom=1&cmd=4002
-  static const String getScreennail = '?custom=1&cmd=4001';
+  static const String getScreennail = '?custom=1&cmd=4002';
 
   /// 删除照片 Http://192.168.1.254/?custom=1&cmd=4003&str=A:\CARDV\PHOTO\2014_0506_000000.0001.JPG
 
