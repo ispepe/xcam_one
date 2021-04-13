@@ -48,7 +48,6 @@ class _CameraViewPageState extends State<CameraViewPage> {
 
   @override
   Widget build(BuildContext context) {
-    final line = Divider(color: Color(0xFF545458).withOpacity(0.65));
     globalState = context.read<GlobalState>();
 
     return Scaffold(
@@ -57,16 +56,18 @@ class _CameraViewPageState extends State<CameraViewPage> {
           onTap: () => NavigatorUtils.goBack(context),
           child: Icon(
             Icons.arrow_back_ios,
-            color: Colors.white,
+            color: Colors.black,
           ),
         ),
-        backgroundColor: Colors.black45,
         elevation: 0,
         actions: [
           GestureDetector(
             onTap: () {
               showModalBottomSheet(
-                backgroundColor: Colors.black54,
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 context: context,
                 builder: (BuildContext context) {
                   final CameraFileInfo entity =
@@ -76,6 +77,9 @@ class _CameraViewPageState extends State<CameraViewPage> {
                   final String _currentImageSize = (length / 1024) > 1024
                       ? '${(length / 1024 / 1024).toStringAsFixed(2)}M'
                       : '${(length / 1024).toStringAsFixed(2)}KB';
+
+                  final line = Divider(color: Color(0xFFF5F5F5));
+                  final valueColor = Color(0xFFBFBFBF);
 
                   return Container(
                     padding: const EdgeInsets.all(12),
@@ -90,7 +94,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
                               Text(
                                 '详细信息',
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Colors.white),
+                                    .copyWith(color: Colors.black),
                               ),
                               GestureDetector(
                                 onTap: () {
@@ -98,7 +102,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
                                 },
                                 child: Icon(
                                   Icons.close_outlined,
-                                  color: Colors.white,
+                                  color: Colors.black,
                                   size: 24,
                                 ),
                               )
@@ -114,12 +118,12 @@ class _CameraViewPageState extends State<CameraViewPage> {
                               Text(
                                 '文件名',
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Colors.white),
+                                    .copyWith(color: Colors.black),
                               ),
                               Text(
                                 entity.name!,
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Color(0xFFBFBFBF)),
+                                    .copyWith(color: valueColor),
                               ),
                             ],
                           ),
@@ -133,12 +137,12 @@ class _CameraViewPageState extends State<CameraViewPage> {
                               Text(
                                 '拍摄时间',
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Colors.white),
+                                    .copyWith(color: Colors.black),
                               ),
                               Text(
                                 entity.time.toString(),
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Color(0xFFBFBFBF)),
+                                    .copyWith(color: valueColor),
                               ),
                             ],
                           ),
@@ -154,12 +158,12 @@ class _CameraViewPageState extends State<CameraViewPage> {
                               Text(
                                 '分辨率',
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Colors.white),
+                                    .copyWith(color: Colors.black),
                               ),
                               Text(
                                 '4608x3456',
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Color(0xFFBFBFBF)),
+                                    .copyWith(color: valueColor),
                               ),
                             ],
                           ),
@@ -173,12 +177,12 @@ class _CameraViewPageState extends State<CameraViewPage> {
                               Text(
                                 '图片大小',
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Colors.white),
+                                    .copyWith(color: Colors.black),
                               ),
                               Text(
                                 '$_currentImageSize',
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Color(0xFFBFBFBF)),
+                                    .copyWith(color: valueColor),
                               ),
                             ],
                           ),
@@ -193,7 +197,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Image.asset(
-                'assets/images/more.png',
+                'assets/images/more_back.png',
                 width: 32,
                 height: 32,
               ),

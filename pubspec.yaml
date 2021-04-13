@@ -101,7 +101,11 @@ dependencies:
   sticky_headers: ^0.2.0
 
   cached_network_image: ^3.0.0
+  # 包含图片编辑功能、缩放平移操作
+  extended_image: ^4.0.1
 
+  # 按钮按下动画放大缩小动画效果
+  # bouncing_widget
   #dependency_overrides:
   #  http_parser: ^4.0.0
   #  plugin_platform_interface: ^2.0.0

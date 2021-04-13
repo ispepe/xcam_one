@@ -46,29 +46,31 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
 
   @override
   Widget build(BuildContext context) {
-    final line = Divider(color: Color(0xFF545458).withOpacity(0.65));
     globalState = context.read<GlobalState>();
-
     return Scaffold(
       appBar: AppBar(
         leading: GestureDetector(
           onTap: () => NavigatorUtils.goBack(context),
           child: Icon(
             Icons.arrow_back_ios,
-            color: Colors.white,
+            color: Colors.black,
           ),
         ),
-        backgroundColor: Colors.black45,
         elevation: 0,
         actions: [
           GestureDetector(
             onTap: () {
-              final format = DateFormat('yyyy/MM/dd hh:mm:ss');
               showModalBottomSheet(
-                backgroundColor: Colors.black54,
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 context: context,
                 builder: (BuildContext context) {
+                  final format = DateFormat('yyyy/MM/dd hh:mm:ss');
                   final entity = globalState.photos[_photoIndex];
+                  final line = Divider(color: Color(0xFFF5F5F5));
+                  final valueColor = Color(0xFFBFBFBF);
                   return Container(
                     padding: const EdgeInsets.all(12),
                     child: Column(
@@ -82,7 +84,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                               Text(
                                 '详细信息',
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Colors.white),
+                                    .copyWith(color: Colors.black),
                               ),
                               GestureDetector(
                                 onTap: () {
@@ -90,7 +92,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                                 },
                                 child: Icon(
                                   Icons.close_outlined,
-                                  color: Colors.white,
+                                  color: Colors.black,
                                   size: 24,
                                 ),
                               )
@@ -106,12 +108,12 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                               Text(
                                 '文件名',
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Colors.white),
+                                    .copyWith(color: Colors.black),
                               ),
                               Text(
                                 entity.title!,
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Color(0xFFBFBFBF)),
+                                    .copyWith(color: valueColor),
                               ),
                             ],
                           ),
@@ -125,12 +127,12 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                               Text(
                                 '拍摄时间',
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Colors.white),
+                                    .copyWith(color: Colors.black),
                               ),
                               Text(
                                 format.format(entity.createDateTime),
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Color(0xFFBFBFBF)),
+                                    .copyWith(color: valueColor),
                               ),
                             ],
                           ),
@@ -144,12 +146,12 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                               Text(
                                 '分辨率',
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Colors.white),
+                                    .copyWith(color: Colors.black),
                               ),
                               Text(
                                 '${entity.width}x${entity.height}',
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Color(0xFFBFBFBF)),
+                                    .copyWith(color: valueColor),
                               ),
                             ],
                           ),
@@ -163,12 +165,12 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                               Text(
                                 '图片大小',
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Colors.white),
+                                    .copyWith(color: Colors.black),
                               ),
                               Text(
                                 '$_currentImageSize',
                                 style: TextStyles.textSize14
-                                    .copyWith(color: Color(0xFFBFBFBF)),
+                                    .copyWith(color: valueColor),
                               ),
                             ],
                           ),
@@ -183,7 +185,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Image.asset(
-                'assets/images/more.png',
+                'assets/images/more_back.png',
                 width: 32,
                 height: 32,
               ),
