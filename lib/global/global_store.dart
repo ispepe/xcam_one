@@ -23,7 +23,7 @@ import 'package:xcam_one/global/constants.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/notifiers/photo_provider.dart';
 
-enum ECON {
+enum EConfig {
   baseUrl, // 后台服务路径
   defaultAvatar, // 默认头像
   protocolUrl, // 协议地址
@@ -43,7 +43,7 @@ class GlobalStore {
   static LocalStorage? localStorage;
 
   /// 所有获取配置的唯一入口
-  static Map<ECON, String> config = {};
+  static Map<EConfig, String> config = {};
 
   /// 缩略图OSS URL
   static final String thumbsUrl = "https://cdn.jing-pei.cn/avatar/";
@@ -75,17 +75,13 @@ class GlobalStore {
     /// TODO: 3/29/21 待处理 此处配置相机连接信息
     if (_isDebug) {
       config = {
-        ECON.baseUrl: 'http://127.0.0.1:8181/api/',
-        ECON.defaultAvatar:
-            thumbsUrl + 'test2.jpg?x-oss-process=style/same_mito',
-        ECON.protocolUrl: 'https://www.baidu.com',
+        EConfig.baseUrl: 'http://192.168.1.254/',
+        // ECON.protocolUrl: 'https://www.baidu.com',
       };
     } else {
       config = {
-        ECON.baseUrl: 'http://127.0.0.1:8181/api/',
-        ECON.defaultAvatar:
-            thumbsUrl + 'test1.jpg?x-oss-process=style/same_mito',
-        ECON.protocolUrl: 'https://www.baidu.com',
+        EConfig.baseUrl: 'http://192.168.1.254/',
+        // ECON.protocolUrl: 'https://www.baidu.com',
       };
     }
 

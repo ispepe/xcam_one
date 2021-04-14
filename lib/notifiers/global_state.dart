@@ -11,6 +11,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:photo_manager/photo_manager.dart';
 import "package:collection/collection.dart";
+import 'package:intl/intl.dart';
 
 import 'package:xcam_one/models/battery_level_entity.dart';
 import 'package:xcam_one/models/camera_file_entity.dart';
@@ -61,7 +62,7 @@ class GlobalState extends ChangeNotifier {
         maxWidth: 100000,
         minHeight: 0,
         maxHeight: 100000,
-        // ignoreSize: ignoreSize,
+        ignoreSize: true,
       ),
     );
 
@@ -108,19 +109,48 @@ class GlobalState extends ChangeNotifier {
 
   List<CameraFile>? _allFile;
 
-  Map<String, List<CameraFile>>? _groupFileList;
-
   List<CameraFile>? get allFile => _allFile;
+
+  void cameraFileRemoveAt(index) {
+    if (_allFile != null && allFile!.length > index) {
+      _allFile!.removeAt(index);
+    }
+    _groupByCameraFile();
+    notifyListeners();
+  }
 
   set allFile(List<CameraFile>? value) {
     _allFile = value;
+    _groupByCameraFile();
     notifyListeners();
   }
+
+  void _groupByCameraFile() {
+    if (_allFile != null) {
+      final now = DateTime.now();
+      _groupFileList = groupBy(_allFile!, (CameraFile photo) {
+        final format = DateFormat('yyyy/MM/dd hh:mm:ss');
+        final createTime = format.parse(photo.file!.time!);
+        if (now.year != createTime.year) {
+          // ignore: lines_longer_than_80_chars
+          return '${createTime.year}年${createTime.month}月${createTime.day}日';
+        } else if (createTime.month == now.month) {
+          if (now.day == createTime.day) {
+            return '今天';
+          } else if (now.day - 1 == createTime.day) {
+            return '昨天';
+          } else {
+            // ignore: lines_longer_than_80_chars
+            return '${createTime.month}月${createTime.day}日';
+          }
+        } else {
+          return '${createTime.month}月${createTime.day}日';
+        }
+      });
+    }
+  }
+
+  Map<String, List<CameraFile>>? _groupFileList;
 
   Map<String, List<CameraFile>>? get groupFileList => _groupFileList;
-
-  set groupFileList(Map<String, List<CameraFile>>? value) {
-    _groupFileList = value;
-    notifyListeners();
-  }
 }

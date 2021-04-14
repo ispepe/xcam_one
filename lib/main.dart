@@ -8,9 +8,6 @@
  * Created by Angus
  */
 
-import 'dart:io';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -19,16 +16,12 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:xcam_one/generated/l10n.dart';
-import 'package:xcam_one/net/intercept.dart';
-import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/locale_state.dart';
 
 import 'package:xcam_one/pages/splash.dart';
 import 'package:xcam_one/routers/page_not_found.dart';
 import 'package:xcam_one/routers/routers.dart';
 import 'package:xcam_one/utils/log_utils.dart';
-
-import 'global/constants.dart';
 
 import 'notifiers/global_state.dart';
 import 'notifiers/theme_state.dart';
@@ -75,32 +68,7 @@ class __MyAppState extends State<_MyApp> {
     super.initState();
 
     Log.init();
-    _initDio();
-
     Routes.configureRoutes();
-  }
-
-  void _initDio() {
-    final List<Interceptor> interceptors = [];
-
-    /// 统一添加身份验证请求头
-    // interceptors.add(AuthInterceptor());
-
-    /// 刷新Token
-    // interceptors.add(TokenInterceptor());
-
-    /// 打印Log(生产模式去除)
-    if (!Constant.inProduction) {
-      interceptors.add(LoggingInterceptor());
-    }
-
-    /// 适配数据(根据自己的数据结构，可自行选择添加)
-    interceptors.add(AdapterInterceptor());
-
-    setInitDio(
-      baseUrl: 'http://192.168.1.254/',
-      interceptors: interceptors,
-    );
   }
 
   @override
@@ -125,7 +93,8 @@ class __MyAppState extends State<_MyApp> {
             title: 'xCam One',
             theme: themeState.themeData(),
             darkTheme: themeState.themeData(isDarkMode: true),
-            themeMode: themeState.getThemeMode(),
+            themeMode: ThemeMode.light,
+            // themeState.getThemeMode(),
             localizationsDelegates: [
               GlobalCupertinoLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,

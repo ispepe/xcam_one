@@ -34,12 +34,20 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
     super.initState();
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
-      Provider.of<GlobalState>(context, listen: false)
-          .refreshGalleryList()
-          .then((value) {
-        setState(() {
-          _isShowLoading = false;
-        });
+      /// 先获取相机权限
+      PhotoManager.requestPermission().then((value) {
+        if (value) {
+          Provider.of<GlobalState>(context, listen: false)
+              .refreshGalleryList()
+              .then((value) {
+            setState(() {
+              _isShowLoading = false;
+            });
+          });
+        } else {
+          /// TODO: 4/14/21 待处理 如果相机没有权限，则先弹窗提醒再请求
+          PhotoManager.openSetting();
+        }
       });
     });
   }
@@ -52,6 +60,8 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
+    /// TODO: 4/14/21 待处理 增加下拉刷新
     final size = MediaQuery.of(context).size;
     if (_isShowLoading) {
       return Container(
@@ -88,7 +98,8 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
             snapshot.data != null) {
           return GestureDetector(
             onTap: () {
-              NavigatorUtils.push(context,
+              NavigatorUtils.push(
+                  context,
                   // ignore: lines_longer_than_80_chars
                   '${PhotoViewRouter.photoView}?currentIndex=$index&type=photo');
             },

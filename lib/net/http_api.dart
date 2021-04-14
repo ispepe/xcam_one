@@ -49,6 +49,7 @@ class HttpApi {
   static const String getScreennail = '?custom=1&cmd=4002';
 
   /// 删除照片 Http://192.168.1.254/?custom=1&cmd=4003&str=A:\CARDV\PHOTO\2014_0506_000000.0001.JPG
+  static const String deleteFile = '?custom=1&cmd=4003&str=';
 
   /// 格式化相册
 

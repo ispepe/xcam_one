@@ -47,7 +47,7 @@ class TokenInterceptor extends Interceptor {
 
       /// TODO: 4/6/21 待处理 此处刷新Token的地址应该配置
       final Response response =
-          await _tokenDio.post<dynamic>('lgn/refreshToken', data: params);
+      await _tokenDio.post<dynamic>('lgn/refreshToken', data: params);
       if (response.statusCode == ExceptionHandle.success) {
         return json.decode(response.data.toString())['access_token'] as String;
       }
@@ -139,11 +139,13 @@ class LoggingInterceptor extends Interceptor {
     }
 
     /// NOTE: 4/6/21 添加了对XML返回值的支持
-    final data = response.data.toString();
-    if (data.startsWith('<?xml')) {
-      Log.xmlString(response.data.toString());
-    } else {
-      Log.json(response.data.toString());
+    if (response.requestOptions.responseType != ResponseType.bytes) {
+      final data = response.data.toString();
+      if (data.startsWith('<?xml')) {
+        Log.xmlString(response.data.toString());
+      } else {
+        Log.json(response.data.toString());
+      }
     }
 
     Log.d('----------End: $duration 毫秒----------');
@@ -198,7 +200,9 @@ class AdapterInterceptor extends Interceptor {
         content = _myTransformer.toParker();
       }
 
-      debugPrint(content);
+      if(response.requestOptions.responseType != ResponseType.bytes) {
+        Log.d(content);
+      }
 
       result = sprintf(_kSuccessFormat, [content]);
       response.statusCode = ExceptionHandle.success;
@@ -219,7 +223,7 @@ class AdapterInterceptor extends Interceptor {
               content = content.substring(1, content.length - 1);
             }
             final Map<String, dynamic> map =
-                json.decode(content) as Map<String, dynamic>;
+            json.decode(content) as Map<String, dynamic>;
             if (map.containsKey(_kMessage)) {
               msg = map[_kMessage] as String;
             } else if (map.containsKey(_kMsg)) {

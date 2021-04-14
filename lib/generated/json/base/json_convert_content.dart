@@ -13,6 +13,8 @@ import 'package:xcam_one/models/capture_entity.dart';
 import 'package:xcam_one/generated/json/capture_entity_helper.dart';
 import 'package:xcam_one/models/version_entity.dart';
 import 'package:xcam_one/generated/json/version_entity_helper.dart';
+import 'package:xcam_one/models/cmd_status_entity.dart';
+import 'package:xcam_one/generated/json/cmd_status_entity_helper.dart';
 import 'package:xcam_one/models/camera_file_entity.dart';
 import 'package:xcam_one/generated/json/camera_file_entity_helper.dart';
 import 'package:xcam_one/models/disk_free_space_entity.dart';
@@ -51,6 +53,10 @@ class JsonConvert<T> {
 				return versionEntityFromJson(data as VersionEntity, json) as T;
 			case VersionFunction:
 				return versionFunctionFromJson(data as VersionFunction, json) as T;
+			case CmdStatusEntity:
+				return cmdStatusEntityFromJson(data as CmdStatusEntity, json) as T;
+			case CmdStatusFunction:
+				return cmdStatusFunctionFromJson(data as CmdStatusFunction, json) as T;
 			case CameraFileListEntity:
 				return cameraFileListEntityFromJson(data as CameraFileListEntity, json) as T;
 			case CameraFileList:
@@ -90,6 +96,10 @@ class JsonConvert<T> {
 				return versionEntityToJson(data as VersionEntity);
 			case VersionFunction:
 				return versionFunctionToJson(data as VersionFunction);
+			case CmdStatusEntity:
+				return cmdStatusEntityToJson(data as CmdStatusEntity);
+			case CmdStatusFunction:
+				return cmdStatusFunctionToJson(data as CmdStatusFunction);
 			case CameraFileListEntity:
 				return cameraFileListEntityToJson(data as CameraFileListEntity);
 			case CameraFileList:
@@ -130,6 +140,10 @@ class JsonConvert<T> {
 			return VersionEntity().fromJson(json);
 		}	else if(type == (VersionFunction).toString()){
 			return VersionFunction().fromJson(json);
+		}	else if(type == (CmdStatusEntity).toString()){
+			return CmdStatusEntity().fromJson(json);
+		}	else if(type == (CmdStatusFunction).toString()){
+			return CmdStatusFunction().fromJson(json);
 		}	else if(type == (CameraFileListEntity).toString()){
 			return CameraFileListEntity().fromJson(json);
 		}	else if(type == (CameraFileList).toString()){
@@ -170,6 +184,10 @@ class JsonConvert<T> {
 			return data.map<VersionEntity>((e) => VersionEntity().fromJson(e)).toList() as M;
 		}	else if(<VersionFunction>[] is M){
 			return data.map<VersionFunction>((e) => VersionFunction().fromJson(e)).toList() as M;
+		}	else if(<CmdStatusEntity>[] is M){
+			return data.map<CmdStatusEntity>((e) => CmdStatusEntity().fromJson(e)).toList() as M;
+		}	else if(<CmdStatusFunction>[] is M){
+			return data.map<CmdStatusFunction>((e) => CmdStatusFunction().fromJson(e)).toList() as M;
 		}	else if(<CameraFileListEntity>[] is M){
 			return data.map<CameraFileListEntity>((e) => CameraFileListEntity().fromJson(e)).toList() as M;
 		}	else if(<CameraFileList>[] is M){

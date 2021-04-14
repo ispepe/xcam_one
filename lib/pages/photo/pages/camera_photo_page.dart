@@ -10,12 +10,11 @@
 
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
-import "package:collection/collection.dart";
+import 'package:xcam_one/global/global_store.dart';
 
 import 'package:xcam_one/models/camera_file_entity.dart';
 import 'package:xcam_one/models/wifi_app_mode_entity.dart';
@@ -62,30 +61,6 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
         Method.get, HttpApi.getFileList, onSuccess: (data) {
       globalState.allFile = data?.list?.allFile;
 
-      if (globalState.allFile != null) {
-        final now = DateTime.now();
-        globalState.groupFileList =
-            groupBy(globalState.allFile!, (CameraFile photo) {
-          final format = DateFormat('yyyy/MM/dd hh:mm:ss');
-          final createTime = format.parse(photo.file!.time!);
-          if (now.year != createTime.year) {
-            // ignore: lines_longer_than_80_chars
-            return '${createTime.year}年${createTime.month}月${createTime.day}日';
-          } else if (createTime.month == now.month) {
-            if (now.day == createTime.day) {
-              return '今天';
-            } else if (now.day - 1 == createTime.day) {
-              return '昨天';
-            } else {
-              // ignore: lines_longer_than_80_chars
-              return '${createTime.month}月${createTime.day}日';
-            }
-          } else {
-            return '${createTime.month}月${createTime.day}日';
-          }
-        });
-      }
-
       setState(() {
         _isShowLoading = false;
       });
@@ -100,7 +75,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    globalState = context.read<GlobalState>();
+    globalState = context.watch<GlobalState>();
 
     if (globalState.isConnect) {
       return _buildCameraPhoto(context);
@@ -256,7 +231,9 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     String filePath = cameraFile.file!.filePath!
         .substring(3, cameraFile.file!.filePath!.length);
     filePath = filePath.replaceAll('\\', '/');
-    final url = 'http://192.168.1.254/$filePath${HttpApi.getThumbnail}';
+
+    final url =
+        '${GlobalStore.config[EConfig.baseUrl]}$filePath${HttpApi.getThumbnail}'; // ignore: lines_longer_than_80_chars
 
     return GestureDetector(
       onTap: () {

@@ -9,7 +9,6 @@
  */
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +19,6 @@ import 'package:connectivity_plus/connectivity_plus.dart'
 import 'package:oktoast/oktoast.dart';
 
 import 'package:provider/provider.dart';
-import 'package:wifi_info_flutter/wifi_info_flutter.dart';
 import 'package:xcam_one/global/global_store.dart';
 import 'package:xcam_one/models/battery_level_entity.dart';
 import 'package:xcam_one/models/capture_entity.dart';
@@ -124,6 +122,7 @@ class _IndexPageState extends State<IndexPage>
     ),
   ];
 
+  /// TODO: 4/14/21 待优化底部导航图标
   final List<BottomNavigationBarItem> disableCameraBottomNavItems = [
     BottomNavigationBarItem(
       icon: Image.asset(

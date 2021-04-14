@@ -16,7 +16,7 @@ import 'package:xml/xml.dart' as xml;
 
 /// 输出Log工具类
 class Log {
-  static const String tag = 'DEER-LOG';
+  static const String tag = 'JINGPEI-LOG';
 
   static void init() {
     LogUtil.init(isDebug: !Constant.inProduction, maxLen: 256);

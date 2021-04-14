@@ -56,7 +56,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
             color: Colors.black,
           ),
         ),
-        elevation: 0,
+        elevation: 0.0,
         actions: [
           GestureDetector(
             onTap: () {
@@ -197,35 +197,38 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
     );
   }
 
-  PageView _buildBody() {
-    return PageView.builder(
-      controller: pageController,
-      itemCount: globalState.photos.length,
-      physics: const BouncingScrollPhysics(),
-      onPageChanged: onPageChanged,
-      itemBuilder: (BuildContext context, int index) {
-        /// TODO: 4/12/21 待处理 图片需要做缓存
-        return FutureBuilder<Uint8List?>(
-          future: globalState.photos[index].originBytes,
-          builder: (_, s) {
-            if (!s.hasData) {
-              return Container();
-            }
+  Widget _buildBody() {
+    return Container(
+      color: Color(0xFFF2F2F2),
+      child: PageView.builder(
+        controller: pageController,
+        itemCount: globalState.photos.length,
+        physics: const BouncingScrollPhysics(),
+        onPageChanged: onPageChanged,
+        itemBuilder: (BuildContext context, int index) {
+          /// TODO: 4/12/21 待处理 图片需要做缓存
+          return FutureBuilder<Uint8List?>(
+            future: globalState.photos[index].originBytes,
+            builder: (_, s) {
+              if (!s.hasData) {
+                return Container();
+              }
 
-            final int length = s.data!.length;
+              final int length = s.data!.length;
 
-            _currentImageSize = (length / 1024) > 1024
-                ? '${(length / 1024 / 1024).toStringAsFixed(2)}M'
-                : '${(length / 1024).toStringAsFixed(2)}KB';
+              _currentImageSize = (length / 1024) > 1024
+                  ? '${(length / 1024 / 1024).toStringAsFixed(2)}M'
+                  : '${(length / 1024).toStringAsFixed(2)}KB';
 
-            return FadeInImage(
-              placeholder: MemoryImage(kTransparentImage),
-              image: MemoryImage(s.data!),
-              fit: BoxFit.contain,
-            );
-          },
-        );
-      },
+              return FadeInImage(
+                placeholder: MemoryImage(kTransparentImage),
+                image: MemoryImage(s.data!),
+                fit: BoxFit.contain,
+              );
+            },
+          );
+        },
+      ),
     );
   }
 

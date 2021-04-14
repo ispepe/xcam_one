@@ -94,13 +94,11 @@ dependencies:
   #  # 权限检测 https://github.com/Baseflow/flutter-permission-handler
   #  permission_handler: ^6.1.1
 
-  # 相册管理
-  photo_manager: ^1.1.1
-
-  #
-  sticky_headers: ^0.2.0
+  # 相册管理 https://github.com/CaiJingLong/flutter_photo_manager
+  photo_manager: ^1.1.2
 
   cached_network_image: ^3.0.0
+
   # 包含图片编辑功能、缩放平移操作
   extended_image: ^4.0.1
 
