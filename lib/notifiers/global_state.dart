@@ -16,6 +16,7 @@ import 'package:intl/intl.dart';
 import 'package:xcam_one/models/battery_level_entity.dart';
 import 'package:xcam_one/models/camera_file_entity.dart';
 
+
 /// 全局状态，设置会自动检测刷新
 class GlobalState extends ChangeNotifier {
   /// 默认没有连接全景相机
@@ -49,9 +50,9 @@ class GlobalState extends ChangeNotifier {
 
   List<AssetEntity> _photos = [];
 
-  Map<String, List<AssetEntity>> _photoGroup = {};
-
   List<AssetEntity> get photos => _photos;
+
+  Map<String, List<AssetEntity>> _photoGroup = {};
 
   Map<String, List<AssetEntity>> get photoGroup => _photoGroup;
 

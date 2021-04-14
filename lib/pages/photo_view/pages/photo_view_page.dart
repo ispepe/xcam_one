@@ -11,6 +11,8 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:intl/intl.dart';
@@ -33,9 +35,11 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
 
   late int _photoIndex;
 
-  String _currentImageSize = '0k';
-
   late GlobalState globalState;
+
+  int _dataLength = 0;
+
+  bool _isShowBack = false;
 
   @override
   void initState() {
@@ -48,186 +52,212 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
   Widget build(BuildContext context) {
     globalState = context.read<GlobalState>();
     return Scaffold(
-      appBar: AppBar(
-        leading: GestureDetector(
-          onTap: () => NavigatorUtils.goBack(context),
-          child: Icon(
-            Icons.arrow_back_ios,
-            color: Colors.black,
-          ),
-        ),
-        elevation: 0.0,
-        actions: [
-          GestureDetector(
-            onTap: () {
-              showModalBottomSheet(
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+      appBar: _isShowBack
+          ? null
+          : AppBar(
+              leading: GestureDetector(
+                onTap: () => NavigatorUtils.goBack(context),
+                child: Icon(
+                  Icons.arrow_back_ios,
+                  color: Colors.black,
                 ),
-                context: context,
-                builder: (BuildContext context) {
-                  final format = DateFormat('yyyy/MM/dd hh:mm:ss');
-                  final entity = globalState.photos[_photoIndex];
-                  final line = Divider(color: Color(0xFFF5F5F5));
-                  final valueColor = Color(0xFFBFBFBF);
-                  return Container(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '详细信息',
-                                style: TextStyles.textSize14
-                                    .copyWith(color: Colors.black),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  NavigatorUtils.goBack(context);
-                                },
-                                child: Icon(
-                                  Icons.close_outlined,
-                                  color: Colors.black,
-                                  size: 24,
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                        line,
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '文件名',
-                                style: TextStyles.textSize14
-                                    .copyWith(color: Colors.black),
-                              ),
-                              Text(
-                                entity.title!,
-                                style: TextStyles.textSize14
-                                    .copyWith(color: valueColor),
-                              ),
-                            ],
-                          ),
-                        ),
-                        line,
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '拍摄时间',
-                                style: TextStyles.textSize14
-                                    .copyWith(color: Colors.black),
-                              ),
-                              Text(
-                                format.format(entity.createDateTime),
-                                style: TextStyles.textSize14
-                                    .copyWith(color: valueColor),
-                              ),
-                            ],
-                          ),
-                        ),
-                        line,
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '分辨率',
-                                style: TextStyles.textSize14
-                                    .copyWith(color: Colors.black),
-                              ),
-                              Text(
-                                '${entity.width}x${entity.height}',
-                                style: TextStyles.textSize14
-                                    .copyWith(color: valueColor),
-                              ),
-                            ],
-                          ),
-                        ),
-                        line,
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '图片大小',
-                                style: TextStyles.textSize14
-                                    .copyWith(color: Colors.black),
-                              ),
-                              Text(
-                                '$_currentImageSize',
-                                style: TextStyles.textSize14
-                                    .copyWith(color: valueColor),
-                              ),
-                            ],
-                          ),
-                        ),
-                        line,
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Image.asset(
-                'assets/images/more_back.png',
-                width: 32,
-                height: 32,
               ),
+              elevation: 0.0,
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      _showModalBottomSheet(context);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Image.asset(
+                        'assets/images/more_back.png',
+                        width: 32,
+                        height: 32,
+                      ),
+                    ),
+                  ),
+                )
+              ],
             ),
-          )
-        ],
-      ),
-      body: _buildBody(),
+      body: _buildBody(context),
     );
   }
 
-  Widget _buildBody() {
+  void _showModalBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      context: context,
+      builder: (BuildContext context) {
+        final format = DateFormat('yyyy/MM/dd hh:mm:ss');
+        final entity = globalState.photos[_photoIndex];
+        final line = Divider(color: Color(0xFFF5F5F5));
+        final valueColor = Color(0xFFBFBFBF);
+        final String imageSize = (_dataLength / 1024) > 1024
+            ? '${(_dataLength / 1024 / 1024).toStringAsFixed(2)}M'
+            : '${(_dataLength / 1024).toStringAsFixed(2)}KB';
+
+        return Container(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '详细信息',
+                      style:
+                          TextStyles.textSize14.copyWith(color: Colors.black),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        NavigatorUtils.goBack(context);
+                      },
+                      child: Icon(
+                        Icons.close_outlined,
+                        color: Colors.black,
+                        size: 24,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              line,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '文件名',
+                      style:
+                          TextStyles.textSize14.copyWith(color: Colors.black),
+                    ),
+                    Text(
+                      entity.title!,
+                      style: TextStyles.textSize14.copyWith(color: valueColor),
+                    ),
+                  ],
+                ),
+              ),
+              line,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '拍摄时间',
+                      style:
+                          TextStyles.textSize14.copyWith(color: Colors.black),
+                    ),
+                    Text(
+                      format.format(entity.createDateTime),
+                      style: TextStyles.textSize14.copyWith(color: valueColor),
+                    ),
+                  ],
+                ),
+              ),
+              line,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '分辨率',
+                      style:
+                          TextStyles.textSize14.copyWith(color: Colors.black),
+                    ),
+                    Text(
+                      '${entity.width}x${entity.height}',
+                      style: TextStyles.textSize14.copyWith(color: valueColor),
+                    ),
+                  ],
+                ),
+              ),
+              line,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '图片大小',
+                      style:
+                          TextStyles.textSize14.copyWith(color: Colors.black),
+                    ),
+                    Text(
+                      '$imageSize',
+                      style: TextStyles.textSize14.copyWith(color: valueColor),
+                    ),
+                  ],
+                ),
+              ),
+              line,
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final bgColor = Color(0xFFF2F2F2);
     return Container(
-      color: Color(0xFFF2F2F2),
-      child: PageView.builder(
-        controller: pageController,
-        itemCount: globalState.photos.length,
-        physics: const BouncingScrollPhysics(),
-        onPageChanged: onPageChanged,
-        itemBuilder: (BuildContext context, int index) {
-          /// TODO: 4/12/21 待处理 图片需要做缓存
-          return FutureBuilder<Uint8List?>(
-            future: globalState.photos[index].originBytes,
-            builder: (_, s) {
-              if (!s.hasData) {
-                return Container();
-              }
-
-              final int length = s.data!.length;
-
-              _currentImageSize = (length / 1024) > 1024
-                  ? '${(length / 1024 / 1024).toStringAsFixed(2)}M'
-                  : '${(length / 1024).toStringAsFixed(2)}KB';
-
-              return FadeInImage(
-                placeholder: MemoryImage(kTransparentImage),
-                image: MemoryImage(s.data!),
-                fit: BoxFit.contain,
-              );
-            },
-          );
+      width: size.width,
+      height: size.height,
+      color: _isShowBack ? Colors.black : bgColor,
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _isShowBack = !_isShowBack;
+          });
         },
+        child: PhotoViewGallery.builder(
+          pageController: pageController,
+          itemCount: globalState.photos.length,
+          scrollPhysics: const BouncingScrollPhysics(),
+          onPageChanged: onPageChanged,
+          backgroundDecoration: BoxDecoration(
+            color: _isShowBack ? Colors.black : bgColor,
+          ),
+          builder: (BuildContext context, int index) {
+            return PhotoViewGalleryPageOptions.customChild(
+              child: FutureBuilder<Uint8List?>(
+                future: globalState.photos[index].originBytes,
+                builder: (_, s) {
+                  if (!s.hasData) {
+                    return Center(
+                        child: SpinKitCircle(
+                      color: Theme.of(context).accentColor,
+                      size: 32,
+                    ));
+                  }
+
+                  _dataLength = s.data!.length;
+
+                  return Image(
+                    width: double.infinity,
+                    height: double.infinity,
+                    image: MemoryImage(s.data!),
+                    gaplessPlayback: true,
+                    fit: BoxFit.contain,
+                  );
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }

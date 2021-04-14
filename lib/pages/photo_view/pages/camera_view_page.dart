@@ -73,147 +73,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
                   padding: const EdgeInsets.all(4.0),
                   child: GestureDetector(
                     onTap: () {
-                      showModalBottomSheet(
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        context: context,
-                        builder: (BuildContext context) {
-                          final CameraFileInfo entity =
-                              globalState.allFile![_photoIndex].file!;
-                          final int length = int.parse(entity.size!);
-
-                          final String _currentImageSize = (length / 1024) >
-                                  1024
-                              ? '${(length / 1024 / 1024).toStringAsFixed(2)}M'
-                              : '${(length / 1024).toStringAsFixed(2)}KB';
-
-                          final line = Divider(color: Color(0xFFF5F5F5));
-                          final valueColor = Color(0xFFBFBFBF);
-
-                          return Container(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        '详细信息',
-                                        style: TextStyles.textSize14
-                                            .copyWith(color: Colors.black),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          NavigatorUtils.goBack(context);
-                                        },
-                                        child: Icon(
-                                          Icons.close_outlined,
-                                          color: Colors.black,
-                                          size: 24,
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                line,
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        '文件名',
-                                        style: TextStyles.textSize14
-                                            .copyWith(color: Colors.black),
-                                      ),
-                                      Text(
-                                        entity.name!,
-                                        style: TextStyles.textSize14
-                                            .copyWith(color: valueColor),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                line,
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        '拍摄时间',
-                                        style: TextStyles.textSize14
-                                            .copyWith(color: Colors.black),
-                                      ),
-                                      Text(
-                                        entity.time.toString(),
-                                        style: TextStyles.textSize14
-                                            .copyWith(color: valueColor),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                line,
-
-                                /// NOTE: 4/12/21 待注意 FW说固定即可
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        '分辨率',
-                                        style: TextStyles.textSize14
-                                            .copyWith(color: Colors.black),
-                                      ),
-                                      Text(
-                                        '4608x3456',
-                                        style: TextStyles.textSize14
-                                            .copyWith(color: valueColor),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                line,
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        '图片大小',
-                                        style: TextStyles.textSize14
-                                            .copyWith(color: Colors.black),
-                                      ),
-                                      Text(
-                                        '$_currentImageSize',
-                                        style: TextStyles.textSize14
-                                            .copyWith(color: valueColor),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                line,
-                              ],
-                            ),
-                          );
-                        },
-                      );
+                      _showModelBottomSheet(context);
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -300,6 +160,134 @@ class _CameraViewPageState extends State<CameraViewPage> {
                 ),
               ),
             ),
+    );
+  }
+
+  void _showModelBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      context: context,
+      builder: (BuildContext context) {
+        final CameraFileInfo entity = globalState.allFile![_photoIndex].file!;
+        final int length = int.parse(entity.size!);
+
+        final String _currentImageSize = (length / 1024) > 1024
+            ? '${(length / 1024 / 1024).toStringAsFixed(2)}M'
+            : '${(length / 1024).toStringAsFixed(2)}KB';
+
+        final line = Divider(color: Color(0xFFF5F5F5));
+        final valueColor = Color(0xFFBFBFBF);
+
+        return Container(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '详细信息',
+                      style:
+                          TextStyles.textSize14.copyWith(color: Colors.black),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        NavigatorUtils.goBack(context);
+                      },
+                      child: Icon(
+                        Icons.close_outlined,
+                        color: Colors.black,
+                        size: 24,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              line,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '文件名',
+                      style:
+                          TextStyles.textSize14.copyWith(color: Colors.black),
+                    ),
+                    Text(
+                      entity.name!,
+                      style: TextStyles.textSize14.copyWith(color: valueColor),
+                    ),
+                  ],
+                ),
+              ),
+              line,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '拍摄时间',
+                      style:
+                          TextStyles.textSize14.copyWith(color: Colors.black),
+                    ),
+                    Text(
+                      entity.time.toString(),
+                      style: TextStyles.textSize14.copyWith(color: valueColor),
+                    ),
+                  ],
+                ),
+              ),
+              line,
+
+              /// NOTE: 4/12/21 待注意 FW说固定即可
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '分辨率',
+                      style:
+                          TextStyles.textSize14.copyWith(color: Colors.black),
+                    ),
+                    Text(
+                      '4608x3456',
+                      style: TextStyles.textSize14.copyWith(color: valueColor),
+                    ),
+                  ],
+                ),
+              ),
+              line,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '图片大小',
+                      style:
+                          TextStyles.textSize14.copyWith(color: Colors.black),
+                    ),
+                    Text(
+                      '$_currentImageSize',
+                      style: TextStyles.textSize14.copyWith(color: valueColor),
+                    ),
+                  ],
+                ),
+              ),
+              line,
+            ],
+          ),
+        );
+      },
     );
   }
 
