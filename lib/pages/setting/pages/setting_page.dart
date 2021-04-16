@@ -28,7 +28,6 @@ class _SettingPageState extends State<SettingPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final isConnect = Provider.of<GlobalState>(context).isConnect;
 
     return Scaffold(
       backgroundColor: Color(0xFFF2F2F2),
@@ -49,12 +48,24 @@ class _SettingPageState extends State<SettingPage>
           _buildRow('APP版本'),
           Padding(
             padding: const EdgeInsets.only(top: 12.0),
-            child: _buildRow('相机存储', isEnable: isConnect),
+            child: Consumer<GlobalState>(
+              builder: (
+                BuildContext context,
+                GlobalState globalState,
+                Widget? child,
+              ) {
+                return Column(
+                  children: [
+                    _buildRow('相机存储', isEnable: globalState.isConnect),
+                    _buildRow('倒计时拍摄', isEnable: globalState.isConnect),
+                    _buildRow('HDR', isEnable: globalState.isConnect),
+                    _buildRow('格式化相机', isEnable: globalState.isConnect),
+                    _buildRow('相机信息', isEnable: globalState.isConnect),
+                  ],
+                );
+              },
+            ),
           ),
-          _buildRow('倒计时拍摄', isEnable: isConnect),
-          _buildRow('HDR', isEnable: isConnect),
-          _buildRow('格式化相机', isEnable: isConnect),
-          _buildRow('相机信息', isEnable: isConnect),
         ],
       ),
     );

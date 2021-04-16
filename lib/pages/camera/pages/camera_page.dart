@@ -29,7 +29,8 @@ class CameraPage extends StatefulWidget {
   _CameraPageState createState() => _CameraPageState();
 }
 
-class _CameraPageState extends State<CameraPage> {
+class _CameraPageState extends State<CameraPage>
+    with AutomaticKeepAliveClientMixin {
   String _freeSpace = '0KB';
 
   /// 剩余空间
@@ -41,9 +42,6 @@ class _CameraPageState extends State<CameraPage> {
   @override
   void initState() {
     super.initState();
-
-    GlobalStore.videoPlayerController = null;
-
     // if (!GlobalStore.videoPlayerController!.value.isInitialized) {
     //   GlobalStore.videoPlayerController?.initialize();
     // }
@@ -52,40 +50,40 @@ class _CameraPageState extends State<CameraPage> {
       /// 刷新可用空间（每次拍照后都需跟新空间）
       _diskFreeSpaceCheck();
 
-      DioUtils.instance.requestNetwork<WifiAppModeEntity>(Method.get,
-          HttpApi.appModeChange + WifiAppMode.wifiAppModeMovie.index.toString(),
-          onSuccess: (modeEntity) {
-        GlobalStore.videoPlayerController = VlcPlayerController.network(
-          HttpApi.rtsp,
-          hwAcc: HwAcc.AUTO,
-          autoPlay: true,
-          autoInitialize: true,
-          onInit: () async {
-            await GlobalStore.videoPlayerController?.startRendererScanning();
-            // await GlobalStore.videoPlayerController?.play();
-          },
-          options: VlcPlayerOptions(
-              advanced: VlcAdvancedOptions([
-                VlcAdvancedOptions.clockJitter(0),
-                VlcAdvancedOptions.clockSynchronization(0),
-                // VlcAdvancedOptions.fileCaching(0),
-                VlcAdvancedOptions.networkCaching(2000),
-                // VlcAdvancedOptions.liveCaching(0)
-              ]),
-              extras: [
-                '--network-caching=3000',
-                '--live-caching=3000',
-                '--udp-caching=1000',
-                '--tcp-caching=1000',
-                '--realrtsp-caching=1000',
-              ]
-              // video: VlcVideoOptions([
-              //   VlcVideoOptions.dropLateFrames(true),
-              //   VlcVideoOptions.skipFrames(true)
-              // ]),
-              ),
-        );
-      }, onError: (code, msg) {});
+      /// TODO: 4/16/21 将其移动到index目录
+      // if (Provider.of<GlobalState>(context, listen: false).isConnect) {
+      //   if (GlobalStore.wifiAppMode != WifiAppMode.wifiAppModePhoto) {
+      //     DioUtils.instance.requestNetwork<WifiAppModeEntity>(
+      //         Method.get,
+      //         HttpApi.appModeChange +
+      //             WifiAppMode.wifiAppModePhoto.index.toString(),
+      //         onSuccess: (modeEntity) {
+      //       GlobalStore.wifiAppMode = WifiAppMode.wifiAppModePhoto;
+      //
+      //       GlobalStore.videoPlayerController?.play().then((value) {
+      //         setState(() {});
+      //       });
+      //     }, onError: (code, msg) {
+      //       GlobalStore.videoPlayerController?.stop();
+      //     });
+      //   } else {
+      //     GlobalStore.videoPlayerController?.isPlaying().then((isPlaying) {
+      //       debugPrint(isPlaying.toString());
+      //       if (isPlaying != null) {
+      //         if (isPlaying) {
+      //           GlobalStore.videoPlayerController?.play().then((value) {
+      //             setState(() {});
+      //           });
+      //         } else {
+      //           GlobalStore.videoPlayerController?.startRendererScanning();
+      //           // GlobalStore.videoPlayerController?.pause().then((value) {
+      //           //   setState(() {});
+      //           // });
+      //         }
+      //       }
+      //     });
+      //   }
+      // }
     });
   }
 
@@ -132,34 +130,31 @@ class _CameraPageState extends State<CameraPage> {
   void dispose() async {
     super.dispose();
 
-    await GlobalStore.videoPlayerController?.stopRendererScanning();
-    await GlobalStore.videoPlayerController?.dispose();
-    GlobalStore.videoPlayerController = null;
+    // await GlobalStore.videoPlayerController?.stopRendererScanning();
+    // await GlobalStore.videoPlayerController?.dispose();
+    // GlobalStore.videoPlayerController = null;
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return Container(
-      child: Consumer<GlobalState>(
-          builder: (BuildContext context, globalState, Widget? child) {
-            return globalState.isConnect
-                ? Scaffold(
-                    backgroundColor: Colors.black,
-                    appBar: AppBar(
-                      backgroundColor: Colors.black,
-                      title: Text('xCam One',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white)),
-                      centerTitle: true,
-                    ),
-                    body: Column(children: [
-                      _buildCamera(context),
-                      _buildCameraStatus(context)
-                    ]))
-                : child!;
-          },
-          child: CameraConnectPage()),
+      child: Provider.of<GlobalState>(context).isConnect
+          ? Scaffold(
+              backgroundColor: Colors.black,
+              appBar: AppBar(
+                backgroundColor: Colors.black,
+                title: Text('xCam One',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w500, color: Colors.white)),
+                centerTitle: true,
+              ),
+              body: Column(children: [
+                _buildCamera(context),
+                _buildCameraStatus(context)
+              ]))
+          : CameraConnectPage(),
     );
   }
 
@@ -308,8 +303,8 @@ class _CameraPageState extends State<CameraPage> {
         )
       ],
     );
+
     return Container(
-      color: Color(0xFF686868),
       height: size.width / 2,
       width: size.width,
       child: (GlobalStore.videoPlayerController != null
@@ -371,4 +366,7 @@ class _CameraPageState extends State<CameraPage> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

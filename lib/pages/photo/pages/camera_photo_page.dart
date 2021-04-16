@@ -43,16 +43,23 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     super.initState();
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
-      DioUtils.instance.requestNetwork<WifiAppModeEntity>(
-          Method.get,
-          HttpApi.appModeChange +
-              WifiAppMode.wifiAppModePlayback.index.toString(),
-          onSuccess: (modeEntity) {
-        /// NOTE: 4/12/21 必须要切换到WifiAppMode.wifiAppModeMovie才能进行正确获取
+      /// TODO: 4/16/21 待处理 增加刷新操作
+      if (GlobalStore.wifiAppMode != WifiAppMode.wifiAppModePlayback) {
+        GlobalStore.videoPlayerController?.stop();
+        DioUtils.instance.requestNetwork<WifiAppModeEntity>(
+            Method.get,
+            HttpApi.appModeChange +
+                WifiAppMode.wifiAppModePlayback.index.toString(),
+            onSuccess: (modeEntity) {
+          /// NOTE: 4/12/21 必须要切换到WifiAppMode.wifiAppModeMovie才能进行正确获取
+          GlobalStore.wifiAppMode = WifiAppMode.wifiAppModePlayback;
+          _getFileList();
+        }, onError: (code, msg) {
+          debugPrint('code: $code, message: $msg');
+        });
+      } else {
         _getFileList();
-      }, onError: (code, msg) {
-        debugPrint('code: $code, message: $msg');
-      });
+      }
     });
   }
 
@@ -258,5 +265,5 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
   }
 
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => false;
 }

@@ -33,6 +33,9 @@ class HttpApi {
   /// RSTP拉流 rtsp://192.168.1.254/xxxx.mov
   static const String rtsp = 'rtsp://192.168.1.254/xxxx.mov';
 
+  /// HTTP MJPG streaming
+  static const String streamingUrl = 'http://192.168.1.254:8192';
+
   /// 获取硬件容量
   static const String getHardwareCapacity = '?custom=1&cmd=3022';
 

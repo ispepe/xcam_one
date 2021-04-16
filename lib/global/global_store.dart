@@ -20,6 +20,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'package:xcam_one/global/constants.dart';
+import 'package:xcam_one/models/wifi_app_mode_entity.dart';
+import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/notifiers/photo_provider.dart';
 
@@ -91,4 +93,7 @@ class GlobalStore {
   static VlcPlayerController? videoPlayerController;
 
   final provider = PhotoProvider();
+
+  /// TODO: 4/16/21 待处理 临时赋予一个Movie的值
+  static WifiAppMode wifiAppMode = WifiAppMode.wifiAppModeMovie;
 }
