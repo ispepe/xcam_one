@@ -52,8 +52,8 @@ class _CameraConnectPageState extends State<CameraConnectPage>
     );
   }
 
-  Container _buildConnect(BuildContext context, Size size, double imageHeight) {
-    return Container(
+  Widget _buildConnect(BuildContext context, Size size, double imageHeight) {
+    return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

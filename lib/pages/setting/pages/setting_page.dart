@@ -35,38 +35,40 @@ class _SettingPageState extends State<SettingPage>
         title: Text('设置'),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: _buildRow('通知'),
-          ),
-          _buildRow('操作说明'),
-          _buildRow('FAQ'),
-          _buildRow('使用条款(用户协议)'),
-          _buildRow('隐私政策'),
-          _buildRow('APP版本'),
-          Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: Consumer<GlobalState>(
-              builder: (
-                BuildContext context,
-                GlobalState globalState,
-                Widget? child,
-              ) {
-                return Column(
-                  children: [
-                    _buildRow('相机存储', isEnable: globalState.isConnect),
-                    _buildRow('倒计时拍摄', isEnable: globalState.isConnect),
-                    _buildRow('HDR', isEnable: globalState.isConnect),
-                    _buildRow('格式化相机', isEnable: globalState.isConnect),
-                    _buildRow('相机信息', isEnable: globalState.isConnect),
-                  ],
-                );
-              },
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 12.0),
+              child: _buildRow('通知'),
             ),
-          ),
-        ],
+            _buildRow('操作说明'),
+            _buildRow('FAQ'),
+            _buildRow('使用条款(用户协议)'),
+            _buildRow('隐私政策'),
+            _buildRow('APP版本'),
+            Padding(
+              padding: const EdgeInsets.only(top: 12.0, bottom: 12),
+              child: Consumer<GlobalState>(
+                builder: (
+                  BuildContext context,
+                  GlobalState globalState,
+                  Widget? child,
+                ) {
+                  return Column(
+                    children: [
+                      _buildRow('相机存储', isEnable: globalState.isConnect),
+                      _buildRow('倒计时拍摄', isEnable: globalState.isConnect),
+                      _buildRow('HDR', isEnable: globalState.isConnect),
+                      _buildRow('格式化相机', isEnable: globalState.isConnect),
+                      _buildRow('相机信息', isEnable: globalState.isConnect),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
