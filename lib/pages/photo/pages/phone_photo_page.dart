@@ -11,6 +11,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
@@ -29,26 +30,35 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
     with AutomaticKeepAliveClientMixin {
   bool _isShowLoading = true;
 
+  late EasyRefreshController _refreshController;
+
   @override
   void initState() {
     super.initState();
 
+    _refreshController = EasyRefreshController();
+
     WidgetsBinding.instance?.addPostFrameCallback((_) {
       /// 先获取相机权限
-      PhotoManager.requestPermission().then((value) {
-        if (value) {
-          Provider.of<GlobalState>(context, listen: false)
-              .refreshGalleryList()
-              .then((value) {
-            setState(() {
-              _isShowLoading = false;
-            });
+      _onRefresh();
+    });
+  }
+
+  void _onRefresh() {
+    /// 先获取相机权限
+    PhotoManager.requestPermission().then((value) {
+      if (value) {
+        Provider.of<GlobalState>(context, listen: false)
+            .refreshGalleryList()
+            .then((value) {
+          setState(() {
+            _isShowLoading = false;
           });
-        } else {
-          /// TODO: 4/14/21 待处理 如果相机没有权限，则先弹窗提醒再请求
-          PhotoManager.openSetting();
-        }
-      });
+        });
+      } else {
+        /// TODO: 4/14/21 待处理 如果相机没有权限，则先弹窗提醒再请求
+        PhotoManager.openSetting();
+      }
     });
   }
 
@@ -61,7 +71,6 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    /// TODO: 4/14/21 待处理 增加下拉刷新
     final size = MediaQuery.of(context).size;
     if (_isShowLoading) {
       return Container(
@@ -79,6 +88,34 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
     final globalState = context.read<GlobalState>();
 
     return Container(
+        child: EasyRefresh(
+      controller: _refreshController,
+      // enableControlFinishRefresh: false,
+      // enableControlFinishLoad: true,
+      header: ClassicalHeader(
+          refreshText: '下拉刷新',
+          refreshReadyText: '松开刷新',
+          refreshingText: '刷新中...',
+          refreshedText: '刷新成功',
+          refreshFailedText: '刷新失败',
+          textColor: Theme.of(context).primaryColor,
+          showInfo: true,
+          infoText: '刷新时间 %T',
+          infoColor: Theme.of(context).accentColor),
+      footer: ClassicalFooter(
+        noMoreText: '没有更多',
+        loadFailedText: '加载失败',
+        loadedText: '加载成功',
+        loadingText: '加载中...',
+        textColor: Theme.of(context).primaryColor,
+        infoColor: Theme.of(context).accentColor,
+        infoText: '加载时间 %T',
+        showInfo: false,
+      ),
+      onRefresh: () async {
+        _onRefresh();
+        _refreshController.resetLoadState();
+      },
       child: ListView.builder(
         itemCount: globalState.photoGroup.length,
         shrinkWrap: true,
@@ -87,7 +124,7 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
           return _buildPhotoGroup(context, globalState, keys[index], index);
         },
       ),
-    );
+    ));
   }
 
   Widget _buildPhoto(BuildContext context, AssetEntity entity, int index) {
