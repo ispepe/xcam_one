@@ -102,6 +102,10 @@ dependencies:
   # 包含图片编辑功能、缩放平移操作
   extended_image: ^4.0.1
 
+  # 两个拉动刷新
+  pull_to_refresh: ^1.6.5
+  flutter_easyrefresh: ^2.2.1
+
   # 按钮按下动画放大缩小动画效果
   # bouncing_widget
   #dependency_overrides:

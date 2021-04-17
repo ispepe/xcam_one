@@ -16,7 +16,6 @@ import 'package:intl/intl.dart';
 import 'package:xcam_one/models/battery_level_entity.dart';
 import 'package:xcam_one/models/camera_file_entity.dart';
 
-
 /// 全局状态，设置会自动检测刷新
 class GlobalState extends ChangeNotifier {
   /// 默认没有连接全景相机
@@ -120,13 +119,20 @@ class GlobalState extends ChangeNotifier {
     notifyListeners();
   }
 
-  set allFile(List<CameraFile>? value) {
+  /// 新增
+  void addCameraFiles(List<CameraFile> listFile) {
+    _allFile?.addAll(listFile);
+    notifyListeners();
+  }
+
+  void setAllFile(List<CameraFile>? value) {
     _allFile = value;
     _groupByCameraFile();
     notifyListeners();
   }
 
   void _groupByCameraFile() {
+    /// 此处控制数量 count = 20;
     if (_allFile != null) {
       final now = DateTime.now();
       _groupFileList = groupBy(_allFile!, (CameraFile photo) {

@@ -266,7 +266,16 @@ class _IndexPageState extends State<IndexPage> {
         } else if (globalState.isConnect) {
           showToast('相机连接中断');
           globalState.isConnect = false;
-          await GlobalStore.videoPlayerController?.stop();
+          try {
+            final bool? isPlay =
+                await GlobalStore.videoPlayerController?.isPlaying();
+            if (isPlay ?? false) {
+              await GlobalStore.videoPlayerController?.stop();
+            }
+          } catch (e) {
+            e.toString();
+          }
+
           _cameraSocket?.dispose();
         }
         _isTimerRequest = false;
@@ -274,7 +283,15 @@ class _IndexPageState extends State<IndexPage> {
         if (globalState.isConnect) {
           showToast('相机异常连接中断');
           globalState.isConnect = false;
-          await GlobalStore.videoPlayerController?.stop();
+          try {
+            final bool? isPlay =
+                await GlobalStore.videoPlayerController?.isPlaying();
+            if (isPlay ?? false) {
+              await GlobalStore.videoPlayerController?.stop();
+            }
+          } catch (e) {
+            e.toString();
+          }
           _cameraSocket?.dispose();
         }
         _isTimerRequest = false;
@@ -284,7 +301,15 @@ class _IndexPageState extends State<IndexPage> {
 
       if (globalState.isConnect) {
         globalState.isConnect = false;
-        await GlobalStore.videoPlayerController?.stop();
+        try {
+          final bool? isPlay =
+              await GlobalStore.videoPlayerController?.isPlaying();
+          if (isPlay ?? false) {
+            await GlobalStore.videoPlayerController?.stop();
+          }
+        } catch (e) {
+          e.toString();
+        }
       }
       _isTimerRequest = true;
     }
