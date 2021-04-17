@@ -77,7 +77,7 @@ class _CameraConnectPageState extends State<CameraConnectPage>
           Padding(
             padding: const EdgeInsets.all(24.0),
             child: Text(
-              '相机开机后，在手机Wi-Fi列表中点击“HTF”开头的相机WiFi进行连接，默认密码：12345678',
+              '相机开机后，在手机Wi-Fi列表中点击“xCam”开头的相机WiFi进行连接，默认密码：12345678',
               style: TextStyles.textSize12,
               textAlign: TextAlign.center,
             ),
