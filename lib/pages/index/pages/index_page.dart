@@ -237,17 +237,31 @@ class _IndexPageState extends State<IndexPage> {
 
   Future<void> _updateConnectionStatus(ConnectivityResult result) async {
     debugPrint('网络连接：${result.toString()}');
+
+    /// 阻止定时请求进入
+    _isTimerRequest = true;
+
     if (ConnectivityResult.wifi == result ||
         ConnectivityResult.none == result) {
-      _isTimerRequest = true;
-
       /// 拍照检测一次、进入拍照界面检测一次、每1分钟检测一下
       DioUtils.instance.asyncRequestNetwork<HearbeatEntity>(
           Method.get, HttpApi.heartbeat, onSuccess: (data) async {
         if (data?.function?.status == '0') {
           if (!globalState.isConnect) {
-            initVlcPlayer();
-            globalState.isConnect = true;
+            ///  切换至Photo模式
+            DioUtils.instance.asyncRequestNetwork<WifiAppModeEntity>(
+                Method.get,
+                HttpApi.appModeChange +
+                    WifiAppMode.wifiAppModePhoto.index.toString(),
+                onSuccess: (modeEntity) {
+              GlobalStore.wifiAppMode = WifiAppMode.wifiAppModePhoto;
+              initVlcPlayer();
+              globalState.isConnect = true;
+            }, onError: (code, msg) {
+              /// TODO: 4/17/21 待处理 切换不成功，应该如何处理？
+              showToast('进入相机模式失败');
+              globalState.isConnect = true;
+            });
           }
         } else if (globalState.isConnect) {
           showToast('相机连接中断');
@@ -257,13 +271,13 @@ class _IndexPageState extends State<IndexPage> {
         }
         _isTimerRequest = false;
       }, onError: (e, m) async {
-        _isTimerRequest = false;
         if (globalState.isConnect) {
           showToast('相机异常连接中断');
           globalState.isConnect = false;
           await GlobalStore.videoPlayerController?.stop();
           _cameraSocket?.dispose();
         }
+        _isTimerRequest = false;
       });
     } else {
       showToast('wifi连接中断');
@@ -272,6 +286,7 @@ class _IndexPageState extends State<IndexPage> {
         globalState.isConnect = false;
         await GlobalStore.videoPlayerController?.stop();
       }
+      _isTimerRequest = true;
     }
   }
 
@@ -371,7 +386,7 @@ class _IndexPageState extends State<IndexPage> {
     }
 
     if (index != _currentIndex) {
-      /// TODO: 4/17/21 快速点击拍摄存在异常
+      /// TODO: 4/17/21 快速点击拍摄存在异常，不止是从相册界面切换回来
       if (index == 1 && globalState.isConnect) {
         /// 立即进行一次电量检测
         _batteryLevelCheck();
