@@ -11,19 +11,14 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
 
 import 'package:flustars/flustars.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:localstorage/localstorage.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
 
 import 'package:xcam_one/global/constants.dart';
 import 'package:xcam_one/models/wifi_app_mode_entity.dart';
-import 'package:xcam_one/net/net.dart';
-import 'package:xcam_one/notifiers/global_state.dart';
-import 'package:xcam_one/notifiers/photo_provider.dart';
 
 enum EConfig {
   baseUrl, // 后台服务路径
@@ -91,8 +86,6 @@ class GlobalStore {
   }
 
   static VlcPlayerController? videoPlayerController;
-
-  final provider = PhotoProvider();
 
   /// TODO: 4/16/21 待处理 临时赋予一个Movie的值
   static WifiAppMode wifiAppMode = WifiAppMode.wifiAppModeMovie;

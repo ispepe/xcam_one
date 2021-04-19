@@ -54,6 +54,8 @@ class HttpApi {
   /// 删除照片 Http://192.168.1.254/?custom=1&cmd=4003&str=A:\CARDV\PHOTO\2014_0506_000000.0001.JPG
   static const String deleteFile = '?custom=1&cmd=4003&str=';
 
+  /// NOTE: 4/19/21 新增 WIFIAPP_CMD_DISK_SPACE  3039
+  static const String getDiskSpace = '?custom=1&cmd=3039';
   /// 格式化相册
 
   /// 重置相机设置

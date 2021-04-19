@@ -9,7 +9,6 @@
  */
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +26,7 @@ import 'package:xcam_one/models/capture_entity.dart';
 import 'package:xcam_one/models/hearbeat_entity.dart';
 import 'package:xcam_one/models/wifi_app_mode_entity.dart';
 import 'package:xcam_one/net/net.dart';
+import 'package:xcam_one/notifiers/camera_state.dart';
 
 import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/pages/camera/pages/camera_page.dart';
@@ -179,6 +179,7 @@ class _IndexPageState extends State<IndexPage> {
   late Timer _batteryCheckTimer;
 
   late GlobalState globalState;
+  late CameraState cameraState;
 
   SocketUtils? _cameraSocket;
 
@@ -206,19 +207,9 @@ class _IndexPageState extends State<IndexPage> {
       /// 拍照检测一次、进入拍照界面检测一次、每20s检测一次电量
       _batteryCheckTimer = Timer.periodic(Duration(seconds: 20), (timer) {
         if (globalState.isConnect && !globalState.isCapture && mounted) {
-          _batteryLevelCheck();
+          cameraState.batteryLevelCheck();
         }
       });
-    });
-  }
-
-  Future<void> _batteryLevelCheck() async {
-    await DioUtils.instance.requestNetwork<BatteryLevelEntity>(
-        Method.get, HttpApi.getBatteryLevel, onSuccess: (data) {
-      final int index = data?.function?.batteryStatus ?? 0;
-      globalState.batteryStatus = BatteryStatus.values[index];
-    }, onError: (code, message) {
-      debugPrint('code: $code, message: $message');
     });
   }
 
@@ -257,15 +248,18 @@ class _IndexPageState extends State<IndexPage> {
               GlobalStore.wifiAppMode = WifiAppMode.wifiAppModePhoto;
               initVlcPlayer();
               globalState.isConnect = true;
+              cameraState.diskSpaceCheck();
             }, onError: (code, msg) {
               /// TODO: 4/17/21 待处理 切换不成功，应该如何处理？
               showToast('进入相机模式失败');
               globalState.isConnect = true;
+              cameraState.diskSpaceCheck();
             });
           }
         } else if (globalState.isConnect) {
           showToast('相机连接中断');
           globalState.isConnect = false;
+          cameraState.initSpaceData();
           try {
             final bool? isPlay =
                 await GlobalStore.videoPlayerController?.isPlaying();
@@ -283,6 +277,7 @@ class _IndexPageState extends State<IndexPage> {
         if (globalState.isConnect) {
           showToast('相机异常连接中断');
           globalState.isConnect = false;
+          cameraState.initSpaceData();
           try {
             final bool? isPlay =
                 await GlobalStore.videoPlayerController?.isPlaying();
@@ -301,6 +296,7 @@ class _IndexPageState extends State<IndexPage> {
 
       if (globalState.isConnect) {
         globalState.isConnect = false;
+        cameraState.initSpaceData();
         try {
           final bool? isPlay =
               await GlobalStore.videoPlayerController?.isPlaying();
@@ -371,7 +367,9 @@ class _IndexPageState extends State<IndexPage> {
   @override
   Widget build(BuildContext context) {
     globalState = context.read<GlobalState>();
-    final _globalState = context.watch<GlobalState>();
+    cameraState = context.read<CameraState>();
+
+    final _watchGlobalState = context.watch<GlobalState>();
 
     return Scaffold(
       body: PageView(
@@ -385,11 +383,11 @@ class _IndexPageState extends State<IndexPage> {
         children: _pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: _globalState.isConnect && _currentIndex == 1
+        backgroundColor: _watchGlobalState.isConnect && _currentIndex == 1
             ? Colors.black
             : Colors.white,
-        items: _globalState.isConnect && _currentIndex == 1
-            ? _globalState.isCapture
+        items: _watchGlobalState.isConnect && _currentIndex == 1
+            ? _watchGlobalState.isCapture
                 ? disableCameraBottomNavItems
                 : cameraBottomNavItems
             : bottomNavItems,
@@ -397,9 +395,7 @@ class _IndexPageState extends State<IndexPage> {
         type: BottomNavigationBarType.fixed,
         showSelectedLabels: false,
         showUnselectedLabels: false,
-        onTap: (index) {
-          _changePage(index);
-        },
+        onTap: (index) => _changePage(index),
       ),
     );
   }
@@ -414,7 +410,7 @@ class _IndexPageState extends State<IndexPage> {
       /// TODO: 4/17/21 快速点击拍摄存在异常，不止是从相册界面切换回来
       if (index == 1 && globalState.isConnect) {
         /// 立即进行一次电量检测
-        _batteryLevelCheck();
+        cameraState.batteryLevelCheck();
 
         /// TODO 进行容量检测
         // _diskFreeSpaceCheck
@@ -429,23 +425,36 @@ class _IndexPageState extends State<IndexPage> {
             GlobalStore.wifiAppMode = WifiAppMode.wifiAppModePhoto;
 
             /// 必须要通知过去
-            GlobalStore.videoPlayerController?.play();
+            try {
+              GlobalStore.videoPlayerController?.play();
+            } catch (e) {
+              debugPrint(e.toString());
+            }
           }, onError: (code, msg) {
             // GlobalStore.videoPlayerController?.stop();
             /// TODO: 4/16/21 待处理 存在请求不成功的问题（通过刷新全景相机相册，快速进入拍摄界面）
-            GlobalStore.videoPlayerController?.play();
+            try {
+              GlobalStore.videoPlayerController?.play();
+            } catch (e) {
+              debugPrint(e.toString());
+            }
           });
         } else {
-          GlobalStore.videoPlayerController?.play();
+          try {
+            GlobalStore.videoPlayerController?.play();
+          } catch (e) {
+            debugPrint(e.toString());
+          }
         }
       }
 
       pageController.jumpToPage(index);
     } else if (index == 1 && globalState.isConnect) {
-      _batteryLevelCheck();
+      cameraState.batteryLevelCheck();
+
       // globalState.batteryStatus == BatteryStatus.batteryLow
-      if (globalState.batteryStatus == BatteryStatus.batteryEmpty ||
-          globalState.batteryStatus == BatteryStatus.batteryExhausted) {
+      if (cameraState.batteryStatus == BatteryStatus.batteryEmpty ||
+          cameraState.batteryStatus == BatteryStatus.batteryExhausted) {
         showToast('低电量，拍摄失败');
         return;
       }
@@ -478,11 +487,19 @@ class _IndexPageState extends State<IndexPage> {
             }
 
             globalState.isCapture = false;
-            GlobalStore.videoPlayerController?.play();
+            try {
+              GlobalStore.videoPlayerController?.play();
+            } catch (e) {
+              debugPrint(e.toString());
+            }
           },
           onError: (code, msg) {
             globalState.isCapture = false;
-            GlobalStore.videoPlayerController?.play();
+            try {
+              GlobalStore.videoPlayerController?.play();
+            } catch (e) {
+              debugPrint(e.toString());
+            }
           },
         );
       });

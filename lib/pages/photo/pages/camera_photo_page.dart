@@ -22,6 +22,7 @@ import 'package:xcam_one/models/camera_file_entity.dart';
 import 'package:xcam_one/models/wifi_app_mode_entity.dart';
 import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
+import 'package:xcam_one/notifiers/photo_state.dart';
 import 'package:xcam_one/pages/photo_view/photo_view_router.dart';
 
 import 'package:xcam_one/res/styles.dart';
@@ -37,7 +38,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     with AutomaticKeepAliveClientMixin {
   bool _isShowLoading = true;
 
-  late GlobalState globalState;
+  late PhotoState watchPhotoState;
 
   late EasyRefreshController _refreshController;
 
@@ -54,21 +55,11 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     _refreshController = EasyRefreshController();
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
-      _onRefresh().then((value) {
-        setState(() {
-          _isShowLoading = false;
-        });
-      });
+      _onRefresh();
     });
   }
 
   Future<void> _onRefresh() async {
-    // if (GlobalStore.wifiAppMode != WifiAppMode.wifiAppModePlayback) {
-    //
-    // } else {
-    //   await _getFileList();
-    // }
-
     try {
       final bool? isPlay = await GlobalStore.videoPlayerController?.isPlaying();
       if (isPlay ?? false) {
@@ -82,15 +73,27 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
         Method.get,
         HttpApi.appModeChange +
             WifiAppMode.wifiAppModePlayback.index.toString(),
-        onSuccess: (modeEntity) {
+        onSuccess: (modeEntity) async {
       /// NOTE: 4/12/21 必须要切换到WifiAppMode.wifiAppModeMovie才能进行正确获取
       GlobalStore.wifiAppMode = WifiAppMode.wifiAppModePlayback;
-      _getFileList().then((value) {
+
+      await DioUtils.instance.requestNetwork<CameraFileListEntity>(
+          Method.get, HttpApi.getFileList, onSuccess: (data) async {
+        data?.list?.allFile?.sort((s1, s2) {
+          return int.parse(s2.file?.timeCode ?? '0')
+              .compareTo(int.parse(s1.file?.timeCode ?? '0'));
+        });
+
+        final photoState = Provider.of<PhotoState>(context, listen: false);
+
+        /// NOTE: 4/17/21 待注意 内部会进行分组
+        photoState.setAllFile(data?.list?.allFile);
+
         /// 初始化数量
-        final int count = (globalState.allFile?.length ?? 0);
+        final int count = (photoState.allFile?.length ?? 0);
         _count = count > 20 ? 20 : count;
         int length = 0;
-        final groupFileList = globalState.groupFileList?.values.toList();
+        final groupFileList = photoState.groupFileList?.values.toList();
         if (groupFileList != null) {
           for (int i = 0; i < groupFileList.length; i++) {
             final element = groupFileList[i];
@@ -103,31 +106,22 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
             }
           }
         }
+
+        setState(() {
+          _isShowLoading = false;
+        });
+      }, onError: (code, message) {
+        debugPrint('code: $code, message: $message');
       });
     }, onError: (code, msg) {
       showToast('网络错误，请刷新');
     });
   }
 
-  Future<void> _getFileList() async {
-    await DioUtils.instance.requestNetwork<CameraFileListEntity>(
-        Method.get, HttpApi.getFileList, onSuccess: (data) {
-      data?.list?.allFile?.sort((s1, s2) {
-        return int.parse(s2.file?.timeCode ?? '0')
-            .compareTo(int.parse(s1.file?.timeCode ?? '0'));
-      });
-
-      /// NOTE: 4/17/21 待注意 内部会进行分组
-      globalState.setAllFile(data?.list?.allFile);
-    }, onError: (code, message) {
-      debugPrint('code: $code, message: $message');
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    globalState = context.read<GlobalState>();
+    watchPhotoState = context.watch<PhotoState>();
 
     if (context.watch<GlobalState>().isConnect) {
       return _buildCameraPhoto(context);
@@ -246,10 +240,11 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
         },
         onLoad: () async {
           await Future.delayed(Duration(seconds: 1), () {
-            final int count = (globalState.allFile?.length ?? 0);
+            final int count = (watchPhotoState.allFile?.length ?? 0);
             _count = count > (_count + 20) ? (_count + 20) : count;
             int length = 0;
-            final groupFileList = globalState.groupFileList?.values.toList();
+            final groupFileList =
+                watchPhotoState.groupFileList?.values.toList();
             if (groupFileList != null) {
               for (int i = 0; i < groupFileList.length; i++) {
                 final element = groupFileList[i];
@@ -271,7 +266,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
           itemCount: _groupLength,
           shrinkWrap: true,
           itemBuilder: (context, index) {
-            final keys = globalState.groupFileList?.keys.toList();
+            final keys = watchPhotoState.groupFileList?.keys.toList();
             return _buildPhotoGroup(context, keys![index], index);
           },
         ),
@@ -284,7 +279,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     if (groupIndex == _groupLength - 1) {
       length = _groupCount;
     } else {
-      length = globalState.groupFileList?[key]?.length ?? 0;
+      length = watchPhotoState.groupFileList?[key]?.length ?? 0;
     }
 
     return Column(
@@ -313,18 +308,19 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
                 itemBuilder: (BuildContext context, int index) {
                   int currentIndex = 0;
                   final List<String> keys =
-                      globalState.groupFileList!.keys.toList();
+                      watchPhotoState.groupFileList!.keys.toList();
                   for (int i = 0; i < keys.length; i++) {
                     if (keys[i].contains(key)) {
                       currentIndex += index;
                       break;
                     }
-                    currentIndex += globalState.groupFileList![keys[i]]!.length;
+                    currentIndex +=
+                        watchPhotoState.groupFileList![keys[i]]!.length;
                   }
 
                   return _buildPhoto(
                     context,
-                    globalState.groupFileList![key]![index],
+                    watchPhotoState.groupFileList![key]![index],
                     currentIndex,
                   );
                 })),

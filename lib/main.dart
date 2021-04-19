@@ -16,7 +16,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:xcam_one/generated/l10n.dart';
+import 'package:xcam_one/notifiers/camera_state.dart';
 import 'package:xcam_one/notifiers/locale_state.dart';
+import 'package:xcam_one/notifiers/photo_state.dart';
 
 import 'package:xcam_one/pages/splash.dart';
 import 'package:xcam_one/routers/page_not_found.dart';
@@ -84,6 +86,12 @@ class __MyAppState extends State<_MyApp> {
           ChangeNotifierProvider.value(value: _themeState),
           ChangeNotifierProvider.value(value: _localeState),
           ChangeNotifierProvider.value(value: _globalState),
+          ChangeNotifierProvider(
+            create: (_) => CameraState(),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => PhotoState(),
+          ),
         ],
         child: Consumer2<ThemeState, LocaleState>(builder:
             (BuildContext context, ThemeState themeState,

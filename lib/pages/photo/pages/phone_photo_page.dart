@@ -16,6 +16,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
+import 'package:xcam_one/notifiers/photo_state.dart';
 
 import 'package:xcam_one/pages/photo_view/photo_view_router.dart';
 import 'package:xcam_one/res/resources.dart';
@@ -48,8 +49,8 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
     /// 先获取相机权限
     PhotoManager.requestPermission().then((value) {
       if (value) {
-        Provider.of<GlobalState>(context, listen: false)
-            .refreshGalleryList()
+        Provider.of<PhotoState>(context, listen: false)
+            .refreshPhonePhoto()
             .then((value) {
           setState(() {
             _isShowLoading = false;
@@ -85,7 +86,7 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
       );
     }
 
-    final globalState = context.read<GlobalState>();
+    final photoState = context.read<PhotoState>();
 
     return Container(
         child: EasyRefresh(
@@ -117,11 +118,11 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
         _refreshController.resetLoadState();
       },
       child: ListView.builder(
-        itemCount: globalState.photoGroup.length,
+        itemCount: photoState.photoGroup.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
-          final keys = globalState.photoGroup.keys.toList();
-          return _buildPhotoGroup(context, globalState, keys[index], index);
+          final keys = photoState.photoGroup.keys.toList();
+          return _buildPhotoGroup(context, photoState, keys[index], index);
         },
       ),
     ));
@@ -158,7 +159,7 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
     );
   }
 
-  Widget _buildPhotoGroup(BuildContext context, GlobalState globalState,
+  Widget _buildPhotoGroup(BuildContext context, PhotoState photoState,
       String key, int groupIndex) {
     return Column(
       children: [
@@ -176,7 +177,7 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
           child: GridView.builder(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
-              itemCount: globalState.photoGroup[key]?.length,
+              itemCount: photoState.photoGroup[key]?.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
                 childAspectRatio: 1.0,
@@ -185,18 +186,18 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
               ),
               itemBuilder: (BuildContext context, int index) {
                 int currentIndex = 0;
-                final List<String> keys = globalState.photoGroup.keys.toList();
+                final List<String> keys = photoState.photoGroup.keys.toList();
                 for (int i = 0; i < keys.length; i++) {
                   if (keys[i].contains(key)) {
                     currentIndex += index;
                     break;
                   }
-                  currentIndex += globalState.photoGroup[keys[i]]!.length;
+                  currentIndex += photoState.photoGroup[keys[i]]!.length;
                 }
 
                 return _buildPhoto(
                   context,
-                  globalState.photoGroup[key]![index],
+                  photoState.photoGroup[key]![index],
                   currentIndex,
                 );
               }),

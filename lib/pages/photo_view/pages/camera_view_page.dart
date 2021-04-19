@@ -24,6 +24,7 @@ import 'package:xcam_one/models/camera_file_entity.dart';
 import 'package:xcam_one/models/cmd_status_entity.dart';
 import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
+import 'package:xcam_one/notifiers/photo_state.dart';
 import 'package:xcam_one/res/resources.dart';
 import 'package:xcam_one/routers/fluro_navigator.dart';
 
@@ -42,7 +43,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
 
   late int _photoIndex;
 
-  late GlobalState globalState;
+  late PhotoState photoState;
 
   bool _isShowBack = false;
 
@@ -55,7 +56,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
 
   @override
   Widget build(BuildContext context) {
-    globalState = context.read<GlobalState>();
+    photoState = context.read<PhotoState>();
 
     return Scaffold(
       appBar: _isShowBack
@@ -102,13 +103,13 @@ class _CameraViewPageState extends State<CameraViewPage> {
                       child: GestureDetector(
                         onTap: () {
                           final String filePath =
-                              globalState.allFile![_photoIndex].file!.filePath!;
+                              photoState.allFile![_photoIndex].file!.filePath!;
                           DioUtils.instance.requestNetwork<CmdStatusEntity>(
                               Method.get, '${HttpApi.deleteFile}$filePath',
                               onSuccess: (data) {
                             if (data?.function?.status == 0) {
                               showToast('删除成功');
-                              globalState.cameraFileRemoveAt(_photoIndex);
+                              photoState.cameraFileRemoveAt(_photoIndex);
                             } else {
                               showToast('删除失败');
                             }
@@ -128,7 +129,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
                       child: GestureDetector(
                         onTap: () {
                           String filePath =
-                              globalState.allFile![_photoIndex].file!.filePath!;
+                              photoState.allFile![_photoIndex].file!.filePath!;
 
                           filePath = filePath.substring(3, filePath.length);
                           filePath = filePath.replaceAll('\\', '/');
@@ -171,7 +172,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
       ),
       context: context,
       builder: (BuildContext context) {
-        final CameraFileInfo entity = globalState.allFile![_photoIndex].file!;
+        final CameraFileInfo entity = photoState.allFile![_photoIndex].file!;
         final int length = int.parse(entity.size!);
 
         final String _currentImageSize = (length / 1024) > 1024
@@ -313,7 +314,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
     final size = MediaQuery.of(context).size;
 
     final bgColor = Color(0xFFF2F2F2);
-    final _globalState = context.watch<GlobalState>();
+    final _photoState = context.watch<PhotoState>();
     return Container(
       width: size.width,
       height: size.height,
@@ -331,9 +332,9 @@ class _CameraViewPageState extends State<CameraViewPage> {
             color: _isShowBack ? Colors.black : bgColor,
           ),
           scrollPhysics: const BouncingScrollPhysics(),
-          itemCount: _globalState.allFile?.length,
+          itemCount: _photoState.allFile?.length,
           builder: (BuildContext context, int index) {
-            String filePath = _globalState.allFile![index].file!.filePath!;
+            String filePath = _photoState.allFile![index].file!.filePath!;
             filePath = filePath.substring(3, filePath.length);
             filePath = filePath.replaceAll('\\', '/');
             final url =

@@ -18,6 +18,7 @@ import 'package:transparent_image/transparent_image.dart';
 import 'package:intl/intl.dart';
 
 import 'package:xcam_one/notifiers/global_state.dart';
+import 'package:xcam_one/notifiers/photo_state.dart';
 import 'package:xcam_one/res/resources.dart';
 import 'package:xcam_one/routers/fluro_navigator.dart';
 
@@ -35,7 +36,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
 
   late int _photoIndex;
 
-  late GlobalState globalState;
+  late PhotoState photoState;
 
   int _dataLength = 0;
 
@@ -50,7 +51,8 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
 
   @override
   Widget build(BuildContext context) {
-    globalState = context.read<GlobalState>();
+    photoState = context.read<PhotoState>();
+
     return Scaffold(
       appBar: _isShowBack
           ? null
@@ -95,7 +97,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
       context: context,
       builder: (BuildContext context) {
         final format = DateFormat('yyyy/MM/dd hh:mm:ss');
-        final entity = globalState.photos[_photoIndex];
+        final entity = photoState.photos[_photoIndex];
         final line = Divider(color: Color(0xFFF5F5F5));
         final valueColor = Color(0xFFBFBFBF);
         final String imageSize = (_dataLength / 1024) > 1024
@@ -225,7 +227,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
         },
         child: PhotoViewGallery.builder(
           pageController: pageController,
-          itemCount: globalState.photos.length,
+          itemCount: photoState.photos.length,
           scrollPhysics: const BouncingScrollPhysics(),
           onPageChanged: onPageChanged,
           backgroundDecoration: BoxDecoration(
@@ -234,7 +236,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
           builder: (BuildContext context, int index) {
             return PhotoViewGalleryPageOptions.customChild(
               child: FutureBuilder<Uint8List?>(
-                future: globalState.photos[index].originBytes,
+                future: photoState.photos[index].originBytes,
                 builder: (_, s) {
                   if (!s.hasData) {
                     return Center(

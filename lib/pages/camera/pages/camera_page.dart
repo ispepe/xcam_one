@@ -16,11 +16,9 @@ import 'package:provider/provider.dart';
 
 import 'package:xcam_one/global/global_store.dart';
 import 'package:xcam_one/models/battery_level_entity.dart';
-import 'package:xcam_one/models/disk_free_space_entity.dart';
+import 'package:xcam_one/notifiers/camera_state.dart';
 import 'package:xcam_one/pages/camera_connect/pages/camera_connect_page.dart';
-import 'package:xcam_one/models/wifi_app_mode_entity.dart';
 
-import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/res/styles.dart';
 
@@ -31,13 +29,9 @@ class CameraPage extends StatefulWidget {
 
 class _CameraPageState extends State<CameraPage>
     with AutomaticKeepAliveClientMixin {
-  String _freeSpace = '0KB';
+  late GlobalState _watchGlobalState;
 
-  /// 剩余空间
-  int _freeSpaceData = 0;
-
-  /// 总空间
-  int _countSpaceData = 0;
+  late CameraState _watchCameraState;
 
   @override
   void initState() {
@@ -47,9 +41,6 @@ class _CameraPageState extends State<CameraPage>
     // }
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
-      /// 刷新可用空间（每次拍照后都需跟新空间）
-      _diskFreeSpaceCheck();
-
       /// TODO: 4/16/21 将其移动到index目录
       // if (Provider.of<GlobalState>(context, listen: false).isConnect) {
       //   if (GlobalStore.wifiAppMode != WifiAppMode.wifiAppModePhoto) {
@@ -87,45 +78,6 @@ class _CameraPageState extends State<CameraPage>
     });
   }
 
-  /// 3022获取硬件容量
-  Future<void> _diskFreeSpaceCheck() async {
-    await DioUtils.instance.requestNetwork<DiskFreeSpaceEntity>(
-        Method.get, HttpApi.getDiskFreeSpace, onSuccess: (data) {
-      _freeSpaceData = data?.function?.space ?? 0;
-      double size = _freeSpaceData.toDouble();
-
-      int i = 0;
-      while (size > 1024) {
-        size = size / 1024;
-        i++;
-        if (i == 4) break;
-      }
-
-      _freeSpace = size.toStringAsFixed(2);
-      switch (i) {
-        case 0:
-          _freeSpace += 'B';
-          break;
-        case 1:
-          _freeSpace += 'KB';
-          break;
-        case 2:
-          _freeSpace += 'M';
-          break;
-        case 3:
-          _freeSpace += 'GB';
-          break;
-        case 4:
-          _freeSpace += 'TB';
-          break;
-      }
-
-      setState(() {});
-    }, onError: (code, message) {
-      debugPrint('code: $code, message: $message');
-    });
-  }
-
   @override
   void dispose() async {
     super.dispose();
@@ -138,9 +90,11 @@ class _CameraPageState extends State<CameraPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    _watchGlobalState = context.watch<GlobalState>();
+    _watchCameraState = context.watch<CameraState>();
 
     return Container(
-      child: Provider.of<GlobalState>(context).isConnect
+      child: _watchGlobalState.isConnect
           ? Scaffold(
               backgroundColor: Colors.black,
               appBar: AppBar(
@@ -159,7 +113,6 @@ class _CameraPageState extends State<CameraPage>
   }
 
   Container _buildCameraStatus(BuildContext context) {
-    final globalState = context.watch<GlobalState>();
     final width = MediaQuery.of(context).size.width * 0.9;
 
     final textStyle = TextStyles.textSize12.copyWith(color: Color(0xFF999999));
@@ -174,7 +127,7 @@ class _CameraPageState extends State<CameraPage>
               Image.asset('assets/images/wifi.png', width: 32, height: 32),
               Padding(
                 padding: const EdgeInsets.only(left: 4.0),
-                child: globalState.isConnect
+                child: _watchGlobalState.isConnect
                     ? Text(
                         '已连接',
                         style: textStyle,
@@ -200,7 +153,9 @@ class _CameraPageState extends State<CameraPage>
                   color: Color(0x33787880),
                   borderRadius: BorderRadius.all(Radius.circular(3))),
               child: Container(
-                width: width * 0.5,
+                width: width *
+                    (_watchCameraState.freeSpaceData /
+                        _watchCameraState.diskSpaceData),
                 decoration: BoxDecoration(
                     color: Color(0xFF00BBD4),
                     borderRadius: BorderRadius.all(Radius.circular(3))),
@@ -219,13 +174,16 @@ class _CameraPageState extends State<CameraPage>
                   child: SizedBox(),
                 ),
                 RichText(
-                  text: TextSpan(text: '64GB', style: textStyle, children: [
-                    TextSpan(
-                        text: '/$_freeSpace',
-                        style: textStyle.copyWith(
-                          fontSize: 10,
-                        ))
-                  ]),
+                  text: TextSpan(
+                      text: '${_watchCameraState.diskSpace}',
+                      style: textStyle,
+                      children: [
+                        TextSpan(
+                            text: '/${_watchCameraState.freeSpace}可用',
+                            style: textStyle.copyWith(
+                              fontSize: 10,
+                            ))
+                      ]),
                 ),
               ],
             ),
@@ -237,7 +195,7 @@ class _CameraPageState extends State<CameraPage>
 
   Container _buildBatteryStatus(BuildContext context) {
     double batteryWidth = 0;
-    final _batteryStatus = context.read<GlobalState>().batteryStatus;
+    final _batteryStatus = context.read<CameraState>().batteryStatus;
     switch (_batteryStatus) {
       case BatteryStatus.batteryMed:
         batteryWidth = 22 * 0.5;
@@ -315,9 +273,7 @@ class _CameraPageState extends State<CameraPage>
                   controller: GlobalStore.videoPlayerController!,
                   placeholder: Center(child: loading),
                 ),
-                Provider.of<GlobalState>(context).isCapture
-                    ? _buildCaptureInfo()
-                    : SizedBox()
+                _watchGlobalState.isCapture ? _buildCaptureInfo() : SizedBox()
               ],
             )
           : Center(
