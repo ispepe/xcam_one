@@ -36,55 +36,11 @@ class _CameraPageState extends State<CameraPage>
   @override
   void initState() {
     super.initState();
-    // if (!GlobalStore.videoPlayerController!.value.isInitialized) {
-    //   GlobalStore.videoPlayerController?.initialize();
-    // }
-
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
-      /// TODO: 4/16/21 将其移动到index目录
-      // if (Provider.of<GlobalState>(context, listen: false).isConnect) {
-      //   if (GlobalStore.wifiAppMode != WifiAppMode.wifiAppModePhoto) {
-      //     DioUtils.instance.requestNetwork<WifiAppModeEntity>(
-      //         Method.get,
-      //         HttpApi.appModeChange +
-      //             WifiAppMode.wifiAppModePhoto.index.toString(),
-      //         onSuccess: (modeEntity) {
-      //       GlobalStore.wifiAppMode = WifiAppMode.wifiAppModePhoto;
-      //
-      //       GlobalStore.videoPlayerController?.play().then((value) {
-      //         setState(() {});
-      //       });
-      //     }, onError: (code, msg) {
-      //       GlobalStore.videoPlayerController?.stop();
-      //     });
-      //   } else {
-      //     GlobalStore.videoPlayerController?.isPlaying().then((isPlaying) {
-      //       debugPrint(isPlaying.toString());
-      //       if (isPlaying != null) {
-      //         if (isPlaying) {
-      //           GlobalStore.videoPlayerController?.play().then((value) {
-      //             setState(() {});
-      //           });
-      //         } else {
-      //           GlobalStore.videoPlayerController?.startRendererScanning();
-      //           // GlobalStore.videoPlayerController?.pause().then((value) {
-      //           //   setState(() {});
-      //           // });
-      //         }
-      //       }
-      //     });
-      //   }
-      // }
-    });
   }
 
   @override
   void dispose() async {
     super.dispose();
-
-    // await GlobalStore.videoPlayerController?.stopRendererScanning();
-    // await GlobalStore.videoPlayerController?.dispose();
-    // GlobalStore.videoPlayerController = null;
   }
 
   @override
@@ -93,23 +49,23 @@ class _CameraPageState extends State<CameraPage>
     _watchGlobalState = context.watch<GlobalState>();
     _watchCameraState = context.watch<CameraState>();
 
-    return Container(
-      child: _watchGlobalState.isConnect
-          ? Scaffold(
+    return _watchGlobalState.isConnect
+        ? Scaffold(
+            backgroundColor: Colors.black,
+            appBar: AppBar(
               backgroundColor: Colors.black,
-              appBar: AppBar(
-                backgroundColor: Colors.black,
-                title: Text('xCam One',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w500, color: Colors.white)),
-                centerTitle: true,
-              ),
-              body: Column(children: [
+              title: Text('xCam One',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w500, color: Colors.white)),
+              centerTitle: true,
+            ),
+            body: Container(
+              child: Column(children: [
                 _buildCamera(context),
                 _buildCameraStatus(context)
-              ]))
-          : CameraConnectPage(),
-    );
+              ]),
+            ))
+        : CameraConnectPage();
   }
 
   Container _buildCameraStatus(BuildContext context) {

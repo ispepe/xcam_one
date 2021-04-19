@@ -241,7 +241,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                   if (!s.hasData) {
                     return Center(
                         child: SpinKitCircle(
-                      color: Theme.of(context).accentColor,
+                      color: Theme.of(context).primaryColor,
                       size: 32,
                     ));
                   }

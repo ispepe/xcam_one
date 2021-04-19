@@ -144,7 +144,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
                                 elevation: 0,
                                 backgroundColor: Colors.transparent,
                                 content: SpinKitThreeBounce(
-                                  color: Theme.of(context).accentColor,
+                                  color: Theme.of(context).primaryColor,
                                   size: 24,
                                 ),
                               );
@@ -348,7 +348,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
           loadingBuilder: (context, event) {
             return Center(
                 child: SpinKitCircle(
-              color: Theme.of(context).accentColor,
+              color: Theme.of(context).primaryColor,
               size: 32,
             ));
           },

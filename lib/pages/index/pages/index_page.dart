@@ -372,6 +372,10 @@ class _IndexPageState extends State<IndexPage> {
     final _watchGlobalState = context.watch<GlobalState>();
 
     return Scaffold(
+      /// NOTE: 4/19/21 待注意 此处不加背景，会导致拍摄时底部bar有灰色边框
+      backgroundColor: _watchGlobalState.isConnect && _currentIndex == 1
+          ? Colors.black
+          : Colors.white,
       body: PageView(
         physics: NeverScrollableScrollPhysics(),
         onPageChanged: (index) {

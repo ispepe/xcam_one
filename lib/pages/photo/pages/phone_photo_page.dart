@@ -79,7 +79,7 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
         width: size.width,
         child: Center(
           child: SpinKitThreeBounce(
-            color: Theme.of(context).accentColor,
+            color: Theme.of(context).primaryColor,
             size: 48,
           ),
         ),
@@ -100,7 +100,7 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
           refreshedText: '刷新成功',
           refreshFailedText: '刷新失败',
           textColor: Theme.of(context).primaryColor,
-          showInfo: true,
+          showInfo: false,
           infoText: '刷新时间 %T',
           infoColor: Theme.of(context).accentColor),
       footer: ClassicalFooter(
@@ -152,15 +152,15 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
 
         return Center(
             child: SpinKitCircle(
-          color: Theme.of(context).accentColor,
+          color: Theme.of(context).primaryColor,
           size: 24,
         ));
       },
     );
   }
 
-  Widget _buildPhotoGroup(BuildContext context, PhotoState photoState,
-      String key, int groupIndex) {
+  Widget _buildPhotoGroup(
+      BuildContext context, PhotoState photoState, String key, int groupIndex) {
     return Column(
       children: [
         Container(

@@ -48,6 +48,8 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
 
   int _groupCount = 0;
 
+  bool _noMore = false;
+
   /// 获取全景相机
   @override
   void initState() {
@@ -106,10 +108,11 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
             }
           }
         }
-
-        setState(() {
-          _isShowLoading = false;
-        });
+        if (_isShowLoading) {
+          setState(() {
+            _isShowLoading = false;
+          });
+        }
       }, onError: (code, message) {
         debugPrint('code: $code, message: $message');
       });
@@ -202,7 +205,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
         width: size.width,
         child: Center(
             child: SpinKitThreeBounce(
-          color: Theme.of(context).accentColor,
+          color: Theme.of(context).primaryColor,
           size: 48,
         )),
       );
@@ -220,7 +223,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
             refreshedText: '刷新成功',
             refreshFailedText: '刷新失败',
             textColor: Theme.of(context).primaryColor,
-            showInfo: true,
+            showInfo: false,
             infoText: '刷新时间 %T',
             infoColor: Theme.of(context).accentColor),
         footer: ClassicalFooter(
@@ -228,7 +231,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
           loadFailedText: '加载失败',
           loadedText: '加载成功',
           loadingText: '加载中...',
-          textColor: Theme.of(context).primaryColor,
+          textColor: _noMore ? Colors.grey : Theme.of(context).primaryColor,
           infoColor: Theme.of(context).accentColor,
           infoText: '加载时间 %T',
           showInfo: false,
@@ -259,7 +262,8 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
             }
 
             setState(() {});
-            _refreshController.finishLoad(noMore: _count >= count);
+            _noMore = _count >= count;
+            _refreshController.finishLoad(noMore: _noMore);
           });
         },
         child: ListView.builder(
@@ -318,10 +322,15 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
                         watchPhotoState.groupFileList![keys[i]]!.length;
                   }
 
-                  return _buildPhoto(
-                    context,
-                    watchPhotoState.groupFileList![key]![index],
-                    currentIndex,
+                  return LayoutBuilder(
+                    builder:
+                        (BuildContext context, BoxConstraints constraints) {
+                      return _buildPhoto(
+                        context,
+                        watchPhotoState.groupFileList![key]![index],
+                        currentIndex,
+                      );
+                    },
                   );
                 })),
       ],
@@ -348,11 +357,14 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
         placeholder: (BuildContext context, url) {
           return Center(
               child: SpinKitCircle(
-            color: Theme.of(context).accentColor,
+            color: Theme.of(context).primaryColor,
             size: 24,
           ));
         },
-        errorWidget: (context, url, error) => Icon(Icons.photo_outlined),
+        errorWidget: (context, url, error) {
+          debugPrint(error.toString());
+          return Icon(Icons.broken_image_outlined);
+        },
         imageUrl: Uri.encodeFull(url),
       ),
     );
