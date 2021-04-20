@@ -9,6 +9,7 @@
  */
 
 import 'package:app_settings/app_settings.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -27,6 +28,7 @@ import 'package:xcam_one/pages/photo_view/photo_view_router.dart';
 
 import 'package:xcam_one/res/styles.dart';
 import 'package:xcam_one/routers/fluro_navigator.dart';
+import 'package:xcam_one/utils/dialog_utils.dart';
 import 'package:xcam_one/widgets/my_button.dart';
 
 class CameraPhotoPage extends StatefulWidget {
@@ -36,8 +38,6 @@ class CameraPhotoPage extends StatefulWidget {
 
 class _CameraPhotoPageState extends State<CameraPhotoPage>
     with AutomaticKeepAliveClientMixin {
-  bool _isShowLoading = true;
-
   late PhotoState watchPhotoState;
 
   late EasyRefreshController _refreshController;
@@ -61,6 +61,19 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     });
   }
 
+  void showLoading(context) {
+    showCupertinoDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return Center(
+              child: SpinKitThreeBounce(
+            color: Theme.of(context).primaryColor,
+            size: 32,
+          ));
+        });
+  }
+
   Future<void> _onRefresh() async {
     try {
       final bool? isPlay = await GlobalStore.videoPlayerController?.isPlaying();
@@ -70,6 +83,9 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     } catch (e) {
       e.toString();
     }
+
+    /// 加载模态对话框
+    showLoading(context);
 
     await DioUtils.instance.requestNetwork<WifiAppModeEntity>(
         Method.get,
@@ -110,17 +126,18 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
             }
           }
         }
-        if (_isShowLoading) {
-          _isShowLoading = false;
-        }
+
+        NavigatorUtils.goBack(context);
 
         /// 必须刷新一次
         setState(() {});
       }, onError: (code, message) {
-        debugPrint('code: $code, message: $message');
+        NavigatorUtils.goBack(context);
+        showToast('获取文件失败，请重试');
       });
     }, onError: (code, msg) {
-      showToast('网络错误，请刷新');
+      NavigatorUtils.goBack(context);
+      showToast('相机模式切换失败，请重试');
     });
   }
 
@@ -201,19 +218,6 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
   }
 
   Widget _buildCameraPhoto(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    if (_isShowLoading) {
-      return Container(
-        height: size.height,
-        width: size.width,
-        child: Center(
-            child: SpinKitThreeBounce(
-          color: Theme.of(context).primaryColor,
-          size: 48,
-        )),
-      );
-    }
-
     return Container(
       child: EasyRefresh(
         controller: _refreshController,

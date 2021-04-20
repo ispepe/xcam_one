@@ -8,16 +8,22 @@
  *  Created by Pepe
  */
 
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+
 import 'package:oktoast/oktoast.dart';
 import 'package:provider/provider.dart';
+
 import 'package:xcam_one/models/cmd_status_entity.dart';
-import 'package:xcam_one/models/wifi_app_mode_entity.dart';
 import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/res/resources.dart';
 import 'package:xcam_one/routers/fluro_navigator.dart';
 import 'package:xcam_one/utils/bottom_sheet_utils.dart';
+import 'package:xcam_one/utils/dialog_utils.dart';
 
 class SettingPage extends StatefulWidget {
   @override
@@ -27,7 +33,17 @@ class SettingPage extends StatefulWidget {
 class _SettingPageState extends State<SettingPage>
     with AutomaticKeepAliveClientMixin {
   List<String> appTitles = ['通知', '操作说明', 'FAQ', '使用条款(用户协议)', '隐私政策', 'APP版本'];
-  List<String> cameraTitles = ['相机存储', '倒计时拍摄', 'HDR', '格式化相机', '重置相机', '相机信息'];
+  List<String> cameraTitles = [
+    '相机存储',
+    '倒计时拍摄',
+    'HDR',
+    '格式化相机',
+    // '重置相机设置',
+    '相机信息'
+  ];
+
+  /// 默认为HDR未开启，每次连接后需要重置一下参数
+  bool _isHDR = false;
 
   @override
   void initState() {
@@ -66,8 +82,9 @@ class _SettingPageState extends State<SettingPage>
                   return Column(
                     children: cameraTitles.map((title) {
                       if (title == 'HDR') {
-                        return _buildTitle(context, title,
-                            isEnable: globalState.isConnect);
+                        return _buildTitleSwitch(context, title,
+                            isEnable: globalState.isConnect,
+                            switchValue: _isHDR);
                       } else {
                         return _buildTitle(context, title,
                             isEnable: globalState.isConnect);
@@ -145,6 +162,75 @@ class _SettingPageState extends State<SettingPage>
         ),
       ),
     );
+  }
+
+  Widget _buildTitleSwitch(BuildContext context, String title,
+      {bool isEnable = true, required bool switchValue}) {
+    final disableColor = Color(0xFFBFBFBF);
+
+    final line = Divider(color: Color(0x173C3C43));
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          Container(
+            height: 44,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(title,
+                    style: TextStyles.textSize16.copyWith(
+                        color: isEnable ? Colors.black : disableColor)),
+                (Platform.isIOS || Platform.isMacOS)
+                    ? CupertinoSwitch(
+                        value: switchValue,
+                        activeColor: Theme.of(context).primaryColor,
+                        onChanged: (value) => _onChanged(value, title))
+                    : Switch(
+                        activeColor: Theme.of(context).primaryColor,
+                        onChanged: (bool value) => _onChanged(value, title),
+                        value: switchValue,
+                      )
+              ],
+            ),
+          ),
+          line,
+        ],
+      ),
+    );
+  }
+
+  void _onChanged(value, title) {
+    switch (title) {
+      case 'HDR':
+        {
+          /// 开启HDR
+          DioUtils.instance.requestNetwork<CmdStatusEntity>(
+              Method.get, '${HttpApi.setHDR}${value ? 1 : 0}',
+              onSuccess: (cmdStatusEntity) {
+            if (cmdStatusEntity?.function?.status == 0) {
+              Future.delayed(Duration(seconds: 1), () {
+                NavigatorUtils.goBack(context);
+                setState(() {
+                  _isHDR = value;
+                });
+              });
+            } else {
+              NavigatorUtils.goBack(context);
+              final String showText = _isHDR ? '关闭HDR失败' : '开启HDR失败';
+              showToast(showText);
+            }
+          }, onError: (code, msg) {
+            NavigatorUtils.goBack(context);
+            showToast('执行HDR操作失败，请重试');
+          });
+
+          /// 加载模态对话框
+          showLoadingDialog(context);
+          break;
+        }
+    }
   }
 
   @override

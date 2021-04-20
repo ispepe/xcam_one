@@ -63,6 +63,9 @@ class HttpApi {
   /// 重置相机设置 http://192.168.1.254/?custom=1&cmd=3011
   static const String systemReset = '?custom=1&cmd=3011';
 
+  /// 开启HDR http://192.168.1.254/?custom=1&cmd=2004&par=0
+  static const String setHDR = '?custom=1&cmd=2004&par=';
+
   /// socket 通知客户端电池电量低、存储卡满 端口号3333
 
 }
