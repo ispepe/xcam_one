@@ -47,6 +47,8 @@ class TextStyles {
 
   static const TextStyle textMedium18 =
       TextStyle(fontSize: 18, fontWeight: FontWeight.w500);
+  static const TextStyle textBold12 =
+  TextStyle(fontSize: 12, fontWeight: FontWeight.bold);
 
   static const TextStyle textBold14 =
       TextStyle(fontSize: 14, fontWeight: FontWeight.bold);
@@ -57,9 +59,12 @@ class TextStyles {
   static const TextStyle textBold24 =
       TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold);
   static const TextStyle textBold20 =
-  TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold);
+      TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold);
   static const TextStyle textBold26 =
       TextStyle(fontSize: 26.0, fontWeight: FontWeight.bold);
   static const TextStyle textBold28 =
       TextStyle(fontSize: 28.0, fontWeight: FontWeight.bold);
+
+  static const TextStyle textLight28 =
+      TextStyle(fontSize: 28.0, fontWeight: FontWeight.w300);
 }

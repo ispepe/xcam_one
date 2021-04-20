@@ -24,6 +24,7 @@ import 'package:xcam_one/models/wifi_app_mode_entity.dart';
 import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/notifiers/photo_state.dart';
+import 'package:xcam_one/pages/photo/widgets/empty_photo.dart';
 import 'package:xcam_one/pages/photo_view/photo_view_router.dart';
 
 import 'package:xcam_one/res/styles.dart';
@@ -111,17 +112,20 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
         final int count = (photoState.allFile?.length ?? 0);
         _count = count > 20 ? 20 : count;
         int length = 0;
+        _groupLength = 0;
+        _groupCount = 0;
+
         final groupFileList = photoState.groupFileList?.values.toList();
         if (groupFileList != null) {
           for (int i = 0; i < groupFileList.length; i++) {
             final element = groupFileList[i];
             if (length + element.length > _count) {
               _groupCount = (_count - length);
-              _groupLength = i + 1;
+              if (_groupCount > 0) _groupLength = i + 1;
               break;
             } else {
               _groupCount = _count;
-              _groupLength = i + 1;
+              if (_groupCount > 0) _groupLength = i + 1;
               length += element.length;
             }
           }
@@ -233,53 +237,53 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
             showInfo: false,
             infoText: '刷新时间 %T',
             infoColor: Theme.of(context).accentColor),
-        footer: ClassicalFooter(
-          noMoreText: '没有更多',
-          loadFailedText: '加载失败',
-          loadedText: '加载成功',
-          loadingText: '加载中...',
-          textColor: _noMore ? Colors.grey : Theme.of(context).primaryColor,
-          infoColor: Theme.of(context).accentColor,
-          infoText: '加载时间 %T',
-          showInfo: false,
+        footer: BallPulseFooter(
+          color: Theme.of(context).primaryColor,
         ),
         onRefresh: () async {
           await _onRefresh();
           _refreshController.resetLoadState();
         },
-        onLoad: () async {
-          await Future.delayed(Duration(seconds: 1), () {
-            final int count = (watchPhotoState.allFile?.length ?? 0);
-            _count = count > (_count + 20) ? (_count + 20) : count;
-            int length = 0;
-            final groupFileList =
-                watchPhotoState.groupFileList?.values.toList();
-            if (groupFileList != null) {
-              for (int i = 0; i < groupFileList.length; i++) {
-                final element = groupFileList[i];
-                if (length + element.length > _count) {
-                  _groupCount = (_count - length);
-                  _groupLength = i + 1;
-                  break;
-                } else {
-                  length += element.length;
-                }
-              }
-            }
+        onLoad: _groupLength == 0
+            ? null
+            : () async {
+                await Future.delayed(Duration(seconds: 1), () {
+                  final int count = (watchPhotoState.allFile?.length ?? 0);
+                  _count = count > (_count + 20) ? (_count + 20) : count;
+                  int length = 0;
+                  final groupFileList =
+                      watchPhotoState.groupFileList?.values.toList();
+                  if (groupFileList != null) {
+                    for (int i = 0; i < groupFileList.length; i++) {
+                      final element = groupFileList[i];
+                      if (length + element.length > _count) {
+                        _groupCount = (_count - length);
+                        _groupLength = i + 1;
+                        break;
+                      } else {
+                        length += element.length;
+                      }
+                    }
+                  }
 
-            setState(() {});
-            _noMore = _count >= count;
-            _refreshController.finishLoad(noMore: _noMore);
-          });
-        },
-        child: ListView.builder(
-          itemCount: _groupLength,
-          shrinkWrap: true,
-          itemBuilder: (context, index) {
-            final keys = watchPhotoState.groupFileList?.keys.toList();
-            return _buildPhotoGroup(context, keys![index], index);
-          },
-        ),
+                  setState(() {});
+                  _noMore = _count >= count;
+                  _refreshController.finishLoad(noMore: _noMore);
+                });
+              },
+        child: _groupLength == 0
+            ? buildEmptyPhoto(
+                context,
+                text: '您还没有全景图片快去拍摄吧',
+              )
+            : ListView.builder(
+                itemCount: _groupLength,
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  final keys = watchPhotoState.groupFileList?.keys.toList();
+                  return _buildPhotoGroup(context, keys![index], index);
+                },
+              ),
       ),
     );
   }

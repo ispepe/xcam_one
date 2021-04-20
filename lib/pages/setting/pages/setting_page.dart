@@ -21,6 +21,7 @@ import 'package:xcam_one/models/cmd_status_entity.dart';
 import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/camera_state.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
+import 'package:xcam_one/pages/setting/setting_router.dart';
 import 'package:xcam_one/res/resources.dart';
 import 'package:xcam_one/routers/fluro_navigator.dart';
 import 'package:xcam_one/utils/bottom_sheet_utils.dart';
@@ -108,11 +109,34 @@ class _SettingPageState extends State<SettingPage>
               child: Container(
                 color: Colors.white,
                 child: Column(
-                  children: AppSetting.values
-                      .map((value) => _buildTitle(context, value.text,
-                          isShowLine: value != AppSetting.appVersion,
-                          onPressed: () => showToast('功能待实现')))
-                      .toList(),
+                  children: AppSetting.values.map((value) {
+                    VoidCallback? onPressed = () => showToast('功能待实现');
+                    switch (value) {
+                      case AppSetting.notice:
+                        onPressed = () => NavigatorUtils.push(
+                            context, '${SettingRouter.sysNotice}');
+                        break;
+                      case AppSetting.operatingInstructions:
+                        // TODO: Handle this case.
+                        break;
+                      case AppSetting.FAQ:
+                        // TODO: Handle this case.
+                        break;
+                      case AppSetting.termsOfUse:
+                        // TODO: Handle this case.
+                        break;
+                      case AppSetting.privacyPolicy:
+                        // TODO: Handle this case.
+                        break;
+                      case AppSetting.appVersion:
+                        onPressed = () => NavigatorUtils.push(
+                            context, '${SettingRouter.appVersion}');
+                        break;
+                    }
+                    return _buildTitle(context, value.text,
+                        isShowLine: value != AppSetting.appVersion,
+                        onPressed: onPressed);
+                  }).toList(),
                 ),
               ),
             ),
@@ -131,7 +155,8 @@ class _SettingPageState extends State<SettingPage>
                         VoidCallback? onPressed = () => showToast('功能待实现');
                         switch (value) {
                           case CameraSetting.cameraStorage:
-                            // TODO: Handle this case.
+                            onPressed = () => NavigatorUtils.push(
+                                context, '${SettingRouter.cameraStorage}');
                             break;
                           case CameraSetting.countdownShooting:
                             onPressed =

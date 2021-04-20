@@ -17,6 +17,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/notifiers/photo_state.dart';
+import 'package:xcam_one/pages/photo/widgets/empty_photo.dart';
 
 import 'package:xcam_one/pages/photo_view/photo_view_router.dart';
 import 'package:xcam_one/res/resources.dart';
@@ -117,14 +118,20 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
         _onRefresh();
         _refreshController.resetLoadState();
       },
-      child: ListView.builder(
-        itemCount: photoState.photoGroup.length,
-        shrinkWrap: true,
-        itemBuilder: (context, index) {
-          final keys = photoState.photoGroup.keys.toList();
-          return _buildPhotoGroup(context, photoState, keys[index], index);
-        },
-      ),
+      child: photoState.photoGroup.isEmpty
+          ? buildEmptyPhoto(
+              context,
+              text: '相册空空如也',
+            )
+          : ListView.builder(
+              itemCount: photoState.photoGroup.length,
+              shrinkWrap: true,
+              itemBuilder: (context, index) {
+                final keys = photoState.photoGroup.keys.toList();
+                return _buildPhotoGroup(
+                    context, photoState, keys[index], index);
+              },
+            ),
     ));
   }
 

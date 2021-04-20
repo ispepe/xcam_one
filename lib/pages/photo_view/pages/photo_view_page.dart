@@ -58,6 +58,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
           ? null
           : AppBar(
               leading: GestureDetector(
+                behavior: HitTestBehavior.translucent,
                 onTap: () => NavigatorUtils.goBack(context),
                 child: Icon(
                   Icons.arrow_back_ios,
@@ -120,6 +121,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                           TextStyles.textSize14.copyWith(color: Colors.black),
                     ),
                     GestureDetector(
+                      behavior: HitTestBehavior.translucent,
                       onTap: () {
                         NavigatorUtils.goBack(context);
                       },

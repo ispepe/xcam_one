@@ -56,11 +56,16 @@ class CameraState extends ChangeNotifier {
     });
   }
 
-  /// 免费空间
-  String _freeSpace = '1KB';
+  /// 剩余空间
+  String _freeSpace = '0KB';
 
   /// 总空间
-  String _diskSpace = '1KB';
+  String _diskSpace = '0KB';
+
+  /// 使用空间
+  String _useSpace = '0KB';
+
+  String get useSpace => _useSpace;
 
   int _freeSpaceData = 1;
 
@@ -73,38 +78,44 @@ class CameraState extends ChangeNotifier {
     await DioUtils.instance.requestNetwork<DiskFreeSpaceEntity>(
         Method.get, HttpApi.getDiskFreeSpace, onSuccess: (data) {
       _freeSpaceData = data?.function?.space ?? 0;
-      double size = _freeSpaceData.toDouble();
+      final double size = _freeSpaceData.toDouble();
+      _freeSpace = calcSpace(size);
 
-      int i = 0;
-      while (size > 1024) {
-        size = size / 1024;
-        i++;
-        if (i == 4) break;
-      }
-
-      _freeSpace = size.toStringAsFixed(2);
-      switch (i) {
-        case 0:
-          _freeSpace += 'B';
-          break;
-        case 1:
-          _freeSpace += 'KB';
-          break;
-        case 2:
-          _freeSpace += 'M';
-          break;
-        case 3:
-          _freeSpace += 'GB';
-          break;
-        case 4:
-          _freeSpace += 'TB';
-          break;
-      }
-
+      _useSpace = calcSpace((_diskSpaceData - _freeSpaceData).toDouble());
       notifyListeners();
     }, onError: (code, message) {
       debugPrint('code: $code, message: $message');
     });
+  }
+
+  String calcSpace(double size) {
+    int i = 0;
+    while (size > 1024) {
+      size = size / 1024;
+      i++;
+      if (i == 4) break;
+    }
+
+    var spaceStr = size.toStringAsFixed(2);
+    switch (i) {
+      case 0:
+        spaceStr += 'B';
+        break;
+      case 1:
+        spaceStr += 'KB';
+        break;
+      case 2:
+        spaceStr += 'M';
+        break;
+      case 3:
+        spaceStr += 'GB';
+        break;
+      case 4:
+        spaceStr += 'TB';
+        break;
+    }
+
+    return spaceStr;
   }
 
   /// 获取空间检测
@@ -112,33 +123,9 @@ class CameraState extends ChangeNotifier {
     await DioUtils.instance.requestNetwork<DiskFreeSpaceEntity>(
         Method.get, HttpApi.getDiskSpace, onSuccess: (data) {
       _diskSpaceData = data?.function?.space ?? 0;
-      double size = _diskSpaceData.toDouble();
+      final double size = _diskSpaceData.toDouble();
+      _diskSpace = calcSpace(size);
 
-      int i = 0;
-      while (size > 1024) {
-        size = size / 1024;
-        i++;
-        if (i == 4) break;
-      }
-
-      _diskSpace = size.toStringAsFixed(2);
-      switch (i) {
-        case 0:
-          _diskSpace += 'B';
-          break;
-        case 1:
-          _diskSpace += 'KB';
-          break;
-        case 2:
-          _diskSpace += 'M';
-          break;
-        case 3:
-          _diskSpace += 'GB';
-          break;
-        case 4:
-          _diskSpace += 'TB';
-          break;
-      }
       _diskFreeSpaceCheck();
     }, onError: (code, message) {
       debugPrint('code: $code, message: $message');

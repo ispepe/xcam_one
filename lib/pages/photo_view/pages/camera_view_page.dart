@@ -63,6 +63,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
           ? null
           : AppBar(
               leading: GestureDetector(
+                behavior: HitTestBehavior.translucent,
                 onTap: () => NavigatorUtils.goBack(context),
                 child: Icon(
                   Icons.arrow_back_ios,
@@ -99,9 +100,10 @@ class _CameraViewPageState extends State<CameraViewPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.only(left: 32.0),
                       child: GestureDetector(
                         onTap: () {
+                          /// TODO: 4/21/21 待处理 增加删除模态二次确认对话框
                           final String filePath =
                               photoState.allFile![_photoIndex].file!.filePath!;
                           DioUtils.instance.requestNetwork<CmdStatusEntity>(
@@ -125,7 +127,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.only(right: 32.0),
                       child: GestureDetector(
                         onTap: () {
                           String filePath =
@@ -198,6 +200,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
                           TextStyles.textSize14.copyWith(color: Colors.black),
                     ),
                     GestureDetector(
+                      behavior: HitTestBehavior.translucent,
                       onTap: () {
                         NavigatorUtils.goBack(context);
                       },
