@@ -104,15 +104,18 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
               _groupLength = i + 1;
               break;
             } else {
+              _groupCount = _count;
+              _groupLength = i + 1;
               length += element.length;
             }
           }
         }
         if (_isShowLoading) {
-          setState(() {
-            _isShowLoading = false;
-          });
+          _isShowLoading = false;
         }
+
+        /// 必须刷新一次
+        setState(() {});
       }, onError: (code, message) {
         debugPrint('code: $code, message: $message');
       });
@@ -238,7 +241,6 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
         ),
         onRefresh: () async {
           await _onRefresh();
-          setState(() {});
           _refreshController.resetLoadState();
         },
         onLoad: () async {
@@ -322,15 +324,10 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
                         watchPhotoState.groupFileList![keys[i]]!.length;
                   }
 
-                  return LayoutBuilder(
-                    builder:
-                        (BuildContext context, BoxConstraints constraints) {
-                      return _buildPhoto(
-                        context,
-                        watchPhotoState.groupFileList![key]![index],
-                        currentIndex,
-                      );
-                    },
+                  return _buildPhoto(
+                    context,
+                    watchPhotoState.groupFileList![key]![index],
+                    currentIndex,
                   );
                 })),
       ],
