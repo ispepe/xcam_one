@@ -43,12 +43,6 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
 
   late EasyRefreshController _refreshController;
 
-  int _count = 0;
-
-  int _groupLength = 0;
-
-  int _groupCount = 0;
-
   bool _noMore = false;
 
   /// 获取全景相机
@@ -62,19 +56,6 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     });
   }
 
-  void showLoading(context) {
-    showCupertinoDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (BuildContext context) {
-          return Center(
-              child: SpinKitThreeBounce(
-            color: Theme.of(context).primaryColor,
-            size: 32,
-          ));
-        });
-  }
-
   Future<void> _onRefresh() async {
     try {
       final bool? isPlay = await GlobalStore.videoPlayerController?.isPlaying();
@@ -86,7 +67,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     }
 
     /// 加载模态对话框
-    showLoading(context);
+    showCupertinoLoading(context);
 
     await DioUtils.instance.requestNetwork<WifiAppModeEntity>(
         Method.get,
@@ -107,29 +88,6 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
 
         /// NOTE: 4/17/21 待注意 内部会进行分组
         photoState.setAllFile(data?.list?.allFile);
-
-        /// 初始化数量
-        final int count = (photoState.allFile?.length ?? 0);
-        _count = count > 20 ? 20 : count;
-        int length = 0;
-        _groupLength = 0;
-        _groupCount = 0;
-
-        final groupFileList = photoState.groupFileList?.values.toList();
-        if (groupFileList != null) {
-          for (int i = 0; i < groupFileList.length; i++) {
-            final element = groupFileList[i];
-            if (length + element.length > _count) {
-              _groupCount = (_count - length);
-              if (_groupCount > 0) _groupLength = i + 1;
-              break;
-            } else {
-              _groupCount = _count;
-              if (_groupCount > 0) _groupLength = i + 1;
-              length += element.length;
-            }
-          }
-        }
 
         NavigatorUtils.goBack(context);
 
@@ -244,21 +202,24 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
           await _onRefresh();
           _refreshController.resetLoadState();
         },
-        onLoad: _groupLength == 0
+        onLoad: watchPhotoState.groupLength == 0
             ? null
             : () async {
                 await Future.delayed(Duration(seconds: 1), () {
                   final int count = (watchPhotoState.allFile?.length ?? 0);
-                  _count = count > (_count + 20) ? (_count + 20) : count;
+                  watchPhotoState.count = count > (watchPhotoState.count + 20)
+                      ? (watchPhotoState.count + 20)
+                      : count;
                   int length = 0;
                   final groupFileList =
                       watchPhotoState.groupFileList?.values.toList();
                   if (groupFileList != null) {
                     for (int i = 0; i < groupFileList.length; i++) {
                       final element = groupFileList[i];
-                      if (length + element.length > _count) {
-                        _groupCount = (_count - length);
-                        _groupLength = i + 1;
+                      if (length + element.length > watchPhotoState.count) {
+                        watchPhotoState.groupCount =
+                            (watchPhotoState.count - length);
+                        watchPhotoState.groupLength = i + 1;
                         break;
                       } else {
                         length += element.length;
@@ -267,17 +228,17 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
                   }
 
                   setState(() {});
-                  _noMore = _count >= count;
+                  _noMore = watchPhotoState.count >= count;
                   _refreshController.finishLoad(noMore: _noMore);
                 });
               },
-        child: _groupLength == 0
+        child: watchPhotoState.groupLength == 0
             ? buildEmptyPhoto(
                 context,
                 text: '您还没有全景图片快去拍摄吧',
               )
             : ListView.builder(
-                itemCount: _groupLength,
+                itemCount: watchPhotoState.groupLength,
                 shrinkWrap: true,
                 itemBuilder: (context, index) {
                   final keys = watchPhotoState.groupFileList?.keys.toList();
@@ -290,8 +251,8 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
 
   Widget _buildPhotoGroup(BuildContext context, String key, int groupIndex) {
     int length = 0;
-    if (groupIndex == _groupLength - 1) {
-      length = _groupCount;
+    if (groupIndex == watchPhotoState.groupLength - 1) {
+      length = watchPhotoState.groupCount;
     } else {
       length = watchPhotoState.groupFileList?[key]?.length ?? 0;
     }

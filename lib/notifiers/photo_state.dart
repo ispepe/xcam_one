@@ -85,6 +85,7 @@ class PhotoState extends ChangeNotifier {
       _allFile!.removeAt(index);
     }
     _groupByCameraFile();
+    _calcGroupCount();
     notifyListeners();
   }
 
@@ -97,6 +98,7 @@ class PhotoState extends ChangeNotifier {
   void setAllFile(List<CameraFile>? value) {
     _allFile = value;
     _groupByCameraFile();
+    _calcGroupCount();
     notifyListeners();
   }
 
@@ -129,4 +131,55 @@ class PhotoState extends ChangeNotifier {
   Map<String, List<CameraFile>>? _groupFileList;
 
   Map<String, List<CameraFile>>? get groupFileList => _groupFileList;
+
+  int get count => _count;
+
+  set count(int value) {
+    _count = value;
+    notifyListeners();
+  }
+
+  int _count = 0;
+
+  int _groupLength = 0;
+
+  int _groupCount = 0;
+
+  int get groupLength => _groupLength;
+
+  set groupLength(int value) {
+    _groupLength = value;
+    notifyListeners();
+  }
+
+  int get groupCount => _groupCount;
+
+  set groupCount(int value) {
+    _groupCount = value;
+    notifyListeners();
+  }
+
+  void _calcGroupCount() {
+    /// 初始化数量
+    final int count = (_allFile?.length ?? 0);
+    _count = count > 20 ? 20 : count;
+    int length = 0;
+    _groupLength = 0;
+    _groupCount = 0;
+    final groupFileList = _groupFileList?.values.toList();
+    if (groupFileList != null) {
+      for (int i = 0; i < groupFileList.length; i++) {
+        final element = groupFileList[i];
+        if (length + element.length > _count) {
+          _groupCount = (_count - length);
+          if (_groupCount > 0) _groupLength = i + 1;
+          break;
+        } else {
+          _groupCount = _count;
+          if (_groupCount > 0) _groupLength = i + 1;
+          length += element.length;
+        }
+      }
+    }
+  }
 }

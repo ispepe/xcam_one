@@ -27,6 +27,8 @@ import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/notifiers/photo_state.dart';
 import 'package:xcam_one/res/resources.dart';
 import 'package:xcam_one/routers/fluro_navigator.dart';
+import 'package:xcam_one/utils/bottom_sheet_utils.dart';
+import 'package:xcam_one/utils/dialog_utils.dart';
 
 class CameraViewPage extends StatefulWidget {
   const CameraViewPage({Key? key, required this.currentIndex})
@@ -102,21 +104,37 @@ class _CameraViewPageState extends State<CameraViewPage> {
                     Padding(
                       padding: const EdgeInsets.only(left: 32.0),
                       child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
                         onTap: () {
-                          /// TODO: 4/21/21 待处理 增加删除模态二次确认对话框
-                          final String filePath =
-                              photoState.allFile![_photoIndex].file!.filePath!;
-                          DioUtils.instance.requestNetwork<CmdStatusEntity>(
-                              Method.get, '${HttpApi.deleteFile}$filePath',
-                              onSuccess: (data) {
-                            if (data?.function?.status == 0) {
-                              showToast('删除成功');
-                              photoState.cameraFileRemoveAt(_photoIndex);
-                            } else {
+                          showMyBottomSheet(context, '这张照片将从相机中彻底删除，请再次确认',
+                              okPressed: () {
+                            NavigatorUtils.goBack(context);
+                            showCupertinoLoading(context);
+                            final String filePath = photoState
+                                .allFile![_photoIndex].file!.filePath!;
+                            DioUtils.instance.requestNetwork<CmdStatusEntity>(
+                                Method.get, '${HttpApi.deleteFile}$filePath',
+                                onSuccess: (data) {
+                              if (data?.function?.status == 0) {
+                                photoState.cameraFileRemoveAt(_photoIndex);
+                                NavigatorUtils.goBack(context);
+                                showToast('删除成功');
+
+                                /// NOTE: 4/21/21 待注意 删除空后返回相册页面
+                                if (photoState.allFile!.isEmpty) {
+                                  NavigatorUtils.goBack(context);
+                                } else if (_photoIndex >=
+                                    photoState.allFile!.length) {
+                                  _photoIndex = photoState.allFile!.length - 1;
+                                }
+                              } else {
+                                NavigatorUtils.goBack(context);
+                                showToast('删除失败');
+                              }
+                            }, onError: (e, m) {
+                              NavigatorUtils.goBack(context);
                               showToast('删除失败');
-                            }
-                          }, onError: (e, m) {
-                            showToast('删除失败');
+                            });
                           });
                         },
                         child: Icon(
@@ -129,6 +147,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
                     Padding(
                       padding: const EdgeInsets.only(right: 32.0),
                       child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
                         onTap: () {
                           String filePath =
                               photoState.allFile![_photoIndex].file!.filePath!;
@@ -138,20 +157,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
                           final url =
                               '${GlobalStore.config[EConfig.baseUrl]}$filePath';
                           _saveImage(url);
-                          showDialog(
-                            barrierDismissible: false,
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                elevation: 0,
-                                backgroundColor: Colors.transparent,
-                                content: SpinKitThreeBounce(
-                                  color: Theme.of(context).primaryColor,
-                                  size: 24,
-                                ),
-                              );
-                            },
-                          );
+                          showCupertinoLoading(context);
                         },
                         child: Icon(
                           Icons.save_alt_outlined,

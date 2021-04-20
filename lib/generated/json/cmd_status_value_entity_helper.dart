@@ -1,13 +1,3 @@
-/*
- * Copyright (c) 2021. Jingpei Technology Co., Ltd. All rights reserved.
- * See LICENSE for distribution and usage details.
- *
- *  https://jingpei.tech
- *  https://jin.dev
- *
- *  Created by Pepe
- */
-
 import 'package:xcam_one/models/cmd_status_value_entity.dart';
 
 cmdStatusValueEntityFromJson(CmdStatusValueEntity data, Map<String, dynamic> json) {

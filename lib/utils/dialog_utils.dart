@@ -9,8 +9,10 @@
  */
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
-void showLoadingDialog(context) {
+void showCupertionLoading(context) {
   showCupertinoDialog(
       barrierDismissible: false,
       context: context,
@@ -20,5 +22,33 @@ void showLoadingDialog(context) {
             radius: 14,
           ),
         );
+      });
+}
+
+void showLoading(context) {
+  showDialog(
+    barrierDismissible: false,
+    context: context,
+    builder: (BuildContext context) {
+      return Center(
+        child: SpinKitThreeBounce(
+          color: Theme.of(context).primaryColor,
+          size: 24,
+        ),
+      );
+    },
+  );
+}
+
+void showCupertinoLoading(context) {
+  showCupertinoDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return Center(
+            child: SpinKitThreeBounce(
+          color: Theme.of(context).primaryColor,
+          size: 24,
+        ));
       });
 }

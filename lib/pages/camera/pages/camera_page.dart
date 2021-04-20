@@ -218,6 +218,7 @@ class _CameraPageState extends State<CameraPage>
       ],
     );
 
+    /// FIXME: 4/21/21 待修正 偶尔会一直停留在拍摄中
     return Container(
       height: size.width / 2,
       width: size.width,

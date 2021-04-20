@@ -9,8 +9,6 @@ import 'package:xcam_one/models/hearbeat_entity.dart';
 import 'package:xcam_one/generated/json/hearbeat_entity_helper.dart';
 import 'package:xcam_one/models/battery_level_entity.dart';
 import 'package:xcam_one/generated/json/battery_level_entity_helper.dart';
-import 'package:xcam_one/models/cmd_status_value_entity.dart';
-import 'package:xcam_one/generated/json/cmd_status_value_entity_helper.dart';
 import 'package:xcam_one/models/capture_entity.dart';
 import 'package:xcam_one/generated/json/capture_entity_helper.dart';
 import 'package:xcam_one/models/version_entity.dart';
@@ -19,6 +17,8 @@ import 'package:xcam_one/models/cmd_status_entity.dart';
 import 'package:xcam_one/generated/json/cmd_status_entity_helper.dart';
 import 'package:xcam_one/models/camera_file_entity.dart';
 import 'package:xcam_one/generated/json/camera_file_entity_helper.dart';
+import 'package:xcam_one/models/cmd_status_value_entity.dart';
+import 'package:xcam_one/generated/json/cmd_status_value_entity_helper.dart';
 import 'package:xcam_one/models/disk_free_space_entity.dart';
 import 'package:xcam_one/generated/json/disk_free_space_entity_helper.dart';
 
@@ -45,10 +45,6 @@ class JsonConvert<T> {
 				return batteryLevelEntityFromJson(data as BatteryLevelEntity, json) as T;
 			case BatteryLevelFunction:
 				return batteryLevelFunctionFromJson(data as BatteryLevelFunction, json) as T;
-			case CmdStatusValueEntity:
-				return cmdStatusValueEntityFromJson(data as CmdStatusValueEntity, json) as T;
-			case CmdStatusValueFunction:
-				return cmdStatusValueFunctionFromJson(data as CmdStatusValueFunction, json) as T;
 			case CaptureEntity:
 				return captureEntityFromJson(data as CaptureEntity, json) as T;
 			case CaptureFunction:
@@ -71,6 +67,10 @@ class JsonConvert<T> {
 				return cameraFileFromJson(data as CameraFile, json) as T;
 			case CameraFileInfo:
 				return cameraFileInfoFromJson(data as CameraFileInfo, json) as T;
+			case CmdStatusValueEntity:
+				return cmdStatusValueEntityFromJson(data as CmdStatusValueEntity, json) as T;
+			case CmdStatusValueFunction:
+				return cmdStatusValueFunctionFromJson(data as CmdStatusValueFunction, json) as T;
 			case DiskFreeSpaceEntity:
 				return diskFreeSpaceEntityFromJson(data as DiskFreeSpaceEntity, json) as T;
 			case DiskFreeSpaceFunction:
@@ -92,10 +92,6 @@ class JsonConvert<T> {
 				return batteryLevelEntityToJson(data as BatteryLevelEntity);
 			case BatteryLevelFunction:
 				return batteryLevelFunctionToJson(data as BatteryLevelFunction);
-			case CmdStatusValueEntity:
-				return cmdStatusValueEntityToJson(data as CmdStatusValueEntity);
-			case CmdStatusValueFunction:
-				return cmdStatusValueFunctionToJson(data as CmdStatusValueFunction);
 			case CaptureEntity:
 				return captureEntityToJson(data as CaptureEntity);
 			case CaptureFunction:
@@ -118,6 +114,10 @@ class JsonConvert<T> {
 				return cameraFileToJson(data as CameraFile);
 			case CameraFileInfo:
 				return cameraFileInfoToJson(data as CameraFileInfo);
+			case CmdStatusValueEntity:
+				return cmdStatusValueEntityToJson(data as CmdStatusValueEntity);
+			case CmdStatusValueFunction:
+				return cmdStatusValueFunctionToJson(data as CmdStatusValueFunction);
 			case DiskFreeSpaceEntity:
 				return diskFreeSpaceEntityToJson(data as DiskFreeSpaceEntity);
 			case DiskFreeSpaceFunction:
@@ -140,10 +140,6 @@ class JsonConvert<T> {
 			return BatteryLevelEntity().fromJson(json);
 		}	else if(type == (BatteryLevelFunction).toString()){
 			return BatteryLevelFunction().fromJson(json);
-		}	else if(type == (CmdStatusValueEntity).toString()){
-			return CmdStatusValueEntity().fromJson(json);
-		}	else if(type == (CmdStatusValueFunction).toString()){
-			return CmdStatusValueFunction().fromJson(json);
 		}	else if(type == (CaptureEntity).toString()){
 			return CaptureEntity().fromJson(json);
 		}	else if(type == (CaptureFunction).toString()){
@@ -166,6 +162,10 @@ class JsonConvert<T> {
 			return CameraFile().fromJson(json);
 		}	else if(type == (CameraFileInfo).toString()){
 			return CameraFileInfo().fromJson(json);
+		}	else if(type == (CmdStatusValueEntity).toString()){
+			return CmdStatusValueEntity().fromJson(json);
+		}	else if(type == (CmdStatusValueFunction).toString()){
+			return CmdStatusValueFunction().fromJson(json);
 		}	else if(type == (DiskFreeSpaceEntity).toString()){
 			return DiskFreeSpaceEntity().fromJson(json);
 		}	else if(type == (DiskFreeSpaceFunction).toString()){
@@ -188,10 +188,6 @@ class JsonConvert<T> {
 			return data.map<BatteryLevelEntity>((e) => BatteryLevelEntity().fromJson(e)).toList() as M;
 		}	else if(<BatteryLevelFunction>[] is M){
 			return data.map<BatteryLevelFunction>((e) => BatteryLevelFunction().fromJson(e)).toList() as M;
-		}	else if(<CmdStatusValueEntity>[] is M){
-			return data.map<CmdStatusValueEntity>((e) => CmdStatusValueEntity().fromJson(e)).toList() as M;
-		}	else if(<CmdStatusValueFunction>[] is M){
-			return data.map<CmdStatusValueFunction>((e) => CmdStatusValueFunction().fromJson(e)).toList() as M;
 		}	else if(<CaptureEntity>[] is M){
 			return data.map<CaptureEntity>((e) => CaptureEntity().fromJson(e)).toList() as M;
 		}	else if(<CaptureFunction>[] is M){
@@ -214,6 +210,10 @@ class JsonConvert<T> {
 			return data.map<CameraFile>((e) => CameraFile().fromJson(e)).toList() as M;
 		}	else if(<CameraFileInfo>[] is M){
 			return data.map<CameraFileInfo>((e) => CameraFileInfo().fromJson(e)).toList() as M;
+		}	else if(<CmdStatusValueEntity>[] is M){
+			return data.map<CmdStatusValueEntity>((e) => CmdStatusValueEntity().fromJson(e)).toList() as M;
+		}	else if(<CmdStatusValueFunction>[] is M){
+			return data.map<CmdStatusValueFunction>((e) => CmdStatusValueFunction().fromJson(e)).toList() as M;
 		}	else if(<DiskFreeSpaceEntity>[] is M){
 			return data.map<DiskFreeSpaceEntity>((e) => DiskFreeSpaceEntity().fromJson(e)).toList() as M;
 		}	else if(<DiskFreeSpaceFunction>[] is M){

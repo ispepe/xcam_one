@@ -429,7 +429,7 @@ class _SettingPageState extends State<SettingPage>
           });
 
           /// 加载模态对话框
-          showLoadingDialog(context);
+          showCupertionLoading(context);
           break;
         }
     }

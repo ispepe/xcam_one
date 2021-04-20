@@ -81,7 +81,7 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
         child: Center(
           child: SpinKitThreeBounce(
             color: Theme.of(context).primaryColor,
-            size: 48,
+            size: 24,
           ),
         ),
       );
