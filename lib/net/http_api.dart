@@ -56,9 +56,12 @@ class HttpApi {
 
   /// NOTE: 4/19/21 新增 WIFIAPP_CMD_DISK_SPACE  3039
   static const String getDiskSpace = '?custom=1&cmd=3039';
-  /// 格式化相册
 
-  /// 重置相机设置
+  /// NOTE: 4/20/21 格式化相册 0 代表闪存、1 代表SD卡，硬件工程师说只执行1
+  static const String format = '?custom=1&cmd=3010&par=1';
+
+  /// 重置相机设置 http://192.168.1.254/?custom=1&cmd=3011
+  static const String systemReset = '?custom=1&cmd=3011';
 
   /// socket 通知客户端电池电量低、存储卡满 端口号3333
 
