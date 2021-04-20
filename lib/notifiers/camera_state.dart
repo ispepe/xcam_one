@@ -13,8 +13,31 @@ import 'package:xcam_one/models/battery_level_entity.dart';
 import 'package:xcam_one/models/disk_free_space_entity.dart';
 import 'package:xcam_one/net/net.dart';
 
+/// 延迟拍摄时间
+enum Countdown {
+  close,
+  five,
+  ten,
+  twenty,
+}
+
+extension CountdownEx on Countdown {
+  String get text => ['关', '5s', '10s', '20s'][index];
+
+  int get value => [0, 5, 10, 20][index];
+}
+
 class CameraState extends ChangeNotifier {
   BatteryStatus _batteryStatus = BatteryStatus.batteryFull;
+
+  Countdown _countdown = Countdown.close;
+
+  Countdown get countdown => _countdown;
+
+  set countdown(Countdown value) {
+    _countdown = value;
+    notifyListeners();
+  }
 
   BatteryStatus get batteryStatus => _batteryStatus;
 
