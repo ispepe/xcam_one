@@ -66,6 +66,17 @@ class HttpApi {
   /// 开启HDR http://192.168.1.254/?custom=1&cmd=2004&par=0
   static const String setHDR = '?custom=1&cmd=2004&par=';
 
+  /// 设置日期 http://192.168.1.254/?custom=1&cmd=3005&str=2014-03-21
+  static const String setDate = '?custom=1&cmd=3005&str=';
+
+  /// 设置时间 http://192.168.1.254/?custom=1&cmd=3006&str=17:10:30
+  static const String setTime = '?custom=1&cmd=3006&str=';
+
+  /// 控制自动关机关机【0、1MIN、2MIN、3MIN、5MIN、10MIN】
+  static const String powerOff = '?custom=1&cmd=3007&par=';
+
+  /// save menu info http://192.168.1.254/?custom=1&cmd=3021
+
   /// socket 通知客户端电池电量低、存储卡满 端口号3333
 
 }

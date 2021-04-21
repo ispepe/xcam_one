@@ -75,7 +75,7 @@ class _SettingPageState extends State<SettingPage>
   /// 默认为HDR未开启，每次连接后需要重置一下参数
   bool _isHDR = false;
 
-  Countdown _currentCountdown = Countdown.close;
+  CountdownEnum _currentCountdown = CountdownEnum.close;
 
   /// 每行的高度
   final itemHeight = 44.0;
@@ -288,10 +288,10 @@ class _SettingPageState extends State<SettingPage>
                     initialItem: _currentCountdown.index),
                 backgroundColor: Colors.white,
                 onSelectedItemChanged: (int value) {
-                  _currentCountdown = Countdown.values[value];
+                  _currentCountdown = CountdownEnum.values[value];
                 },
                 itemExtent: itemHeight,
-                children: Countdown.values
+                children: CountdownEnum.values
                     .map((e) => PickerText(text: e.text))
                     .toList(),
               ),

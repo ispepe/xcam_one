@@ -80,7 +80,7 @@ dependencies:
   sprintf: ^6.0.0
 
   # RTSP流播放 https://github.com/solid-software/flutter_vlc_player/
-  flutter_vlc_player: ^6.0.1
+  flutter_vlc_player: 6.0.1
 
   # bilibi RTSP流播放 https://github.com/befovy/fijkplayer
   # fijkplayer: ^0.8.7
@@ -107,6 +107,11 @@ dependencies:
   flutter_easyrefresh: ^2.2.1
 
   package_info: ^2.0.0
+
+  # 倒计时
+#  timer_count_down: ^2.0.1
+  circular_countdown_timer: ^0.2.0
+
   # 按钮按下动画放大缩小动画效果
   # bouncing_widget
   #dependency_overrides:

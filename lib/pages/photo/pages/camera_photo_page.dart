@@ -43,7 +43,8 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
 
   late EasyRefreshController _refreshController;
 
-  bool _noMore = false;
+  /// 固定为20个
+  final int showUnit = 20;
 
   /// 获取全景相机
   @override
@@ -87,12 +88,13 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
         final photoState = Provider.of<PhotoState>(context, listen: false);
 
         /// NOTE: 4/17/21 待注意 内部会进行分组
-        photoState.setAllFile(data?.list?.allFile);
+        photoState.currentCount = showUnit;
+        photoState.allFile = (data?.list?.allFile);
 
         NavigatorUtils.goBack(context);
 
         /// 必须刷新一次
-        setState(() {});
+        // setState(() {});
       }, onError: (code, message) {
         NavigatorUtils.goBack(context);
         showToast('获取文件失败，请重试');
@@ -202,61 +204,37 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
           await _onRefresh();
           _refreshController.resetLoadState();
         },
-        onLoad: watchPhotoState.groupLength == 0
-            ? null
-            : () async {
-                await Future.delayed(Duration(seconds: 1), () {
-                  final int count = (watchPhotoState.allFile?.length ?? 0);
-                  watchPhotoState.count = count > (watchPhotoState.count + 20)
-                      ? (watchPhotoState.count + 20)
-                      : count;
-                  int length = 0;
-                  final groupFileList =
-                      watchPhotoState.groupFileList?.values.toList();
-                  if (groupFileList != null) {
-                    for (int i = 0; i < groupFileList.length; i++) {
-                      final element = groupFileList[i];
-                      if (length + element.length > watchPhotoState.count) {
-                        watchPhotoState.groupCount =
-                            (watchPhotoState.count - length);
-                        watchPhotoState.groupLength = i + 1;
-                        break;
-                      } else {
-                        length += element.length;
-                      }
-                    }
-                  }
+        onLoad: () async {
+          await Future.delayed(Duration(milliseconds: 200), () {
+            watchPhotoState.currentCount += 20;
 
-                  setState(() {});
-                  _noMore = watchPhotoState.count >= count;
-                  _refreshController.finishLoad(noMore: _noMore);
-                });
-              },
-        child: watchPhotoState.groupLength == 0
+            /// 根据当前显示数量进行分组
+            watchPhotoState.groupByCameraFile();
+
+            _refreshController.finishLoad(
+                noMore: watchPhotoState.currentCount ==
+                    (watchPhotoState.allFile?.length ?? 0));
+          });
+        },
+        child: watchPhotoState.allFile?.isEmpty ?? true
             ? buildEmptyPhoto(
                 context,
                 text: '您还没有全景图片快去拍摄吧',
               )
             : ListView.builder(
-                itemCount: watchPhotoState.groupLength,
+                itemCount: watchPhotoState.groupFileList?.length,
                 shrinkWrap: true,
                 itemBuilder: (context, index) {
                   final keys = watchPhotoState.groupFileList?.keys.toList();
-                  return _buildPhotoGroup(context, keys![index], index);
+                  return _buildPhotoGroup(context, keys![index]);
                 },
               ),
       ),
     );
   }
 
-  Widget _buildPhotoGroup(BuildContext context, String key, int groupIndex) {
-    int length = 0;
-    if (groupIndex == watchPhotoState.groupLength - 1) {
-      length = watchPhotoState.groupCount;
-    } else {
-      length = watchPhotoState.groupFileList?[key]?.length ?? 0;
-    }
-
+  Widget _buildPhotoGroup(BuildContext context, String key) {
+    final int length = watchPhotoState.groupFileList![key]!.length;
     return Column(
       children: [
         Container(

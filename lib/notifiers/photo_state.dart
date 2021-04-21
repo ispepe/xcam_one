@@ -76,6 +76,7 @@ class PhotoState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 所有文件
   List<CameraFile>? _allFile;
 
   List<CameraFile>? get allFile => _allFile;
@@ -84,29 +85,28 @@ class PhotoState extends ChangeNotifier {
     if (_allFile != null && allFile!.length > index) {
       _allFile!.removeAt(index);
     }
-    _groupByCameraFile();
-    _calcGroupCount();
-    notifyListeners();
+
+    _currentCount--;
+    groupByCameraFile();
   }
 
-  /// 新增
-  void addCameraFiles(List<CameraFile> listFile) {
-    _allFile?.addAll(listFile);
-    notifyListeners();
-  }
-
-  void setAllFile(List<CameraFile>? value) {
+  set allFile(List<CameraFile>? value) {
     _allFile = value;
-    _groupByCameraFile();
-    _calcGroupCount();
-    notifyListeners();
+    groupByCameraFile();
   }
 
-  void _groupByCameraFile() {
-    /// 此处控制数量 count = 20;
+  void groupByCameraFile() {
     if (_allFile != null) {
+      if (_currentCount > _allFile!.length) {
+        _currentCount = _allFile!.length;
+      }
+
+      /// NOTE: 4/21/21 待注意 此处可以进行优化
+      final List<CameraFile> currentCameraFile =
+          _allFile!.slice(0, _currentCount);
+
       final now = DateTime.now();
-      _groupFileList = groupBy(_allFile!, (CameraFile photo) {
+      _groupFileList = groupBy(currentCameraFile, (CameraFile photo) {
         final format = DateFormat('yyyy/MM/dd hh:mm:ss');
         final createTime = format.parse(photo.file!.time!);
         if (now.year != createTime.year) {
@@ -126,60 +126,21 @@ class PhotoState extends ChangeNotifier {
         }
       });
     }
+    notifyListeners();
   }
 
+  /// 当前分组
   Map<String, List<CameraFile>>? _groupFileList;
 
   Map<String, List<CameraFile>>? get groupFileList => _groupFileList;
 
-  int get count => _count;
+  /// 当前要显示的总数
+  int _currentCount = 0;
 
-  set count(int value) {
-    _count = value;
+  int get currentCount => _currentCount;
+
+  set currentCount(int value) {
+    _currentCount = value;
     notifyListeners();
-  }
-
-  int _count = 0;
-
-  int _groupLength = 0;
-
-  int _groupCount = 0;
-
-  int get groupLength => _groupLength;
-
-  set groupLength(int value) {
-    _groupLength = value;
-    notifyListeners();
-  }
-
-  int get groupCount => _groupCount;
-
-  set groupCount(int value) {
-    _groupCount = value;
-    notifyListeners();
-  }
-
-  void _calcGroupCount() {
-    /// 初始化数量
-    final int count = (_allFile?.length ?? 0);
-    _count = count > 20 ? 20 : count;
-    int length = 0;
-    _groupLength = 0;
-    _groupCount = 0;
-    final groupFileList = _groupFileList?.values.toList();
-    if (groupFileList != null) {
-      for (int i = 0; i < groupFileList.length; i++) {
-        final element = groupFileList[i];
-        if (length + element.length > _count) {
-          _groupCount = (_count - length);
-          if (_groupCount > 0) _groupLength = i + 1;
-          break;
-        } else {
-          _groupCount = _count;
-          if (_groupCount > 0) _groupLength = i + 1;
-          length += element.length;
-        }
-      }
-    }
   }
 }

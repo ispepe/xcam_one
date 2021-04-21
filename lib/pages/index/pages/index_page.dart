@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,11 +19,13 @@ import 'package:connectivity_plus/connectivity_plus.dart'
     show Connectivity, ConnectivityResult;
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:oktoast/oktoast.dart';
-
+import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 import 'package:provider/provider.dart';
+
 import 'package:xcam_one/global/global_store.dart';
 import 'package:xcam_one/models/battery_level_entity.dart';
 import 'package:xcam_one/models/capture_entity.dart';
+import 'package:xcam_one/models/cmd_status_entity.dart';
 import 'package:xcam_one/models/hearbeat_entity.dart';
 import 'package:xcam_one/models/wifi_app_mode_entity.dart';
 import 'package:xcam_one/net/net.dart';
@@ -32,6 +35,9 @@ import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/pages/camera/pages/camera_page.dart';
 import 'package:xcam_one/pages/photo/pages/photo_page.dart';
 import 'package:xcam_one/pages/setting/pages/setting_page.dart';
+import 'package:xcam_one/res/resources.dart';
+import 'package:xcam_one/routers/fluro_navigator.dart';
+import 'package:xcam_one/utils/dialog_utils.dart';
 import 'package:xcam_one/utils/socket_utils.dart';
 
 class IndexPage extends StatefulWidget {
@@ -195,11 +201,13 @@ class _IndexPageState extends State<IndexPage> {
       _connectivitySubscription =
           _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
 
-      /// 定时心跳检测
+      /// TODO： 定时心跳检测 如果采用常连接，是否可以不用？
       _timer = Timer.periodic(Duration(seconds: 5), (timer) {
         /// NOTE: 4/9/21 待注意 由于IOS没有Wi-Fi检测的方式方法，则定时检测操作
         /// TODO: 4/16/21 待处理 增加常连接，不需要定时检测
         if (!kIsWeb && !_isTimerRequest && !globalState.isCapture && mounted) {
+          /// 阻止定时请求进入
+          _isTimerRequest = true;
           _updateConnectionStatus(ConnectivityResult.none);
         }
       });
@@ -229,35 +237,65 @@ class _IndexPageState extends State<IndexPage> {
   Future<void> _updateConnectionStatus(ConnectivityResult result) async {
     debugPrint('网络连接：${result.toString()}');
 
-    /// 阻止定时请求进入
-    _isTimerRequest = true;
-
+    /// 判断如果没有连接才进行心跳检测
     if (ConnectivityResult.wifi == result ||
         ConnectivityResult.none == result) {
-      /// 拍照检测一次、进入拍照界面检测一次、每1分钟检测一下
       DioUtils.instance.asyncRequestNetwork<HearbeatEntity>(
           Method.get, HttpApi.heartbeat, onSuccess: (data) async {
         if (data?.function?.status == '0') {
           if (!globalState.isConnect) {
-            ///  切换至Photo模式
+            /// NOTE: 4/21/21 待注意 模式必须要重置一次，并且不能进行任何切换操作
+            showCupertinoLoading(context);
+
+            /// NOTE: 4/21/21 待注意 判断当前所在页面：相册页面重置为wifiAppModePlayback，相机为wifiAppModePhoto
             DioUtils.instance.asyncRequestNetwork<WifiAppModeEntity>(
                 Method.get,
                 HttpApi.appModeChange +
                     WifiAppMode.wifiAppModePhoto.index.toString(),
                 onSuccess: (modeEntity) {
               GlobalStore.wifiAppMode = WifiAppMode.wifiAppModePhoto;
-              initVlcPlayer();
+
               globalState.isConnect = true;
               cameraState.diskSpaceCheck();
+
+              /// NOTE: 4/21/21 【重置时间】
+              final now = DateTime.now();
+              DioUtils.instance.asyncRequestNetwork<CmdStatusEntity>(Method.get,
+                  '${HttpApi.setDate}${now.year}-${now.month}-${now.day}',
+                  onSuccess: (dateCmdStatus) {
+                if (dateCmdStatus?.function?.status == 0) {
+                  /// NOTE: 4/21/21 【重置时间】
+                  final now = DateTime.now();
+                  DioUtils.instance.asyncRequestNetwork<CmdStatusEntity>(
+                      Method.get,
+                      // ignore: lines_longer_than_80_chars
+                      '${HttpApi.setTime}${now.hour}:${now.minute}:${now.second}',
+                      onSuccess: (timeCmdStatus) {
+                    NavigatorUtils.goBack(context);
+                    if (timeCmdStatus?.function?.status != 0) {
+                      showToast('初始化时间失败');
+                    }
+                  }, onError: (code, msg) {
+                    NavigatorUtils.goBack(context);
+                    showToast('初始化时间请求失败');
+                  });
+                } else {
+                  NavigatorUtils.goBack(context);
+                  showToast('初始化日期失败');
+                }
+              }, onError: (code, msg) {
+                NavigatorUtils.goBack(context);
+                showToast('初始化日期请求失败');
+              });
             }, onError: (code, msg) {
-              /// TODO: 4/17/21 待处理 切换不成功，应该如何处理？
-              showToast('进入相机模式失败');
               globalState.isConnect = true;
               cameraState.diskSpaceCheck();
+              NavigatorUtils.goBack(context);
+              showToast('切换相机模式失败，请重启相机再连接重试');
             });
           }
         } else if (globalState.isConnect) {
-          showToast('相机连接中断');
+          showToast('设备连接中断');
           globalState.isConnect = false;
           cameraState.initSpaceData();
           try {
@@ -275,7 +313,7 @@ class _IndexPageState extends State<IndexPage> {
         _isTimerRequest = false;
       }, onError: (e, m) async {
         if (globalState.isConnect) {
-          showToast('相机异常连接中断');
+          showToast('设备连接异常中断');
           globalState.isConnect = false;
           cameraState.initSpaceData();
           try {
@@ -308,6 +346,21 @@ class _IndexPageState extends State<IndexPage> {
         }
       }
       _isTimerRequest = true;
+    }
+  }
+
+  @override
+  void didUpdateWidget(IndexPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget != widget) {
+      try {
+        /// 防止热加载
+        GlobalStore.videoPlayerController?.stop().then((value) {
+          GlobalStore.videoPlayerController?.play();
+        });
+      } catch (e) {
+        debugPrint(e.toString());
+      }
     }
   }
 
@@ -416,8 +469,8 @@ class _IndexPageState extends State<IndexPage> {
         /// 立即进行一次电量检测
         cameraState.batteryLevelCheck();
 
-        /// TODO 进行容量检测
-        // _diskFreeSpaceCheck
+        /// NOTE: 4/21/21 待注意 按理说每次拍照结束后都需要进行一次检测,但是可以通过异常状态检测获取是否空间够用
+        cameraState.diskSpaceCheck();
 
         if (GlobalStore.wifiAppMode != WifiAppMode.wifiAppModePhoto) {
           /// 切换相机模式，并且进行播放
@@ -453,60 +506,123 @@ class _IndexPageState extends State<IndexPage> {
       }
 
       pageController.jumpToPage(index);
-    } else if (index == 1 && globalState.isConnect) {
-      cameraState.batteryLevelCheck();
-
-      // globalState.batteryStatus == BatteryStatus.batteryLow
-      if (cameraState.batteryStatus == BatteryStatus.batteryEmpty ||
-          cameraState.batteryStatus == BatteryStatus.batteryExhausted) {
-        showToast('低电量，拍摄失败');
-        return;
-      }
-
       // 1 表示已进入相机界面，二次点击开始拍照
-      globalState.isCapture = true;
-      GlobalStore.videoPlayerController?.stop().then((value) {
-        DioUtils.instance.asyncRequestNetwork<CaptureEntity>(
-          Method.get,
-          HttpApi.capture,
-          onSuccess: (data) {
-            final status = data?.function?.status ?? '';
-
-            switch (int.parse(status)) {
-              case 0:
-                showToast('拍摄成功,请在相机相册查看');
-                break;
-              case -5:
-                showToast('文件错误，拍摄失败');
-                break;
-              case -11:
-                showToast('没有存储空间，拍摄失败');
-                break;
-              case -12:
-                showToast('没有文件空间，拍摄失败');
-                break;
-              default:
-                showToast('拍摄异常');
-                break;
+    } else if (index == 1 && globalState.isConnect) {
+      try {
+        /// NOTE: 4/21/21 待注意 如果画面还在加载中，应该返回
+        GlobalStore.videoPlayerController?.isPlaying().then((isPlaying) {
+          if (isPlaying != null && !isPlaying) {
+            showToast('画面正在加载中，请稍后进行拍摄');
+            return;
+          } else {
+            // globalState.batteryStatus == BatteryStatus.batteryLow
+            if (cameraState.batteryStatus == BatteryStatus.batteryEmpty ||
+                cameraState.batteryStatus == BatteryStatus.batteryExhausted) {
+              showToast('低电量，拍摄失败');
+              return;
             }
 
-            globalState.isCapture = false;
-            try {
-              GlobalStore.videoPlayerController?.play();
-            } catch (e) {
-              debugPrint(e.toString());
+            if (cameraState.countdown != CountdownEnum.close) {
+              showCupertinoDialog(
+                  barrierDismissible: true,
+                  context: context,
+                  builder: (context) {
+                    return Center(
+                      child: IgnorePointer(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Center(
+                            child: CircularCountDownTimer(
+                              duration: cameraState.countdown.value,
+                              initialDuration: 0,
+                              controller: CountDownController(),
+                              width: 64,
+                              height: 64,
+                              ringColor: Colors.grey,
+                              ringGradient: null,
+                              fillColor: Theme.of(context).primaryColor,
+                              fillGradient: null,
+                              backgroundColor: Colors.black45,
+                              backgroundGradient: null,
+                              strokeWidth: 20.0,
+                              strokeCap: StrokeCap.round,
+                              textStyle: TextStyle(
+                                  fontSize: 33.0,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
+                              textFormat: CountdownTextFormat.S,
+                              isReverse: false,
+                              isReverseAnimation: false,
+                              isTimerTextShown: true,
+                              autoStart: true,
+                              onStart: () {
+                                print('Countdown Started');
+                              },
+                              onComplete: () {
+                                NavigatorUtils.goBack(context);
+                                _capture();
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  });
+            } else {
+              _capture();
             }
-          },
-          onError: (code, msg) {
-            globalState.isCapture = false;
-            try {
-              GlobalStore.videoPlayerController?.play();
-            } catch (e) {
-              debugPrint(e.toString());
-            }
-          },
-        );
-      });
+          }
+        });
+      } catch (e) {
+        showToast('播放器正在初始化，请稍后拍摄');
+        e.toString();
+      }
     }
+  }
+
+  void _capture() {
+    // 1 表示已进入相机界面，二次点击开始拍照
+    globalState.isCapture = true;
+    GlobalStore.videoPlayerController?.stop().then((value) {
+      DioUtils.instance.asyncRequestNetwork<CaptureEntity>(
+        Method.get,
+        HttpApi.capture,
+        onSuccess: (data) {
+          final status = data?.function?.status ?? '';
+          switch (int.parse(status)) {
+            case 0:
+              showToast('拍摄成功,请在相机相册查看');
+              break;
+            case -5:
+              showToast('文件错误，拍摄失败');
+              break;
+            case -11:
+              showToast('没有存储空间，拍摄失败');
+              break;
+            case -12:
+              showToast('没有文件空间，拍摄失败');
+              break;
+            default:
+              showToast('拍摄异常');
+              break;
+          }
+
+          globalState.isCapture = false;
+          try {
+            GlobalStore.videoPlayerController?.play();
+          } catch (e) {
+            debugPrint(e.toString());
+          }
+        },
+        onError: (code, msg) {
+          globalState.isCapture = false;
+          try {
+            GlobalStore.videoPlayerController?.play();
+          } catch (e) {
+            debugPrint(e.toString());
+          }
+        },
+      );
+    });
   }
 }
