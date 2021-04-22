@@ -307,7 +307,10 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
         },
         errorWidget: (context, url, error) {
           debugPrint(error.toString());
-          return Icon(Icons.broken_image_outlined);
+          return Icon(
+            Icons.broken_image_outlined,
+            // color: Theme.of(context).primaryColor,
+          );
         },
         imageUrl: Uri.encodeFull(url),
       ),

@@ -255,6 +255,9 @@ class _IndexPageState extends State<IndexPage> {
                 onSuccess: (modeEntity) {
               GlobalStore.wifiAppMode = WifiAppMode.wifiAppModePhoto;
 
+              /// NOTE: 4/22/21 待注意 断开后，又连接，必须要进行一次初始化操作
+              initVlcPlayer();
+
               globalState.isConnect = true;
               cameraState.diskSpaceCheck();
 
