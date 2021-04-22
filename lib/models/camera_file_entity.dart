@@ -19,6 +19,23 @@ class CameraFileListEntity with JsonConvert<CameraFileListEntity> {
 class CameraFileList with JsonConvert<CameraFileList> {
   @JSONField(name: "ALLFile")
   List<CameraFile>? allFile;
+
+  @override
+  CameraFileList fromJson(Map<String, dynamic> json) {
+    if (json['ALLFile'] != null) {
+      if (json['ALLFile'] is List) {
+        allFile = (json['ALLFile'] as List)
+            .map((v) => CameraFile().fromJson(v))
+            .toList();
+      } else if (json['ALLFile'] is Map) {
+        allFile = (List.generate(1, (index) => json['ALLFile']))
+            .map((v) => CameraFile().fromJson(v))
+            .toList();
+      }
+    }
+
+    return this;
+  }
 }
 
 class CameraFile with JsonConvert<CameraFile> {

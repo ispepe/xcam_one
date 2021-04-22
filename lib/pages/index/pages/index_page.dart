@@ -27,6 +27,7 @@ import 'package:xcam_one/models/battery_level_entity.dart';
 import 'package:xcam_one/models/capture_entity.dart';
 import 'package:xcam_one/models/cmd_status_entity.dart';
 import 'package:xcam_one/models/hearbeat_entity.dart';
+import 'package:xcam_one/models/notify_status_entity.dart';
 import 'package:xcam_one/models/wifi_app_mode_entity.dart';
 import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/camera_state.dart';
@@ -35,7 +36,6 @@ import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/pages/camera/pages/camera_page.dart';
 import 'package:xcam_one/pages/photo/pages/photo_page.dart';
 import 'package:xcam_one/pages/setting/pages/setting_page.dart';
-import 'package:xcam_one/res/resources.dart';
 import 'package:xcam_one/routers/fluro_navigator.dart';
 import 'package:xcam_one/utils/dialog_utils.dart';
 import 'package:xcam_one/utils/socket_utils.dart';
@@ -180,16 +180,117 @@ class _IndexPageState extends State<IndexPage> {
 
   late Timer _timer;
 
-  bool _isTimerRequest = false;
-
   late Timer _batteryCheckTimer;
 
   late GlobalState globalState;
   late CameraState cameraState;
 
-  SocketUtils? _cameraSocket;
-
   PageController pageController = PageController();
+
+  void onError(error, StackTrace trace) {
+    switchConnect(false, msg: '连接已断开');
+  }
+
+  /// 监听相机状态
+  void onCameraStatus(jsonData) {
+    debugPrint(jsonData.toString());
+    final map = parseData(jsonData);
+    if (map != null) {
+      final notifyStatusEntity = NotifyStatusEntity().fromJson(map);
+      switch (notifyStatusEntity.function?.status) {
+        case 0:
+          // showToast('执行成功');
+          break;
+        case 1:
+          showToast('录制开始');
+          break;
+        case 2:
+          showToast('录制已停止');
+          break;
+        case 3:
+          showToast('正在断开Wi-Fi连接');
+          break;
+        case 4:
+          showToast('已打开麦克风');
+          break;
+        case 5:
+          showToast('已关闭麦克风');
+          break;
+        case 6:
+          showToast('设备正在关机');
+          break;
+        case 7:
+          showToast('新用户正在连接设备，即将断开连接'); // ignore: lines_longer_than_80_chars
+          break;
+        case -1:
+          showToast('没有文件');
+          break;
+        case -2:
+          showToast('文件EXIF错误');
+          break;
+        case -3:
+          showToast('没有缓冲区');
+          break;
+        case -4:
+          showToast('文件为只读');
+          break;
+        case -5:
+          showToast('文件删除错误');
+          break;
+        case -6:
+          showToast('删除失败');
+          break;
+        case -7:
+          showToast('录制存储空间已满');
+          break;
+        case -8:
+          showToast('录制文件写入存储器错误');
+          break;
+        case -9:
+          showToast('Slow card while recording');
+          break;
+        case -10:
+          showToast('电量不足');
+          break;
+        case -11:
+          showToast('存储空间已满');
+          break;
+        case -12:
+          showToast('文件夹已满');
+          break;
+        case -13:
+          showToast('执行错误');
+          break;
+        case -14:
+          showToast('固件校验失败');
+          break;
+        case -15:
+          showToast('固件写入检测失败');
+          break;
+        case -16:
+          showToast('固件写入NAND错误');
+          break;
+        case -17:
+          showToast('读取固件校验失败');
+          break;
+        case -18:
+          showToast('固件不存在或读取错误');
+          break;
+        case -19:
+          showToast('无效的存储源');
+          break;
+        case -20:
+          showToast('固件更新错误代码偏移量');
+          break;
+        case -21:
+          showToast('命令参数错误');
+          break;
+        case -256:
+          showToast('找不到相关命令');
+          break;
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -204,16 +305,13 @@ class _IndexPageState extends State<IndexPage> {
       /// TODO： 定时心跳检测 如果采用常连接，是否可以不用？
       _timer = Timer.periodic(Duration(seconds: 5), (timer) {
         /// NOTE: 4/9/21 待注意 由于IOS没有Wi-Fi检测的方式方法，则定时检测操作
-        /// TODO: 4/16/21 待处理 增加常连接，不需要定时检测
-        if (!kIsWeb && !_isTimerRequest && !globalState.isCapture && mounted) {
-          /// 阻止定时请求进入
-          _isTimerRequest = true;
+        if (!kIsWeb && !globalState.isCapture && mounted) {
           _updateConnectionStatus(ConnectivityResult.none);
         }
       });
 
-      /// 拍照检测一次、进入拍照界面检测一次、每20s检测一次电量
-      _batteryCheckTimer = Timer.periodic(Duration(seconds: 20), (timer) {
+      /// 拍照检测一次、进入拍照界面检测一次、每60s检测一次电量
+      _batteryCheckTimer = Timer.periodic(Duration(seconds: 60), (timer) {
         if (globalState.isConnect && !globalState.isCapture && mounted) {
           cameraState.batteryLevelCheck();
         }
@@ -228,15 +326,13 @@ class _IndexPageState extends State<IndexPage> {
     await _connectivitySubscription.cancel();
     _timer.cancel();
     _batteryCheckTimer.cancel();
-    _cameraSocket?.dispose();
+    SocketUtils().dispose();
 
     await GlobalStore.videoPlayerController?.stopRendererScanning();
     await GlobalStore.videoPlayerController?.dispose();
   }
 
   Future<void> _updateConnectionStatus(ConnectivityResult result) async {
-    debugPrint('网络连接：${result.toString()}');
-
     /// 判断如果没有连接才进行心跳检测
     if (ConnectivityResult.wifi == result ||
         ConnectivityResult.none == result) {
@@ -244,8 +340,21 @@ class _IndexPageState extends State<IndexPage> {
           Method.get, HttpApi.heartbeat, onSuccess: (data) async {
         if (data?.function?.status == '0') {
           if (!globalState.isConnect) {
+            globalState.isConnect = true;
+
             /// NOTE: 4/21/21 待注意 模式必须要重置一次，并且不能进行任何切换操作
             showCupertinoLoading(context);
+
+            /// NOTE: 4/22/21 待注意 添加Socket 初始化操作
+            await SocketUtils()
+                .initSocket(host: '192.168.1.254', port: 3333)
+                .then((value) {
+              /// 重新添加监听
+              SocketUtils().listen(
+                onCameraStatus,
+                onError,
+              );
+            });
 
             /// NOTE: 4/21/21 待注意 判断当前所在页面：相册页面重置为wifiAppModePlayback，相机为wifiAppModePhoto
             DioUtils.instance.asyncRequestNetwork<WifiAppModeEntity>(
@@ -257,8 +366,9 @@ class _IndexPageState extends State<IndexPage> {
 
               /// NOTE: 4/22/21 待注意 断开后，又连接，必须要进行一次初始化操作
               initVlcPlayer();
+              cameraState.isShowVLCPlayer = true;
 
-              globalState.isConnect = true;
+              /// 计算空间
               cameraState.diskSpaceCheck();
 
               /// NOTE: 4/21/21 【重置时间】
@@ -266,23 +376,7 @@ class _IndexPageState extends State<IndexPage> {
               DioUtils.instance.asyncRequestNetwork<CmdStatusEntity>(Method.get,
                   '${HttpApi.setDate}${now.year}-${now.month}-${now.day}',
                   onSuccess: (dateCmdStatus) {
-                if (dateCmdStatus?.function?.status == 0) {
-                  /// NOTE: 4/21/21 【重置时间】
-                  final now = DateTime.now();
-                  DioUtils.instance.asyncRequestNetwork<CmdStatusEntity>(
-                      Method.get,
-                      // ignore: lines_longer_than_80_chars
-                      '${HttpApi.setTime}${now.hour}:${now.minute}:${now.second}',
-                      onSuccess: (timeCmdStatus) {
-                    NavigatorUtils.goBack(context);
-                    if (timeCmdStatus?.function?.status != 0) {
-                      showToast('初始化时间失败');
-                    }
-                  }, onError: (code, msg) {
-                    NavigatorUtils.goBack(context);
-                    showToast('初始化时间请求失败');
-                  });
-                } else {
+                if (dateCmdStatus?.function?.status != 0) {
                   NavigatorUtils.goBack(context);
                   showToast('初始化日期失败');
                 }
@@ -290,65 +384,66 @@ class _IndexPageState extends State<IndexPage> {
                 NavigatorUtils.goBack(context);
                 showToast('初始化日期请求失败');
               });
+
+              /// NOTE: 4/21/21 【重置时间】
+              DioUtils.instance.asyncRequestNetwork<CmdStatusEntity>(Method.get,
+                  '${HttpApi.setTime}${now.hour}:${now.minute}:${now.second}',
+                  onSuccess: (timeCmdStatus) {
+                NavigatorUtils.goBack(context);
+                if (timeCmdStatus?.function?.status != 0) {
+                  showToast('初始化时间失败');
+                }
+              }, onError: (code, msg) {
+                NavigatorUtils.goBack(context);
+                showToast('初始化时间请求失败');
+              });
             }, onError: (code, msg) {
+              /// NOTE: 4/22/21 切换失败实际上依然是处于连接状态，只是播放预览画面出不来
               globalState.isConnect = true;
               cameraState.diskSpaceCheck();
               NavigatorUtils.goBack(context);
-              showToast('切换相机模式失败，请重启相机再连接重试');
+              showToast('切换相机模式失败');
+              cameraState.isShowVLCPlayer = false;
             });
           }
-        } else if (globalState.isConnect) {
-          showToast('设备连接中断');
-          globalState.isConnect = false;
-          cameraState.initSpaceData();
-          try {
-            final bool? isPlay =
-                await GlobalStore.videoPlayerController?.isPlaying();
-            if (isPlay ?? false) {
-              await GlobalStore.videoPlayerController?.stop();
-            }
-          } catch (e) {
-            e.toString();
-          }
-
-          _cameraSocket?.dispose();
+        } else {
+          await switchConnect(false, msg: '检测连接失败，请检查Wi-Fi是否正确连接');
         }
-        _isTimerRequest = false;
       }, onError: (e, m) async {
         if (globalState.isConnect) {
-          showToast('设备连接异常中断');
-          globalState.isConnect = false;
-          cameraState.initSpaceData();
-          try {
-            final bool? isPlay =
-                await GlobalStore.videoPlayerController?.isPlaying();
-            if (isPlay ?? false) {
-              await GlobalStore.videoPlayerController?.stop();
-            }
-          } catch (e) {
-            e.toString();
-          }
-          _cameraSocket?.dispose();
+          /// TODO: 4/22/21 待处理 确认为掉线
+          await Future.delayed(Duration(seconds: 1), () async {
+            await DioUtils.instance.requestNetwork<HearbeatEntity>(
+                Method.get, HttpApi.heartbeat, onError: (e, m) async {
+              await switchConnect(false, msg: '设备掉线，请重新连接');
+            });
+          });
         }
-        _isTimerRequest = false;
       });
     } else {
-      showToast('wifi连接中断');
+      await switchConnect(false, msg: 'wifi连接中断');
+    }
+  }
 
-      if (globalState.isConnect) {
-        globalState.isConnect = false;
-        cameraState.initSpaceData();
-        try {
-          final bool? isPlay =
-              await GlobalStore.videoPlayerController?.isPlaying();
-          if (isPlay ?? false) {
-            await GlobalStore.videoPlayerController?.stop();
-          }
-        } catch (e) {
-          e.toString();
+  Future switchConnect(bool isConnect, {String? msg}) async {
+    if (globalState.isConnect != isConnect) {
+      if (msg != null) showToast(msg);
+
+      globalState.isConnect = false;
+      cameraState.clearSpaceData();
+      try {
+        final bool? isPlay =
+            await GlobalStore.videoPlayerController?.isPlaying();
+        if (isPlay ?? false) {
+          await GlobalStore.videoPlayerController?.stop();
         }
+      } catch (e) {
+        e.toString();
       }
-      _isTimerRequest = true;
+
+      // 关闭socket
+      SocketUtils().dispose();
+      cameraState.isShowVLCPlayer = false;
     }
   }
 
@@ -357,7 +452,7 @@ class _IndexPageState extends State<IndexPage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget != widget) {
       try {
-        /// 防止热加载
+        /// 防止热加载丢画面
         GlobalStore.videoPlayerController?.stop().then((value) {
           GlobalStore.videoPlayerController?.play();
         });
@@ -516,16 +611,12 @@ class _IndexPageState extends State<IndexPage> {
         GlobalStore.videoPlayerController?.isPlaying().then((isPlaying) {
           if (isPlaying != null && !isPlaying) {
             showToast('画面正在加载中，请稍后进行拍摄');
-            return;
           } else {
             // globalState.batteryStatus == BatteryStatus.batteryLow
             if (cameraState.batteryStatus == BatteryStatus.batteryEmpty ||
                 cameraState.batteryStatus == BatteryStatus.batteryExhausted) {
               showToast('低电量，拍摄失败');
-              return;
-            }
-
-            if (cameraState.countdown != CountdownEnum.close) {
+            } else if (cameraState.countdown != CountdownEnum.close) {
               showCupertinoDialog(
                   barrierDismissible: true,
                   context: context,

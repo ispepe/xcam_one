@@ -49,7 +49,7 @@ class _CameraPageState extends State<CameraPage>
     _watchGlobalState = context.watch<GlobalState>();
     _watchCameraState = context.watch<CameraState>();
 
-    return _watchGlobalState.isConnect
+    return _watchGlobalState.isConnect && _watchCameraState.isShowVLCPlayer
         ? Scaffold(
             backgroundColor: Colors.black,
             appBar: AppBar(

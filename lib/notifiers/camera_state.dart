@@ -32,6 +32,15 @@ class CameraState extends ChangeNotifier {
 
   CountdownEnum _countdown = CountdownEnum.close;
 
+  /// /// FIXME: 4/22/21 解决连接成功后应该先初始化成功后才能显示player的问题
+  bool _isShowVLCPlayer = false;
+  bool get isShowVLCPlayer => _isShowVLCPlayer;
+
+  set isShowVLCPlayer(bool value) {
+    _isShowVLCPlayer = value;
+    notifyListeners();
+  }
+
   CountdownEnum get countdown => _countdown;
 
   set countdown(CountdownEnum value) {
@@ -147,7 +156,7 @@ class CameraState extends ChangeNotifier {
 
   int get diskSpaceData => _diskSpaceData;
 
-  void initSpaceData() {
+  void clearSpaceData() {
     /// 免费空间
     _freeSpace = '1KB';
 

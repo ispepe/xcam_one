@@ -76,7 +76,9 @@ class __MyAppState extends State<_MyApp> {
   @override
   Widget build(BuildContext context) {
     return OKToast(
-      /// Toast 配置
+      // 新的Toast显示，旧的关闭
+      dismissOtherOnShow: true,
+      movingOnWindowChange: true,
       backgroundColor: Colors.black54,
       textPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
       radius: 20.0,
