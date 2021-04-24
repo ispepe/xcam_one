@@ -302,7 +302,6 @@ class _IndexPageState extends State<IndexPage> {
       _connectivitySubscription =
           _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
 
-      /// TODO： 定时心跳检测 如果采用常连接，是否可以不用？
       _timer = Timer.periodic(Duration(seconds: 5), (timer) {
         /// NOTE: 4/9/21 待注意 由于IOS没有Wi-Fi检测的方式方法，则定时检测操作
         if (!kIsWeb && !globalState.isCapture && mounted) {
@@ -613,10 +612,11 @@ class _IndexPageState extends State<IndexPage> {
             showToast('画面正在加载中，请稍后进行拍摄');
           } else {
             // globalState.batteryStatus == BatteryStatus.batteryLow
-            if (cameraState.batteryStatus == BatteryStatus.batteryEmpty ||
-                cameraState.batteryStatus == BatteryStatus.batteryExhausted) {
-              showToast('低电量，拍摄失败');
-            } else if (cameraState.countdown != CountdownEnum.close) {
+            // if (cameraState.batteryStatus == BatteryStatus.batteryEmpty ||
+            //     cameraState.batteryStatus == BatteryStatus.batteryExhausted) {
+            //   showToast('低电量，拍摄失败');
+            // } else
+            if (cameraState.countdown != CountdownEnum.close) {
               showCupertinoDialog(
                   barrierDismissible: true,
                   context: context,

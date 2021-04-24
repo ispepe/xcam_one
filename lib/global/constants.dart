@@ -30,6 +30,9 @@ class SharedPreferencesKeys {
   static String searchHistory = 'searchHistory';
 
   static String tokenKey = 'token';
+
+  /// TODO: 4/23/21  存储延迟拍摄时间
+
 }
 
 class Constant {

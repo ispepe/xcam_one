@@ -53,7 +53,9 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     _refreshController = EasyRefreshController();
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
-      _onRefresh();
+      if(Provider.of<GlobalState>(context, listen: false).isConnect) {
+        _onRefresh();
+      }
     });
   }
 

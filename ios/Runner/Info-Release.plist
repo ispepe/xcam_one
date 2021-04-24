@@ -72,5 +72,11 @@
 	<string>App需要您的同意,才能访问蓝牙</string>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>App需要您的同意,才能访问媒体资料库</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>App需要您的同意,才能访问蓝牙</string>
+	<key>NSContactsUsageDescription</key>
+	<string>App需要您的同意,才能访问通讯录</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>App需要您的同意,才能使用语音识别</string>
 </dict>
 </plist>

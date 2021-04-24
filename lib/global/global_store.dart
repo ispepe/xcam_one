@@ -64,7 +64,8 @@ class GlobalStore {
     localStorage = LocalStorage('LocalStorage');
     await localStorage!.ready;
 
-    first = SpUtil.getBool(SharedPreferencesKeys.showWelcome) ?? true;
+    first = SpUtil.getBool(SharedPreferencesKeys.showWelcome, defValue: true) ??
+        true;
     if (first) {
       await SpUtil.putBool(SharedPreferencesKeys.showWelcome, false);
     }

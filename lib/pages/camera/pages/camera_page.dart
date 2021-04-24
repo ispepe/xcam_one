@@ -151,7 +151,7 @@ class _CameraPageState extends State<CameraPage>
 
   Container _buildBatteryStatus(BuildContext context) {
     double batteryWidth = 0;
-    final _batteryStatus = context.read<CameraState>().batteryStatus;
+    final _batteryStatus = _watchCameraState.batteryStatus;
     switch (_batteryStatus) {
       case BatteryStatus.batteryMed:
         batteryWidth = 22 * 0.5;
@@ -160,12 +160,14 @@ class _CameraPageState extends State<CameraPage>
         batteryWidth = 22;
         break;
       case BatteryStatus.batteryLow:
-        batteryWidth = 22 * 0.2;
+        batteryWidth = 22 * 0.3;
         break;
       case BatteryStatus.batteryEmpty:
-        batteryWidth = 22 * 0.1;
+        batteryWidth = 22 * 0.2;
         break;
       case BatteryStatus.batteryExhausted:
+        batteryWidth = 22 * 0.1;
+        break;
       case BatteryStatus.batteryCharge:
       case BatteryStatus.batteryStatusTotalNum:
         batteryWidth = 0;
