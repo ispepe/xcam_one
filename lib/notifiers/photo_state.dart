@@ -51,27 +51,30 @@ class PhotoState extends ChangeNotifier {
 
     /// TODO: 4/11/21 待处理 默认显示50张，通过下来刷新显示剩余图片
     /// FIXME: 4/11/21 待增加容错处理
-    _photos = await galleryList[0]
-        .getAssetListRange(start: 0, end: galleryList[0].assetCount);
+    if(galleryList[0].assetCount != 0) {
+      _photos = await galleryList[0]
+          .getAssetListRange(start: 0, end: galleryList[0].assetCount);
 
-    final DateTime now = DateTime.now();
-    _photoGroup = groupBy(_photos, (photo) {
-      if (now.year != photo.modifiedDateTime.year) {
-        // ignore: lines_longer_than_80_chars
-        return '${photo.modifiedDateTime.year}年${photo.modifiedDateTime.month}月${photo.modifiedDateTime.day}日';
-      } else if (photo.modifiedDateTime.month == now.month) {
-        if (now.day == photo.modifiedDateTime.day) {
-          return '今天';
-        } else if (now.day - 1 == photo.modifiedDateTime.day) {
-          return '昨天';
-        } else {
+      final DateTime now = DateTime.now();
+      _photoGroup = groupBy(_photos, (photo) {
+        if (now.year != photo.modifiedDateTime.year) {
           // ignore: lines_longer_than_80_chars
+          return '${photo.modifiedDateTime.year}年${photo.modifiedDateTime.month}月${photo.modifiedDateTime.day}日';
+        } else if (photo.modifiedDateTime.month == now.month) {
+          if (now.day == photo.modifiedDateTime.day) {
+            return '今天';
+          } else if (now.day - 1 == photo.modifiedDateTime.day) {
+            return '昨天';
+          } else {
+            // ignore: lines_longer_than_80_chars
+            return '${photo.modifiedDateTime.month}月${photo.modifiedDateTime.day}日';
+          }
+        } else {
           return '${photo.modifiedDateTime.month}月${photo.modifiedDateTime.day}日';
         }
-      } else {
-        return '${photo.modifiedDateTime.month}月${photo.modifiedDateTime.day}日';
-      }
-    });
+      });
+    }
+
 
     notifyListeners();
   }

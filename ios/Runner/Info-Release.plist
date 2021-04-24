@@ -47,7 +47,7 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>App需要您的同意,才能访问相册</string>
+	<string>这可以让您保存和访问设备拍摄的照片</string>
 	<key>NSCameraUsageDescription</key>
 	<string>App需要您的同意,才能访问相机</string>
 	<key>NSMicrophoneUsageDescription</key>
@@ -62,12 +62,6 @@
 	<string>App需要您的同意,才能访问日历</string>
 	<key>NSRemindersUsageDescription</key>
 	<string>App需要您的同意,才能访问提醒事项</string>
-	<key>NSMotionUsageDescription</key>
-	<string>App需要您的同意,才能访问运动与健身</string>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>App需要您的同意,才能访问健康更新 </string>
-	<key>NSHealthShareUsageDescription</key>
-	<string>App需要您的同意,才能访问健康分享</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>App需要您的同意,才能访问蓝牙</string>
 	<key>NSAppleMusicUsageDescription</key>

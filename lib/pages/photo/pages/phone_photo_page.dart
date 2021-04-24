@@ -42,7 +42,9 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
       /// 先获取相机权限
-      _onRefresh();
+      Future.delayed(Duration(seconds: 1), () {
+        _onRefresh();
+      });
     });
   }
 
@@ -58,8 +60,9 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
           });
         });
       } else {
-        /// TODO: 4/14/21 待处理 如果相机没有权限，则先弹窗提醒再请求
-        PhotoManager.openSetting();
+        setState(() {
+          _isShowLoading = false;
+        });
       }
     });
   }
