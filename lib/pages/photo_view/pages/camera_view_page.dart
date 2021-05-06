@@ -8,11 +8,13 @@
  *  Created by Pepe
  */
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:oktoast/oktoast.dart';
+import 'package:panorama/panorama.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -49,6 +51,11 @@ class _CameraViewPageState extends State<CameraViewPage> {
 
   bool _isShowBack = false;
 
+  /// 是否显示全景图
+  bool _isShowPanorama = false;
+
+  late String _currentUrl;
+
   @override
   void initState() {
     super.initState();
@@ -76,6 +83,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
                 Padding(
                   padding: const EdgeInsets.all(4.0),
                   child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
                     onTap: () {
                       _showModelBottomSheet(context);
                     },
@@ -88,11 +96,34 @@ class _CameraViewPageState extends State<CameraViewPage> {
                       ),
                     ),
                   ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      setState(() {
+                        _isShowPanorama = !_isShowPanorama;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: _isShowPanorama
+                          ? Icon(
+                              Icons.image_outlined,
+                              size: 24,
+                            )
+                          : Icon(
+                              Icons.threed_rotation_outlined,
+                              size: 24,
+                            ),
+                    ),
+                  ),
                 )
               ],
             ),
       body: _buildBody(context),
-      bottomNavigationBar: _isShowBack
+      bottomNavigationBar: _isShowBack || _isShowPanorama
           ? null
           : SafeArea(
               child: Container(
@@ -322,6 +353,15 @@ class _CameraViewPageState extends State<CameraViewPage> {
   Widget _buildBody(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
+    if (_isShowPanorama) {
+      return Panorama(
+        animSpeed: 1.0,
+        minZoom: .5,
+        sensorControl: SensorControl.Orientation,
+        child: Image.network(_currentUrl),
+      );
+    }
+
     final bgColor = Color(0xFFF2F2F2);
     final _photoState = context.watch<PhotoState>();
     return Container(
@@ -346,11 +386,11 @@ class _CameraViewPageState extends State<CameraViewPage> {
             String filePath = _photoState.allFile![index].file!.filePath!;
             filePath = filePath.substring(3, filePath.length);
             filePath = filePath.replaceAll('\\', '/');
-            final url =
+            _currentUrl =
                 '${GlobalStore.config[EConfig.baseUrl]}$filePath${HttpApi.getScreennail}'; // ignore: lines_longer_than_80_chars
 
             return PhotoViewGalleryPageOptions(
-              imageProvider: NetworkImage(url),
+              imageProvider: NetworkImage(_currentUrl),
               initialScale: PhotoViewComputedScale.contained,
             );
           },

@@ -63,7 +63,7 @@ class ThemeState with ChangeNotifier {
   /// [dark]系统的Dark Mode
   ThemeData themeData({bool isDarkMode = false}) {
     return ThemeData(
-      fontFamily: 'PingFangSC',
+      fontFamily: 'PingFang SC',
       errorColor: isDarkMode ? Colours.darkErrorColor : Colours.errorColor,
       brightness: isDarkMode ? Brightness.dark : Brightness.light,
 

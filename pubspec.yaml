@@ -112,6 +112,9 @@ dependencies:
   #  timer_count_down: ^2.0.1
   circular_countdown_timer: ^0.2.0
 
+  # 全景照片查看器
+  panorama: ^0.4.1
+
   # socket client https://github.com/rikulo/socket.io-client-dart
   # socket_io_client: ^2.0.0-beta.3-nullsafety.0
 
@@ -146,7 +149,6 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/fonts/
     - assets/images/
     - assets/images/2.0x/
     - assets/images/3.0x/
@@ -173,7 +175,7 @@ flutter:
     #       - asset: fonts/TrajanPro.ttf
     #       - asset: fonts/TrajanPro_Bold.ttf
     #         weight: 700
-  fonts:
+#  fonts:
     #    - family: ZaoZiGongFangYingLiHeiGuiTi
     #      fonts:
     #        - asset: assets/fonts/ZaoZiGongFangYingLiHeiGuiTi.otf
@@ -200,16 +202,16 @@ flutter:
     #      fonts:
     #        - asset: assets/fonts/SourceHanSansCN-Normal.otf
 
-    - family: PingFangSC
-      fonts:
-        - asset: assets/fonts/PingFang_Regular.ttf
-          weight: 400
-        - asset: assets/fonts/PingFang_Medium.ttf
-          weight: 500
-        - asset: assets/fonts/PingFang_Light.ttf
-          weight: 300
-        - asset: assets/fonts/PingFang_Bold.ttf
-          weight: 700
+#    - family: PingFangSC
+#      fonts:
+#        - asset: assets/fonts/PingFang_Regular.ttf
+#          weight: 400
+#        - asset: assets/fonts/PingFang_Medium.ttf
+#          weight: 500
+#        - asset: assets/fonts/PingFang_Light.ttf
+#          weight: 300
+#        - asset: assets/fonts/PingFang_Bold.ttf
+#          weight: 700
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
