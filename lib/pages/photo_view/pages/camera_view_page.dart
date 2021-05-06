@@ -357,6 +357,7 @@ class _CameraViewPageState extends State<CameraViewPage> {
       return Panorama(
         animSpeed: 1.0,
         minZoom: .5,
+        sensitivity: 2,
         sensorControl: SensorControl.Orientation,
         child: Image.network(_currentUrl),
       );
