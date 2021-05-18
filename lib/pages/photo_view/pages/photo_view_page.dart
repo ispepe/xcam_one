@@ -12,6 +12,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:panorama/panorama.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
@@ -41,6 +42,9 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
   int _dataLength = 0;
 
   bool _isShowBack = false;
+
+  /// 是否显示全景图
+  bool _isShowPanorama = false;
 
   @override
   void initState() {
@@ -80,6 +84,29 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
                         width: 32,
                         height: 32,
                       ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      setState(() {
+                        _isShowPanorama = !_isShowPanorama;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: _isShowPanorama
+                          ? Icon(
+                              Icons.image_outlined,
+                              size: 24,
+                            )
+                          : Icon(
+                              Icons.threed_rotation_outlined,
+                              size: 24,
+                            ),
                     ),
                   ),
                 )
@@ -217,53 +244,83 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
   Widget _buildBody(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final bgColor = Color(0xFFF2F2F2);
-    return Container(
-      width: size.width,
-      height: size.height,
-      color: _isShowBack ? Colors.black : bgColor,
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _isShowBack = !_isShowBack;
-          });
+    if (_isShowPanorama) {
+      return FutureBuilder<Uint8List?>(
+        future: photoState.photos[_photoIndex].originBytes,
+        builder: (_, s) {
+          if (!s.hasData) {
+            return Center(
+                child: SpinKitCircle(
+              color: Theme.of(context).primaryColor,
+              size: 32,
+            ));
+          }
+
+          _dataLength = s.data!.length;
+          return Panorama(
+            animSpeed: 1.0,
+            minZoom: .5,
+            sensitivity: 2,
+            sensorControl: SensorControl.Orientation,
+            child: Image(
+              width: double.infinity,
+              height: double.infinity,
+              image: MemoryImage(s.data!),
+              gaplessPlayback: true,
+              fit: BoxFit.contain,
+            ),
+          );
         },
-        child: PhotoViewGallery.builder(
-          pageController: pageController,
-          itemCount: photoState.photos.length,
-          scrollPhysics: const BouncingScrollPhysics(),
-          onPageChanged: onPageChanged,
-          backgroundDecoration: BoxDecoration(
-            color: _isShowBack ? Colors.black : bgColor,
-          ),
-          builder: (BuildContext context, int index) {
-            return PhotoViewGalleryPageOptions.customChild(
-              child: FutureBuilder<Uint8List?>(
-                future: photoState.photos[index].originBytes,
-                builder: (_, s) {
-                  if (!s.hasData) {
-                    return Center(
-                        child: SpinKitCircle(
-                      color: Theme.of(context).primaryColor,
-                      size: 32,
-                    ));
-                  }
-
-                  _dataLength = s.data!.length;
-
-                  return Image(
-                    width: double.infinity,
-                    height: double.infinity,
-                    image: MemoryImage(s.data!),
-                    gaplessPlayback: true,
-                    fit: BoxFit.contain,
-                  );
-                },
-              ),
-            );
+      );
+    } else {
+      return Container(
+        width: size.width,
+        height: size.height,
+        color: _isShowBack ? Colors.black : bgColor,
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              _isShowBack = !_isShowBack;
+            });
           },
+          child: PhotoViewGallery.builder(
+            pageController: pageController,
+            itemCount: photoState.photos.length,
+            scrollPhysics: const BouncingScrollPhysics(),
+            onPageChanged: onPageChanged,
+            backgroundDecoration: BoxDecoration(
+              color: _isShowBack ? Colors.black : bgColor,
+            ),
+            builder: (BuildContext context, int index) {
+              return PhotoViewGalleryPageOptions.customChild(
+                child: FutureBuilder<Uint8List?>(
+                  future: photoState.photos[index].originBytes,
+                  builder: (_, s) {
+                    if (!s.hasData) {
+                      return Center(
+                          child: SpinKitCircle(
+                        color: Theme.of(context).primaryColor,
+                        size: 32,
+                      ));
+                    }
+
+                    _dataLength = s.data!.length;
+
+                    return Image(
+                      width: double.infinity,
+                      height: double.infinity,
+                      image: MemoryImage(s.data!),
+                      gaplessPlayback: true,
+                      fit: BoxFit.contain,
+                    );
+                  },
+                ),
+              );
+            },
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   void onPageChanged(int index) {
