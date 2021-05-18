@@ -33,6 +33,7 @@ import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/camera_state.dart';
 
 import 'package:xcam_one/notifiers/global_state.dart';
+import 'package:xcam_one/notifiers/photo_state.dart';
 import 'package:xcam_one/pages/camera/pages/camera_page.dart';
 import 'package:xcam_one/pages/photo/pages/photo_page.dart';
 import 'package:xcam_one/pages/setting/pages/setting_page.dart';
@@ -519,11 +520,12 @@ class _IndexPageState extends State<IndexPage> {
     globalState = context.read<GlobalState>();
     cameraState = context.read<CameraState>();
 
-    final _watchGlobalState = context.watch<GlobalState>();
+    final watchGlobalState = context.watch<GlobalState>();
+    final watchPhotoState = context.watch<PhotoState>();
 
     return Scaffold(
       /// NOTE: 4/19/21 待注意 此处不加背景，会导致拍摄时底部bar有灰色边框
-      backgroundColor: _watchGlobalState.isConnect && _currentIndex == 1
+      backgroundColor: watchGlobalState.isConnect && _currentIndex == 1
           ? Colors.black
           : Colors.white,
       body: PageView(
@@ -536,21 +538,23 @@ class _IndexPageState extends State<IndexPage> {
         controller: pageController,
         children: _pages,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: _watchGlobalState.isConnect && _currentIndex == 1
-            ? Colors.black
-            : Colors.white,
-        items: _watchGlobalState.isConnect && _currentIndex == 1
-            ? _watchGlobalState.isCapture
-                ? disableCameraBottomNavItems
-                : cameraBottomNavItems
-            : bottomNavItems,
-        currentIndex: _currentIndex,
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        onTap: (index) => _changePage(index),
-      ),
+      bottomNavigationBar: watchPhotoState.isMultipleSelect
+          ? null
+          : BottomNavigationBar(
+              backgroundColor: watchGlobalState.isConnect && _currentIndex == 1
+                  ? Colors.black
+                  : Colors.white,
+              items: watchGlobalState.isConnect && _currentIndex == 1
+                  ? watchGlobalState.isCapture
+                      ? disableCameraBottomNavItems
+                      : cameraBottomNavItems
+                  : bottomNavItems,
+              currentIndex: _currentIndex,
+              type: BottomNavigationBarType.fixed,
+              showSelectedLabels: false,
+              showUnselectedLabels: false,
+              onTap: (index) => _changePage(index),
+            ),
     );
   }
 

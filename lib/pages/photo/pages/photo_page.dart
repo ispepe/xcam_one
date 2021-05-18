@@ -9,6 +9,11 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:provider/provider.dart';
+
+import 'package:xcam_one/notifiers/photo_state.dart';
 import 'package:xcam_one/pages/photo/pages/camera_photo_page.dart';
 import 'package:xcam_one/pages/photo/pages/phone_photo_page.dart';
 import 'package:xcam_one/res/resources.dart';
@@ -27,6 +32,9 @@ class _PhotoPageState extends State<PhotoPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final photoState = context.read<PhotoState>();
+    final watchPhotoState = context.watch<PhotoState>();
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -34,23 +42,75 @@ class _PhotoPageState extends State<PhotoPage>
         appBar: AppBar(
           elevation: 0,
           backgroundColor: Colors.white,
-          title: TabBar(
-            indicatorColor: Theme.of(context).primaryColor,
-            unselectedLabelColor: Color(0xFF999999),
-            labelColor: Theme.of(context).primaryColor,
-            indicatorSize: TabBarIndicatorSize.label,
-            labelStyle:
-                TextStyles.textSize16.copyWith(fontWeight: FontWeight.w500),
-            indicatorWeight: 4,
-            tabs: [
-              Tab(
-                text: '手机',
-              ),
-              Tab(
-                text: '相机',
-              ),
-            ],
-          ),
+          centerTitle: true,
+          title: context.watch<PhotoState>().isMultipleSelect
+              ? Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTap: () async {
+                          if (photoState.isAllSelect) {
+                            photoState.listSelect = [];
+                          } else {
+                            if (photoState.allFile != null) {
+                              photoState.listSelect = List.generate(
+                                  photoState.allFile!.length, (index) => index);
+                            }
+                          }
+                          photoState.isAllSelect = !photoState.isAllSelect;
+                          await HapticFeedback.mediumImpact();
+                        },
+                        child: Container(
+                          alignment: Alignment.centerLeft,
+                          width: 70,
+                          child: Text(
+                            watchPhotoState.isAllSelect ? '取消全选' : '全选',
+                            style: TextStyles.textSize16,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                          child: Center(
+                              child:
+                                  Text('选择照片', style: TextStyles.textSize16))),
+                      GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTap: () {
+                          photoState.isMultipleSelect = false;
+                          photoState.listSelect.clear();
+                        },
+                        child: Container(
+                          alignment: Alignment.centerRight,
+                          width: 70,
+                          child: Text(
+                            '完成',
+                            style: TextStyles.textSize16.copyWith(
+                                color: Theme.of(context).primaryColor),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : TabBar(
+                  indicatorColor: Theme.of(context).primaryColor,
+                  unselectedLabelColor: Color(0xFF999999),
+                  labelColor: Theme.of(context).primaryColor,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  labelStyle: TextStyles.textSize16
+                      .copyWith(fontWeight: FontWeight.w500),
+                  indicatorWeight: 4,
+                  tabs: [
+                    Tab(
+                      text: '手机',
+                    ),
+                    Tab(
+                      text: '相机',
+                    ),
+                  ],
+                ),
         ),
         body: TabBarView(
           children: [_phonePhotoPage, _cameraPhotoPage],

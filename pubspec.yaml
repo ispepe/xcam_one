@@ -175,7 +175,7 @@ flutter:
     #       - asset: fonts/TrajanPro.ttf
     #       - asset: fonts/TrajanPro_Bold.ttf
     #         weight: 700
-#  fonts:
+    #  fonts:
     #    - family: ZaoZiGongFangYingLiHeiGuiTi
     #      fonts:
     #        - asset: assets/fonts/ZaoZiGongFangYingLiHeiGuiTi.otf
@@ -202,16 +202,16 @@ flutter:
     #      fonts:
     #        - asset: assets/fonts/SourceHanSansCN-Normal.otf
 
-#    - family: PingFangSC
-#      fonts:
-#        - asset: assets/fonts/PingFang_Regular.ttf
-#          weight: 400
-#        - asset: assets/fonts/PingFang_Medium.ttf
-#          weight: 500
-#        - asset: assets/fonts/PingFang_Light.ttf
-#          weight: 300
-#        - asset: assets/fonts/PingFang_Bold.ttf
-#          weight: 700
+  #    - family: PingFangSC
+  #      fonts:
+  #        - asset: assets/fonts/PingFang_Regular.ttf
+  #          weight: 400
+  #        - asset: assets/fonts/PingFang_Medium.ttf
+  #          weight: 500
+  #        - asset: assets/fonts/PingFang_Light.ttf
+  #          weight: 300
+  #        - asset: assets/fonts/PingFang_Bold.ttf
+  #          weight: 700
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

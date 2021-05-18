@@ -77,6 +77,7 @@ class HttpApi {
 
   /// save menu info http://192.168.1.254/?custom=1&cmd=3021
 
-  /// socket 通知客户端电池电量低、存储卡满 端口号3333
+  /// 获取IQ信息 #define WIFIAPP_CMD_GET_PHOTO_IQ_INFO       3040
+  static const String getIQInfo = '?custom=1&cmd=3040';
 
 }

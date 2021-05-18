@@ -51,7 +51,7 @@ class PhotoState extends ChangeNotifier {
 
     /// TODO: 4/11/21 待处理 默认显示50张，通过下来刷新显示剩余图片
     /// FIXME: 4/11/21 待增加容错处理
-    if(galleryList[0].assetCount != 0) {
+    if (galleryList[0].assetCount != 0) {
       _photos = await galleryList[0]
           .getAssetListRange(start: 0, end: galleryList[0].assetCount);
 
@@ -74,7 +74,6 @@ class PhotoState extends ChangeNotifier {
         }
       });
     }
-
 
     notifyListeners();
   }
@@ -144,6 +143,36 @@ class PhotoState extends ChangeNotifier {
 
   set currentCount(int value) {
     _currentCount = value;
+    notifyListeners();
+  }
+
+  /// 是否进入多选状态
+  bool _isMultipleSelect = false;
+
+  bool get isMultipleSelect => _isMultipleSelect;
+
+  set isMultipleSelect(bool value) {
+    _isMultipleSelect = value;
+    notifyListeners();
+  }
+
+  /// 当前已选择列表
+  List<int> _listSelect = [];
+
+  List<int> get listSelect => _listSelect;
+
+  set listSelect(List<int> value) {
+    _listSelect = value;
+    notifyListeners();
+  }
+
+  /// 是否全选
+  bool _isAllSelect = false;
+
+  bool get isAllSelect => _isAllSelect;
+
+  set isAllSelect(bool value) {
+    _isAllSelect = value;
     notifyListeners();
   }
 }

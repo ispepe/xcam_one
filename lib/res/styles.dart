@@ -44,11 +44,14 @@ class TextStyles {
   static const TextStyle textSize16 = TextStyle(
     fontSize: 16,
   );
+  static const TextStyle textSize18 = TextStyle(
+    fontSize: 18,
+  );
 
   static const TextStyle textMedium18 =
       TextStyle(fontSize: 18, fontWeight: FontWeight.w500);
   static const TextStyle textBold12 =
-  TextStyle(fontSize: 12, fontWeight: FontWeight.bold);
+      TextStyle(fontSize: 12, fontWeight: FontWeight.bold);
 
   static const TextStyle textBold14 =
       TextStyle(fontSize: 14, fontWeight: FontWeight.bold);

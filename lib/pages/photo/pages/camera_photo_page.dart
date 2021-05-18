@@ -11,6 +11,7 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -39,7 +40,8 @@ class CameraPhotoPage extends StatefulWidget {
 
 class _CameraPhotoPageState extends State<CameraPhotoPage>
     with AutomaticKeepAliveClientMixin {
-  late PhotoState watchPhotoState;
+  late PhotoState _watchPhotoState;
+  late PhotoState _photoState;
 
   late EasyRefreshController _refreshController;
 
@@ -53,7 +55,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     _refreshController = EasyRefreshController();
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
-      if(Provider.of<GlobalState>(context, listen: false).isConnect) {
+      if (Provider.of<GlobalState>(context, listen: false).isConnect) {
         _onRefresh();
       }
     });
@@ -110,7 +112,8 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    watchPhotoState = context.watch<PhotoState>();
+    _watchPhotoState = context.watch<PhotoState>();
+    _photoState = context.read<PhotoState>();
 
     if (context.watch<GlobalState>().isConnect) {
       return _buildCameraPhoto(context);
@@ -202,32 +205,36 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
         footer: BallPulseFooter(
           color: Theme.of(context).primaryColor,
         ),
-        onRefresh: () async {
-          await _onRefresh();
-          _refreshController.resetLoadState();
-        },
-        onLoad: () async {
-          await Future.delayed(Duration(milliseconds: 200), () {
-            watchPhotoState.currentCount += 20;
+        onRefresh: _photoState.isMultipleSelect
+            ? null
+            : () async {
+                await _onRefresh();
+                _refreshController.resetLoadState();
+              },
+        onLoad: _photoState.isMultipleSelect
+            ? null
+            : () async {
+                await Future.delayed(Duration(milliseconds: 200), () {
+                  _watchPhotoState.currentCount += 20;
 
-            /// 根据当前显示数量进行分组
-            watchPhotoState.groupByCameraFile();
+                  /// 根据当前显示数量进行分组
+                  _watchPhotoState.groupByCameraFile();
 
-            _refreshController.finishLoad(
-                noMore: watchPhotoState.currentCount ==
-                    (watchPhotoState.allFile?.length ?? 0));
-          });
-        },
-        child: watchPhotoState.allFile?.isEmpty ?? true
+                  _refreshController.finishLoad(
+                      noMore: _watchPhotoState.currentCount ==
+                          (_watchPhotoState.allFile?.length ?? 0));
+                });
+              },
+        child: _watchPhotoState.allFile?.isEmpty ?? true
             ? buildEmptyPhoto(
                 context,
                 text: '您还没有全景图片快去拍摄吧',
               )
             : ListView.builder(
-                itemCount: watchPhotoState.groupFileList?.length,
+                itemCount: _watchPhotoState.groupFileList?.length,
                 shrinkWrap: true,
                 itemBuilder: (context, index) {
-                  final keys = watchPhotoState.groupFileList?.keys.toList();
+                  final keys = _watchPhotoState.groupFileList?.keys.toList();
                   return _buildPhotoGroup(context, keys![index]);
                 },
               ),
@@ -236,7 +243,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
   }
 
   Widget _buildPhotoGroup(BuildContext context, String key) {
-    final int length = watchPhotoState.groupFileList![key]!.length;
+    final int length = _watchPhotoState.groupFileList![key]!.length;
     return Column(
       children: [
         Container(
@@ -263,19 +270,19 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
                 itemBuilder: (BuildContext context, int index) {
                   int currentIndex = 0;
                   final List<String> keys =
-                      watchPhotoState.groupFileList!.keys.toList();
+                      _watchPhotoState.groupFileList!.keys.toList();
                   for (int i = 0; i < keys.length; i++) {
                     if (keys[i].contains(key)) {
                       currentIndex += index;
                       break;
                     }
                     currentIndex +=
-                        watchPhotoState.groupFileList![keys[i]]!.length;
+                        _watchPhotoState.groupFileList![keys[i]]!.length;
                   }
 
                   return _buildPhoto(
                     context,
-                    watchPhotoState.groupFileList![key]![index],
+                    _watchPhotoState.groupFileList![key]![index],
                     currentIndex,
                   );
                 })),
@@ -291,31 +298,78 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     final url =
         '${GlobalStore.config[EConfig.baseUrl]}$filePath${HttpApi.getThumbnail}'; // ignore: lines_longer_than_80_chars
 
+    final cachedNetworkImage = CachedNetworkImage(
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+      placeholder: (BuildContext context, url) {
+        return Center(
+            child: SpinKitCircle(
+          color: Theme.of(context).primaryColor,
+          size: 24,
+        ));
+      },
+      errorWidget: (context, url, error) {
+        debugPrint(error.toString());
+        return Icon(
+          Icons.broken_image_outlined,
+          // color: Theme.of(context).primaryColor,
+        );
+      },
+      imageUrl: Uri.encodeFull(url),
+    );
+
     return GestureDetector(
       onTap: () {
-        NavigatorUtils.push(context,
-            '${PhotoViewRouter.photoView}?currentIndex=$index&type=camera');
+        if (_photoState.isMultipleSelect) {
+          if (_photoState.listSelect.contains(index)) {
+            _photoState.listSelect.remove(index);
+          } else {
+            _photoState.listSelect.add(index);
+          }
+          if (_photoState.isAllSelect) {
+            _photoState.isAllSelect = false;
+          }
+          setState(() {});
+        } else {
+          NavigatorUtils.push(context,
+              '${PhotoViewRouter.photoView}?currentIndex=$index&type=camera');
+        }
       },
-      child: CachedNetworkImage(
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        placeholder: (BuildContext context, url) {
-          return Center(
-              child: SpinKitCircle(
-            color: Theme.of(context).primaryColor,
-            size: 24,
-          ));
-        },
-        errorWidget: (context, url, error) {
-          debugPrint(error.toString());
-          return Icon(
-            Icons.broken_image_outlined,
-            // color: Theme.of(context).primaryColor,
-          );
-        },
-        imageUrl: Uri.encodeFull(url),
-      ),
+      onLongPress: () async {
+        if (!_photoState.isMultipleSelect) {
+          await HapticFeedback.heavyImpact();
+          setState(() {
+            _photoState.isMultipleSelect = true;
+            _photoState.isAllSelect = false;
+            _photoState.listSelect.clear();
+            _photoState.listSelect.add(index);
+          });
+        }
+      },
+      child: _watchPhotoState.isMultipleSelect &&
+              _watchPhotoState.listSelect.contains(index)
+          ? Container(
+              decoration: BoxDecoration(
+                border:
+                    Border.all(width: 2, color: Theme.of(context).primaryColor),
+              ),
+              child: Stack(children: [
+                cachedNetworkImage,
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Image.asset(
+                      'assets/images/select_mark.png',
+                      width: 24,
+                      height: 24,
+                    ),
+                  ),
+                )
+              ]),
+            )
+          : cachedNetworkImage,
     );
   }
 
