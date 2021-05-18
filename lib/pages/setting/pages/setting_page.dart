@@ -22,6 +22,7 @@ import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/camera_state.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/pages/setting/setting_router.dart';
+import 'package:xcam_one/pages/setting/widgets/picker_text.dart';
 import 'package:xcam_one/res/resources.dart';
 import 'package:xcam_one/routers/fluro_navigator.dart';
 import 'package:xcam_one/utils/bottom_sheet_utils.dart';
@@ -41,7 +42,7 @@ enum CameraSetting {
   countdownShooting,
   HDR,
   formatCamera,
-  cameraInformation,
+  IQSetting,
 }
 
 extension AppSettingExt on AppSetting {
@@ -61,7 +62,7 @@ extension CameraSettingExt on CameraSetting {
         '倒计时拍摄',
         'HDR',
         '格式化相机',
-        /* '重置相机设置',*/ '相机信息'
+        /* '重置相机设置',*/ 'IQ 设置'
       ][index];
 }
 
@@ -75,7 +76,7 @@ class _SettingPageState extends State<SettingPage>
   /// 默认为HDR未开启，每次连接后需要重置一下参数
   bool _isHDR = false;
 
-  CountdownEnum _currentCountdown = CountdownEnum.close;
+  int _currentCountdownIndex = CountdownEnum.close.index;
 
   /// 每行的高度
   final itemHeight = 44.0;
@@ -85,8 +86,8 @@ class _SettingPageState extends State<SettingPage>
     super.initState();
 
     WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
-      _currentCountdown =
-          Provider.of<CameraState>(context, listen: false).countdown;
+      _currentCountdownIndex =
+          Provider.of<CameraState>(context, listen: false).countdown.index;
       setState(() {});
     });
   }
@@ -169,15 +170,16 @@ class _SettingPageState extends State<SettingPage>
                           case CameraSetting.formatCamera:
                             onPressed = () => _buildFormatBottomSheet(context);
                             break;
-                          case CameraSetting.cameraInformation:
+                          case CameraSetting.IQSetting:
+                            onPressed = () => NavigatorUtils.push(
+                                context, '${SettingRouter.iQSetting}');
                             break;
                         }
 
                         return _buildTitle(context, value.text,
                             isEnable: globalState.isConnect,
                             onPressed: onPressed,
-                            isShowLine:
-                                value != CameraSetting.cameraInformation);
+                            isShowLine: value != CameraSetting.IQSetting);
                       }).toList(),
                     ),
                   );
@@ -256,6 +258,8 @@ class _SettingPageState extends State<SettingPage>
   }
 
   void _buildCountdownBottomSheet(BuildContext context) {
+    _currentCountdownIndex =
+        Provider.of<CameraState>(context, listen: false).countdown.index;
     showModalBottomSheet(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
@@ -285,10 +289,10 @@ class _SettingPageState extends State<SettingPage>
               height: 250,
               child: CupertinoPicker(
                 scrollController: FixedExtentScrollController(
-                    initialItem: _currentCountdown.index),
+                    initialItem: _currentCountdownIndex),
                 backgroundColor: Colors.white,
-                onSelectedItemChanged: (int value) {
-                  _currentCountdown = CountdownEnum.values[value];
+                onSelectedItemChanged: (int index) {
+                  _currentCountdownIndex = index;
                 },
                 itemExtent: itemHeight,
                 children: CountdownEnum.values
@@ -336,7 +340,8 @@ class _SettingPageState extends State<SettingPage>
                     child: TextButton(
                         onPressed: () {
                           Provider.of<CameraState>(context, listen: false)
-                              .countdown = _currentCountdown;
+                                  .countdown =
+                              CountdownEnum.values[_currentCountdownIndex];
                           NavigatorUtils.goBack(context);
                         },
                         style: ElevatedButton.styleFrom(
@@ -437,25 +442,4 @@ class _SettingPageState extends State<SettingPage>
 
   @override
   bool get wantKeepAlive => true;
-}
-
-class PickerText extends StatelessWidget {
-  const PickerText({
-    Key? key,
-    required this.text,
-  }) : super(key: key);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 44,
-      alignment: Alignment.center,
-      child: Text(
-        text,
-        style: TextStyles.textSize16,
-      ),
-    );
-  }
 }

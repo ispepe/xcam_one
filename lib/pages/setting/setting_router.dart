@@ -16,6 +16,7 @@ import 'package:xcam_one/pages/photo_view/pages/camera_view_page.dart';
 import 'package:xcam_one/pages/photo_view/pages/photo_view_page.dart';
 import 'package:xcam_one/pages/setting/pages/app_version_page.dart';
 import 'package:xcam_one/pages/setting/pages/camera_storage_page.dart';
+import 'package:xcam_one/pages/setting/pages/iq_setting_page.dart';
 import 'package:xcam_one/pages/setting/pages/notice_page.dart';
 import 'package:xcam_one/routers/router_init.dart';
 
@@ -23,6 +24,7 @@ class SettingRouter implements IRouterProvider {
   static String cameraStorage = '/cameraStorage';
   static String sysNotice = '/sysNotice';
   static String appVersion = '/appVersion';
+  static String iQSetting = '/IQSetting';
 
   @override
   void initRouter(FluroRouter router) {
@@ -36,6 +38,10 @@ class SettingRouter implements IRouterProvider {
 
     router.define(appVersion, handler: Handler(handlerFunc: (_, params) {
       return AppVersionPage();
+    }));
+
+    router.define(iQSetting, handler: Handler(handlerFunc: (_, params) {
+      return IQSettingPage();
     }));
   }
 }

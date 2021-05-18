@@ -33,6 +33,12 @@
       <excludeFolder url="file://$MODULE_DIR$/ios/.symlinks/plugins/image_picker/example/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/ios/.symlinks/plugins/image_picker/example/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/ios/.symlinks/plugins/image_picker/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/ios/.symlinks/plugins/motion_sensors/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/ios/.symlinks/plugins/motion_sensors/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/ios/.symlinks/plugins/motion_sensors/build" />
+      <excludeFolder url="file://$MODULE_DIR$/ios/.symlinks/plugins/motion_sensors/example/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/ios/.symlinks/plugins/motion_sensors/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/ios/.symlinks/plugins/motion_sensors/example/build" />
       <excludeFolder url="file://$MODULE_DIR$/ios/.symlinks/plugins/package_info/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/ios/.symlinks/plugins/package_info/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/ios/.symlinks/plugins/package_info/build" />
