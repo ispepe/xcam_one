@@ -28,12 +28,14 @@ class _PhotoPageState extends State<PhotoPage>
     with AutomaticKeepAliveClientMixin {
   final _phonePhotoPage = PhonePhotoPage();
   final _cameraPhotoPage = CameraPhotoPage();
+  late PhotoState _photoState;
+  late PhotoState _watchPhotoState;
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final photoState = context.read<PhotoState>();
-    final watchPhotoState = context.watch<PhotoState>();
+    _photoState = context.read<PhotoState>();
+    _watchPhotoState = context.watch<PhotoState>();
 
     return DefaultTabController(
       length: 2,
@@ -51,22 +53,23 @@ class _PhotoPageState extends State<PhotoPage>
                       GestureDetector(
                         behavior: HitTestBehavior.translucent,
                         onTap: () async {
-                          if (photoState.isAllSelect) {
-                            photoState.listSelect = [];
+                          if (_photoState.isAllSelect) {
+                            _photoState.listSelect = [];
                           } else {
-                            if (photoState.allFile != null) {
-                              photoState.listSelect = List.generate(
-                                  photoState.allFile!.length, (index) => index);
+                            if (_photoState.allFile != null) {
+                              _photoState.listSelect = List.generate(
+                                  _photoState.allFile!.length,
+                                  (index) => index);
                             }
                           }
-                          photoState.isAllSelect = !photoState.isAllSelect;
+                          _photoState.isAllSelect = !_photoState.isAllSelect;
                           await HapticFeedback.mediumImpact();
                         },
                         child: Container(
                           alignment: Alignment.centerLeft,
                           width: 70,
                           child: Text(
-                            watchPhotoState.isAllSelect ? '取消全选' : '全选',
+                            _watchPhotoState.isAllSelect ? '取消全选' : '全选',
                             style: TextStyles.textSize16,
                           ),
                         ),
@@ -78,8 +81,8 @@ class _PhotoPageState extends State<PhotoPage>
                       GestureDetector(
                         behavior: HitTestBehavior.translucent,
                         onTap: () {
-                          photoState.isMultipleSelect = false;
-                          photoState.listSelect.clear();
+                          _photoState.isMultipleSelect = false;
+                          _photoState.listSelect.clear();
                         },
                         child: Container(
                           alignment: Alignment.centerRight,

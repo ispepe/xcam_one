@@ -9,6 +9,7 @@
  */
 
 import 'package:app_settings/app_settings.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,10 +18,12 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:oktoast/oktoast.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
 
 import 'package:xcam_one/global/global_store.dart';
 import 'package:xcam_one/models/camera_file_entity.dart';
+import 'package:xcam_one/models/cmd_status_entity.dart';
 import 'package:xcam_one/models/wifi_app_mode_entity.dart';
 import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
@@ -30,6 +33,7 @@ import 'package:xcam_one/pages/photo_view/photo_view_router.dart';
 
 import 'package:xcam_one/res/styles.dart';
 import 'package:xcam_one/routers/fluro_navigator.dart';
+import 'package:xcam_one/utils/bottom_sheet_utils.dart';
 import 'package:xcam_one/utils/dialog_utils.dart';
 import 'package:xcam_one/widgets/my_button.dart';
 
@@ -187,8 +191,8 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
   }
 
   Widget _buildCameraPhoto(BuildContext context) {
-    return Container(
-      child: EasyRefresh(
+    return Scaffold(
+      body: EasyRefresh(
         controller: _refreshController,
         enableControlFinishRefresh: false,
         enableControlFinishLoad: true,
@@ -239,7 +243,135 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
                 },
               ),
       ),
+      bottomNavigationBar: _watchPhotoState.isMultipleSelect
+          ? SafeArea(
+              child: Container(
+                color: Colors.white,
+                height: kBottomNavigationBarHeight + 10,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 32.0),
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTap: () {
+                          showMyBottomSheet(context, '这些照片将从相机中彻底删除，请再次确认',
+                              okPressed: () {
+                            NavigatorUtils.goBack(context);
+                            showCupertinoLoading(context);
+
+                            int counter = 0;
+                            bool isDeleteError = false;
+                            _photoState.listSelect.forEach((photoIndex) async {
+                              final String filePath = _photoState
+                                  .allFile![photoIndex].file!.filePath!;
+                              await DioUtils.instance
+                                  .requestNetwork<CmdStatusEntity>(Method.get,
+                                      '${HttpApi.deleteFile}$filePath',
+                                      onSuccess: (data) {
+                                counter++;
+                                if (data?.function?.status == 0) {
+                                  _photoState.cameraFileRemoveAt(photoIndex);
+                                } else {
+                                  showToast('删除$filePath文件失败');
+                                  isDeleteError = true;
+                                }
+
+                                if (counter == _photoState.listSelect.length) {
+                                  if (!isDeleteError) {
+                                    showToast('删除成功');
+                                  }
+                                  _photoState.isMultipleSelect = false;
+                                  _photoState.listSelect.clear();
+                                  NavigatorUtils.goBack(context);
+                                }
+                              }, onError: (e, m) {
+                                showToast('删除$filePath文件失败');
+                                isDeleteError = true;
+                                if (counter == _photoState.listSelect.length) {
+                                  if (!isDeleteError) {
+                                    showToast('删除成功');
+                                  }
+                                  _photoState.isMultipleSelect = false;
+                                  _photoState.listSelect.clear();
+                                  NavigatorUtils.goBack(context);
+                                }
+                              });
+                            });
+                          });
+                        },
+                        child: Icon(
+                          Icons.delete_outline_outlined,
+                          color: Colors.red,
+                          size: 32,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 32.0),
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTap: () async {
+                          showCupertinoLoading(context);
+
+                          int counter = 0;
+                          bool isSaveError = false;
+                          _photoState.listSelect.forEach((photoIndex) async {
+                            String filePath = _photoState
+                                .allFile![photoIndex].file!.filePath!;
+
+                            filePath = filePath.substring(3, filePath.length);
+                            filePath = filePath.replaceAll('\\', '/');
+
+                            final url =
+                                '${GlobalStore.config[EConfig.baseUrl]}$filePath'; // ignore: lines_longer_than_80_chars
+                            await _saveImage(url).then((value) {
+                              counter++;
+                              if (!value) {
+                                showToast('$filePath保存失败');
+                                isSaveError = true;
+                              }
+
+                              if (counter == _photoState.listSelect.length) {
+                                if (!isSaveError) {
+                                  showToast('保存成功');
+                                }
+
+                                _photoState.isMultipleSelect = false;
+                                _photoState.listSelect.clear();
+                                Navigator.pop(context);
+                              }
+                            });
+                          });
+                        },
+                        child: Icon(
+                          Icons.save_alt_outlined,
+                          size: 32,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            )
+          : null,
     );
+  }
+
+  Future<bool> _saveImage(url) async {
+    bool result = true;
+    await Dio()
+        .get(url, options: Options(responseType: ResponseType.bytes))
+        .then((value) async {
+      await PhotoManager.editor.saveImage(value.data).then((asset) {
+        if (asset == null) {
+          result = false;
+        }
+      });
+    });
+
+    return result;
   }
 
   Widget _buildPhotoGroup(BuildContext context, String key) {
