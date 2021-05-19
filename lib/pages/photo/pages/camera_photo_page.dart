@@ -430,27 +430,6 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     final url =
         '${GlobalStore.config[EConfig.baseUrl]}$filePath${HttpApi.getThumbnail}'; // ignore: lines_longer_than_80_chars
 
-    final cachedNetworkImage = CachedNetworkImage(
-      width: double.infinity,
-      height: double.infinity,
-      fit: BoxFit.cover,
-      placeholder: (BuildContext context, url) {
-        return Center(
-            child: SpinKitCircle(
-          color: Theme.of(context).primaryColor,
-          size: 24,
-        ));
-      },
-      errorWidget: (context, url, error) {
-        debugPrint(error.toString());
-        return Icon(
-          Icons.broken_image_outlined,
-          // color: Theme.of(context).primaryColor,
-        );
-      },
-      imageUrl: Uri.encodeFull(url),
-    );
-
     return GestureDetector(
       onTap: () {
         if (_photoState.isMultipleSelect) {
@@ -487,7 +466,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
                     Border.all(width: 2, color: Theme.of(context).primaryColor),
               ),
               child: Stack(children: [
-                cachedNetworkImage,
+                _buildCachedNetworkImage(url),
                 Align(
                   alignment: Alignment.bottomRight,
                   child: Padding(
@@ -501,7 +480,30 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
                 )
               ]),
             )
-          : cachedNetworkImage,
+          : _buildCachedNetworkImage(url),
+    );
+  }
+
+  Widget _buildCachedNetworkImage(String url) {
+    return CachedNetworkImage(
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+      placeholder: (BuildContext context, url) {
+        return Center(
+            child: SpinKitCircle(
+          color: Theme.of(context).primaryColor,
+          size: 24,
+        ));
+      },
+      errorWidget: (context, url, error) {
+        debugPrint(error.toString());
+        return Icon(
+          Icons.broken_image_outlined,
+          // color: Theme.of(context).primaryColor,
+        );
+      },
+      imageUrl: Uri.encodeFull(url),
     );
   }
 

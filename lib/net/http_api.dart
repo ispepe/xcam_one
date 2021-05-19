@@ -80,4 +80,53 @@ class HttpApi {
   /// 获取IQ信息 #define WIFIAPP_CMD_GET_PHOTO_IQ_INFO       3040
   static const String getIQInfo = '?custom=1&cmd=3040';
 
+  /// #define WIFIAPP_CMD_SET_PHOTO_SHDR  3041  参数 0关 1开
+  static const String setSHDR = '?custom=1&cmd=3041&par=';
+
+  /// #define WIFIAPP_CMD_SET_PHOTO_WDR       	3042
+  // 参数 0关 1开 这条的开关与3041互斥
+  static const String setWDR = '?custom=1&cmd=3042&par=';
+
+  ///#define WIFIAPP_CMD_SET_PHOTO_EV      		3043
+  // 参数：
+  // enum _EXPOSURE
+  // {
+  //     EV_P20,
+  //     EV_P16,
+  //     EV_P13,
+  //     EV_P10,
+  //     EV_P06,
+  //     EV_P03,
+  //     EV_00,
+  //     EV_N03,
+  //     EV_N06,
+  //     EV_N10,
+  //     EV_N13,
+  //     EV_N16,
+  //     EV_N20,
+  //     EV_SETTING_MAX,
+  // };
+  static const String setEV = '?custom=1&cmd=3043&par=';
+
+  /// #define WIFIAPP_CMD_SET_PHOTO_SHARPNESS     3044
+  // 参数 0-100
+  static const String setSharpness = '?custom=1&cmd=3044&par=';
+
+  ///#define WIFIAPP_CMD_SET_PHOTO_SATURATION    3045
+  // 参数 0-100
+  static const String setSaturation = '?custom=1&cmd=3045&par=';
+
+  ///#define WIFIAPP_CMD_SET_PHOTO_ISO    		3046
+  // 参数：
+  // enum _ISO
+  // {
+  //     ISO_AUTO,
+  //     ISO_100,
+  //     ISO_200,
+  //     ISO_400,
+  //     ISO_800,
+  //     ISO_1600,
+  //     ISO_ID_MAX,
+  // }
+  static const String setISO = '?custom=1&cmd=3046&par=';
 }

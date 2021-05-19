@@ -16,20 +16,16 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:oktoast/oktoast.dart';
 
-import 'package:provider/provider.dart';
 import 'package:xcam_one/models/cmd_status_entity.dart';
-import 'package:xcam_one/models/cmd_status_value_entity.dart';
+import 'package:xcam_one/models/iq_info_entity.dart';
 import 'package:xcam_one/net/dio_utils.dart';
 import 'package:xcam_one/net/net.dart';
 
-import 'package:xcam_one/notifiers/camera_state.dart';
 import 'package:xcam_one/pages/setting/widgets/picker_text.dart';
 import 'package:xcam_one/res/resources.dart';
 import 'package:xcam_one/routers/fluro_navigator.dart';
-import 'package:xcam_one/utils/bottom_sheet_utils.dart';
 import 'package:xcam_one/utils/dialog_utils.dart';
 
-/// 延迟拍摄时间
 enum ExposureEnum {
   EV_P20,
   EV_P16,
@@ -84,17 +80,16 @@ class IQSettingPage extends StatefulWidget {
 
 class _IQSettingPageState extends State<IQSettingPage> {
   /// TODO: 2021/5/18 待处理
-  late int _sliderSharpness;
-  late int _sliderSaturation;
+  int _sliderSharpness = 0;
+  int _sliderSaturation = 0;
 
-  late int _currentExposureIndex;
-  late ExposureEnum _currentExposure;
+  ExposureEnum _currentExposure = ExposureEnum.EV_00;
+  int _currentExposureIndex = ExposureEnum.EV_00.index;
 
-  late int _currentISOIndex;
-  late ISOEnum _currentISO;
-
-  late bool _sHdrValue;
-  late bool _wdrValue;
+  ISOEnum _currentISO = ISOEnum.ISO_AUTO;
+  int _currentISOIndex = ISOEnum.ISO_AUTO.index;
+  bool _sHdrValue = false;
+  bool _wdrValue = false;
 
   bool _isLoading = true;
 
@@ -108,33 +103,35 @@ class _IQSettingPageState extends State<IQSettingPage> {
     super.initState();
 
     WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
-      // DioUtils.instance.requestNetwork<CmdStatusValueEntity>(
-      //     Method.get, HttpApi.getIQInfo, onSuccess: (cmdStatusValueEntity) {
-      //   if (cmdStatusValueEntity?.function?.status == 0) {
-      //     setState(() {});
-      //   }
-      // }, onError: (code, message) {
-      //   showToast('获取相机IQ信息错误');
-      // });
+      DioUtils.instance.requestNetwork<IQInfoEntity>(
+          Method.get, HttpApi.getIQInfo, onSuccess: (iqInfoEntity) {
+        if (iqInfoEntity?.function?.status == 0) {
+          _sHdrValue = iqInfoEntity?.function?.shdr == 1;
+          _wdrValue = iqInfoEntity?.function?.wdr == 1;
+          _sliderSharpness = iqInfoEntity?.function?.sharpness ?? 0;
+          _sliderSaturation = iqInfoEntity?.function?.saturation ?? 0;
+          if (iqInfoEntity?.function?.ev != null) {
+            _currentExposure = ExposureEnum.values[iqInfoEntity!.function!.ev!];
+          }
+          _currentExposureIndex = _currentExposure.index;
 
-      _sHdrValue = true;
-      _wdrValue = false;
-      _sliderSharpness = 0;
-      _sliderSaturation = 0;
-      _currentExposure = ExposureEnum.EV_00;
-      _currentExposureIndex = _currentExposure.index;
+          if (iqInfoEntity?.function?.iso != null) {
+            _currentISO = ISOEnum.values[iqInfoEntity!.function!.iso!];
+          }
+          _currentISOIndex = _currentISO.index;
 
-      _currentISO = ISOEnum.ISO_AUTO;
-      _currentISOIndex = _currentISO.index;
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }, onError: (code, message) {
+        showToast('获取相机IQ信息错误');
 
-      setState(() {
-        _isLoading = false;
+        setState(() {
+          _isLoading = false;
+        });
       });
     });
-
-    /// 检测硬盘空间
-
-    /// 检测可拍摄数量
   }
 
   @override
@@ -151,7 +148,6 @@ class _IQSettingPageState extends State<IQSettingPage> {
       );
     }
 
-    final width = MediaQuery.of(context).size.width - 16 * 2;
     final greyColor = Color(0xFFF2F2F2);
     final line = Divider(color: Color(0x173C3C43));
 
@@ -178,20 +174,38 @@ class _IQSettingPageState extends State<IQSettingPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildSwitch(context, 'SHDR', _sHdrValue, (value) {
-                Future.delayed(Duration(seconds: 1), () {
-                  setState(() {
-                    _sHdrValue = value;
-                  });
+                DioUtils.instance.requestNetwork<CmdStatusEntity>(
+                    Method.get, '${HttpApi.setSHDR}${value ? 1 : 0}',
+                    onSuccess: (cmdStatusEntity) {
+                  if (cmdStatusEntity?.function?.status == 0) {
+                    setState(() {
+                      /// NOTE: 2021/5/19 待注意 SHDR与WDR互斥
+                      _sHdrValue = value;
+                      _wdrValue = !value;
+                    });
+                    NavigatorUtils.goBack(context);
+                  }
+                }, onError: (code, message) {
+                  showToast('设置SHDR失败');
                   NavigatorUtils.goBack(context);
                 });
                 showCupertionLoading(context);
               }),
               line,
               _buildSwitch(context, 'WDR', _wdrValue, (value) {
-                Future.delayed(Duration(seconds: 1), () {
-                  setState(() {
-                    _wdrValue = value;
-                  });
+                DioUtils.instance.requestNetwork<CmdStatusEntity>(
+                    Method.get, '${HttpApi.setWDR}${value ? 1 : 0}',
+                    onSuccess: (cmdStatusEntity) {
+                  if (cmdStatusEntity?.function?.status == 0) {
+                    setState(() {
+                      /// NOTE: 2021/5/19 待注意 SHDR与WDR互斥
+                      _wdrValue = value;
+                      _sHdrValue = !value;
+                    });
+                    NavigatorUtils.goBack(context);
+                  }
+                }, onError: (code, message) {
+                  showToast('设置WDR失败');
                   NavigatorUtils.goBack(context);
                 });
                 showCupertionLoading(context);
@@ -207,12 +221,20 @@ class _IQSettingPageState extends State<IQSettingPage> {
                   _sliderSaturation = value.toInt();
                 });
               }, onChangeEnd: (value) {
-                Future.delayed(Duration(seconds: 1), () {
-                  /// TODO: 2021/5/18 待处理 失败返回初始值
+                DioUtils.instance.requestNetwork<CmdStatusEntity>(
+                    Method.get, '${HttpApi.setSaturation}$value',
+                    onSuccess: (cmdStatusEntity) {
+                  if (cmdStatusEntity?.function?.status != 0) {
+                    setState(() {
+                      _sliderSaturation = _initSliderValue;
+                    });
+                  }
+                  NavigatorUtils.goBack(context);
+                }, onError: (code, message) {
+                  showToast('设置Saturation失败');
                   setState(() {
                     _sliderSaturation = _initSliderValue;
                   });
-
                   NavigatorUtils.goBack(context);
                 });
 
@@ -228,10 +250,22 @@ class _IQSettingPageState extends State<IQSettingPage> {
                   });
                 },
                 onChangeEnd: (value) {
-                  Future.delayed(Duration(seconds: 1), () {
+                  DioUtils.instance.requestNetwork<CmdStatusEntity>(
+                      Method.get, '${HttpApi.setSharpness}$value',
+                      onSuccess: (cmdStatusEntity) {
+                    if (cmdStatusEntity?.function?.status != 0) {
+                      setState(() {
+                        _sliderSharpness = _initSliderValue;
+                      });
+                    }
+                    NavigatorUtils.goBack(context);
+                  }, onError: (code, message) {
+                    showToast('设置Sharpness失败');
+                    setState(() {
+                      _sliderSharpness = _initSliderValue;
+                    });
                     NavigatorUtils.goBack(context);
                   });
-
                   showCupertionLoading(context);
                 },
                 sliderValue: _sliderSharpness,
@@ -426,15 +460,23 @@ class _IQSettingPageState extends State<IQSettingPage> {
                     padding: const EdgeInsets.only(left: 35),
                     child: TextButton(
                         onPressed: () {
-                          Future.delayed(Duration(seconds: 1), () {
-                            setState(() {
-                              _currentExposure =
-                                  ExposureEnum.values[_currentExposureIndex];
-                            });
+                          DioUtils.instance.requestNetwork<CmdStatusEntity>(
+                              Method.get,
+                              '${HttpApi.setEV}$_currentExposureIndex',
+                              onSuccess: (cmdStatusEntity) {
+                            if (cmdStatusEntity?.function?.status == 0) {
+                              setState(() {
+                                _currentExposure =
+                                    ExposureEnum.values[_currentExposureIndex];
+                              });
+                              NavigatorUtils.goBack(context);
+                              NavigatorUtils.goBack(context);
+                            }
+                          }, onError: (code, message) {
+                            showToast('设置EV失败');
                             NavigatorUtils.goBack(context);
                             NavigatorUtils.goBack(context);
                           });
-
                           showCupertionLoading(context);
                         },
                         style: ElevatedButton.styleFrom(
@@ -540,14 +582,21 @@ class _IQSettingPageState extends State<IQSettingPage> {
                     padding: const EdgeInsets.only(left: 35),
                     child: TextButton(
                         onPressed: () {
-                          Future.delayed(Duration(seconds: 1), () {
-                            setState(() {
-                              _currentISO = ISOEnum.values[_currentISOIndex];
-                            });
+                          DioUtils.instance.requestNetwork<CmdStatusEntity>(
+                              Method.get, '${HttpApi.setEV}$_currentISOIndex',
+                              onSuccess: (cmdStatusEntity) {
+                            if (cmdStatusEntity?.function?.status == 0) {
+                              setState(() {
+                                _currentISO = ISOEnum.values[_currentISOIndex];
+                              });
+                              NavigatorUtils.goBack(context);
+                              NavigatorUtils.goBack(context);
+                            }
+                          }, onError: (code, message) {
+                            showToast('设置ISO失败');
                             NavigatorUtils.goBack(context);
                             NavigatorUtils.goBack(context);
                           });
-
                           showCupertionLoading(context);
                         },
                         style: ElevatedButton.styleFrom(

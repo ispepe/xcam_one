@@ -221,7 +221,7 @@ class _IndexPageState extends State<IndexPage> {
           showToast('设备正在关机');
           break;
         case 7:
-          showToast('新用户正在连接设备，即将断开连接'); // ignore: lines_longer_than_80_chars
+          showToast('新用户正在连接设备，即将断开连接');
           break;
         case -1:
           showToast('没有文件');
