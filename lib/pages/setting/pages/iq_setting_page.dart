@@ -179,9 +179,11 @@ class _IQSettingPageState extends State<IQSettingPage> {
                     onSuccess: (cmdStatusEntity) {
                   if (cmdStatusEntity?.function?.status == 0) {
                     setState(() {
-                      /// NOTE: 2021/5/19 待注意 SHDR与WDR互斥
+                      /// NOTE: 2021/5/19 待注意 SHDR与WDR互斥，但是可以同时关闭
                       _sHdrValue = value;
-                      _wdrValue = !value;
+                      if(_sHdrValue) {
+                        _wdrValue = !_sHdrValue;
+                      }
                     });
                     NavigatorUtils.goBack(context);
                   }
@@ -198,9 +200,11 @@ class _IQSettingPageState extends State<IQSettingPage> {
                     onSuccess: (cmdStatusEntity) {
                   if (cmdStatusEntity?.function?.status == 0) {
                     setState(() {
-                      /// NOTE: 2021/5/19 待注意 SHDR与WDR互斥
+                      /// NOTE: 2021/5/19 待注意 SHDR与WDR互斥，但是可以同时关闭
                       _wdrValue = value;
-                      _sHdrValue = !value;
+                      if (_wdrValue) {
+                        _sHdrValue = !_wdrValue;
+                      }
                     });
                     NavigatorUtils.goBack(context);
                   }
