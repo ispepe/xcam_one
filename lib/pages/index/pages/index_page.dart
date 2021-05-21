@@ -188,6 +188,8 @@ class _IndexPageState extends State<IndexPage> {
 
   PageController pageController = PageController();
 
+  late BuildContext _context;
+
   void onError(error, StackTrace trace) {
     switchConnect(false, msg: '连接已断开');
   }
@@ -343,7 +345,7 @@ class _IndexPageState extends State<IndexPage> {
             globalState.isConnect = true;
 
             /// NOTE: 4/21/21 待注意 模式必须要重置一次，并且不能进行任何切换操作
-            showCupertinoLoading(context);
+            showCupertinoLoading(_context);
 
             /// NOTE: 4/22/21 待注意 添加Socket 初始化操作
             await SocketUtils()
@@ -371,17 +373,17 @@ class _IndexPageState extends State<IndexPage> {
               /// 计算空间
               cameraState.diskSpaceCheck();
 
-              /// NOTE: 4/21/21 【重置时间】
+              /// NOTE: 4/21/21 【重置日期】
               final now = DateTime.now();
               DioUtils.instance.asyncRequestNetwork<CmdStatusEntity>(Method.get,
                   '${HttpApi.setDate}${now.year}-${now.month}-${now.day}',
                   onSuccess: (dateCmdStatus) {
                 if (dateCmdStatus?.function?.status != 0) {
-                  NavigatorUtils.goBack(context);
+                  NavigatorUtils.goBack(_context);
                   showToast('初始化日期失败');
                 }
               }, onError: (code, msg) {
-                NavigatorUtils.goBack(context);
+                NavigatorUtils.goBack(_context);
                 showToast('初始化日期请求失败');
               });
 
@@ -389,19 +391,19 @@ class _IndexPageState extends State<IndexPage> {
               DioUtils.instance.asyncRequestNetwork<CmdStatusEntity>(Method.get,
                   '${HttpApi.setTime}${now.hour}:${now.minute}:${now.second}',
                   onSuccess: (timeCmdStatus) {
-                NavigatorUtils.goBack(context);
+                NavigatorUtils.goBack(_context);
                 if (timeCmdStatus?.function?.status != 0) {
                   showToast('初始化时间失败');
                 }
               }, onError: (code, msg) {
-                NavigatorUtils.goBack(context);
+                NavigatorUtils.goBack(_context);
                 showToast('初始化时间请求失败');
               });
             }, onError: (code, msg) {
               /// NOTE: 4/22/21 切换失败实际上依然是处于连接状态，只是播放预览画面出不来
               globalState.isConnect = true;
               cameraState.diskSpaceCheck();
-              NavigatorUtils.goBack(context);
+              NavigatorUtils.goBack(_context);
               showToast('切换相机模式失败');
               cameraState.isShowVLCPlayer = false;
             });
@@ -520,6 +522,7 @@ class _IndexPageState extends State<IndexPage> {
     globalState = context.read<GlobalState>();
     cameraState = context.read<CameraState>();
 
+    _context = context;
     final watchGlobalState = context.watch<GlobalState>();
     final watchPhotoState = context.watch<PhotoState>();
 
