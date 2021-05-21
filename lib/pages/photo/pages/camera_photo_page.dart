@@ -49,9 +49,6 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
 
   late EasyRefreshController _refreshController;
 
-  /// 固定为20个
-  final int showUnit = 20;
-
   /// 获取全景相机
   @override
   void initState() {
@@ -75,7 +72,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
       e.toString();
     }
 
-    /// 加载模态对话框
+    /// NOTE: 2021/5/21 待注意 加载模态对话框是因为加载时间较长，防止页面切换操作
     showCupertinoLoading(context);
 
     await DioUtils.instance.requestNetwork<WifiAppModeEntity>(
@@ -95,8 +92,6 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
 
         final photoState = Provider.of<PhotoState>(context, listen: false);
 
-        /// NOTE: 4/17/21 待注意 内部会进行分组
-        photoState.currentCount = showUnit;
         photoState.allFile = (data?.list?.allFile);
 
         NavigatorUtils.goBack(context);
@@ -111,6 +106,9 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
       NavigatorUtils.goBack(context);
       showToast('相机模式切换失败，请重试');
     });
+
+    /// 重置加载状态
+    _refreshController.resetLoadState();
   }
 
   @override
@@ -209,24 +207,17 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
         footer: BallPulseFooter(
           color: Theme.of(context).primaryColor,
         ),
-        onRefresh: _photoState.isMultipleSelect
+        onRefresh: _watchPhotoState.isMultipleSelect
             ? null
             : () async {
                 await _onRefresh();
-                _refreshController.resetLoadState();
               },
-        onLoad: _photoState.isMultipleSelect
+        onLoad: _watchPhotoState.isMultipleSelect
             ? null
             : () async {
                 await Future.delayed(Duration(milliseconds: 200), () {
-                  _watchPhotoState.currentCount += 20;
-
-                  /// 根据当前显示数量进行分组
-                  _watchPhotoState.groupByCameraFile();
-
                   _refreshController.finishLoad(
-                      noMore: _watchPhotoState.currentCount ==
-                          (_watchPhotoState.allFile?.length ?? 0));
+                      noMore: _watchPhotoState.loadCameraFile());
                 });
               },
         child: _watchPhotoState.allFile?.isEmpty ?? true
@@ -364,11 +355,15 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     await Dio()
         .get(url, options: Options(responseType: ResponseType.bytes))
         .then((value) async {
-      await PhotoManager.editor.saveImage(value.data).then((asset) {
-        if (asset == null) {
-          result = false;
-        }
-      });
+      if (value.data != null) {
+        await PhotoManager.editor.saveImage(value.data).then((asset) {
+          if (asset == null) {
+            result = false;
+          }
+        });
+      } else {
+        showToast('请求$url失败');
+      }
     });
 
     return result;

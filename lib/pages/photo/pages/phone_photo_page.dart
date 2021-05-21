@@ -34,6 +34,10 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
 
   late EasyRefreshController _refreshController;
 
+  late PhotoState _photoState;
+
+  late PhotoState _watchPhotoState;
+
   @override
   void initState() {
     super.initState();
@@ -48,13 +52,11 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
     });
   }
 
-  void _onRefresh() {
+  Future<void> _onRefresh() async {
     /// 先获取相机权限
-    PhotoManager.requestPermission().then((value) {
+    await PhotoManager.requestPermission().then((value) async {
       if (value) {
-        Provider.of<PhotoState>(context, listen: false)
-            .refreshPhonePhoto()
-            .then((value) {
+        await _photoState.refreshPhonePhoto().then((value) {
           setState(() {
             _isShowLoading = false;
           });
@@ -65,6 +67,9 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
         });
       }
     });
+
+    /// 重置加载状态
+    _refreshController.resetLoadState();
   }
 
   @override
@@ -75,6 +80,8 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    _photoState = context.read<PhotoState>();
+    _watchPhotoState = context.watch<PhotoState>();
 
     final size = MediaQuery.of(context).size;
     if (_isShowLoading) {
@@ -90,13 +97,11 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
       );
     }
 
-    final photoState = context.read<PhotoState>();
-
     return Container(
         child: EasyRefresh(
       controller: _refreshController,
-      // enableControlFinishRefresh: false,
-      // enableControlFinishLoad: true,
+      enableControlFinishRefresh: false,
+      enableControlFinishLoad: true,
       header: ClassicalHeader(
           refreshText: '下拉刷新',
           refreshReadyText: '松开刷新',
@@ -107,32 +112,22 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
           showInfo: false,
           infoText: '刷新时间 %T',
           infoColor: Theme.of(context).accentColor),
-      footer: ClassicalFooter(
-        noMoreText: '没有更多',
-        loadFailedText: '加载失败',
-        loadedText: '加载成功',
-        loadingText: '加载中...',
-        textColor: Theme.of(context).primaryColor,
-        infoColor: Theme.of(context).accentColor,
-        infoText: '加载时间 %T',
-        showInfo: false,
+      footer: BallPulseFooter(
+        color: Theme.of(context).primaryColor,
       ),
-      onRefresh: () async {
-        _onRefresh();
-        _refreshController.resetLoadState();
-      },
-      child: photoState.photoGroup.isEmpty
+      onRefresh: _onRefresh,
+      onLoad: _onLoad,
+      child: _watchPhotoState.photoGroup.isEmpty
           ? buildEmptyPhoto(
               context,
               text: '相册空空如也',
             )
           : ListView.builder(
-              itemCount: photoState.photoGroup.length,
+              itemCount: _watchPhotoState.photoGroup.length,
               shrinkWrap: true,
               itemBuilder: (context, index) {
-                final keys = photoState.photoGroup.keys.toList();
-                return _buildPhotoGroup(
-                    context, photoState, keys[index], index);
+                final keys = _watchPhotoState.photoGroup.keys.toList();
+                return _buildPhotoGroup(context, keys[index], index);
               },
             ),
     ));
@@ -169,8 +164,7 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
     );
   }
 
-  Widget _buildPhotoGroup(
-      BuildContext context, PhotoState photoState, String key, int groupIndex) {
+  Widget _buildPhotoGroup(BuildContext context, String key, int groupIndex) {
     return Column(
       children: [
         Container(
@@ -187,7 +181,7 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
           child: GridView.builder(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
-              itemCount: photoState.photoGroup[key]?.length,
+              itemCount: _watchPhotoState.photoGroup[key]?.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
                 childAspectRatio: 1.0,
@@ -196,24 +190,31 @@ class _PhonePhotoPageState extends State<PhonePhotoPage>
               ),
               itemBuilder: (BuildContext context, int index) {
                 int currentIndex = 0;
-                final List<String> keys = photoState.photoGroup.keys.toList();
+                final List<String> keys =
+                    _watchPhotoState.photoGroup.keys.toList();
                 for (int i = 0; i < keys.length; i++) {
                   if (keys[i].contains(key)) {
                     currentIndex += index;
                     break;
                   }
-                  currentIndex += photoState.photoGroup[keys[i]]!.length;
+                  currentIndex += _watchPhotoState.photoGroup[keys[i]]!.length;
                 }
 
                 return _buildPhoto(
                   context,
-                  photoState.photoGroup[key]![index],
+                  _watchPhotoState.photoGroup[key]![index],
                   currentIndex,
                 );
               }),
         ),
       ],
     );
+  }
+
+  Future<void> _onLoad() async {
+    await _photoState
+        .loadPhonePhoto()
+        .then((noMore) => _refreshController.finishLoad(noMore: noMore));
   }
 
   @override

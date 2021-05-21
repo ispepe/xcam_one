@@ -16,6 +16,9 @@ import 'package:intl/intl.dart';
 import 'package:xcam_one/models/camera_file_entity.dart';
 
 class PhotoState extends ChangeNotifier {
+  /// 显示单元固定为20个
+  final int showUnit = 20;
+
   List<AssetEntity> _photos = [];
 
   List<AssetEntity> get photos => _photos;
@@ -23,6 +26,10 @@ class PhotoState extends ChangeNotifier {
   Map<String, List<AssetEntity>> _photoGroup = {};
 
   Map<String, List<AssetEntity>> get photoGroup => _photoGroup;
+
+  /// 当前已显示的手机相册照片数量
+  int _phonePhotoCount = 0;
+  List<AssetPathEntity>? _galleryList;
 
   Future<void> refreshPhonePhoto() async {
     final option = FilterOption(
@@ -35,7 +42,7 @@ class PhotoState extends ChangeNotifier {
       ),
     );
 
-    final galleryList = await PhotoManager.getAssetPathList(
+    _galleryList = await PhotoManager.getAssetPathList(
       type: RequestType.image, // 只需要查看图片
       hasAll: true,
       onlyAll: true,
@@ -49,34 +56,55 @@ class PhotoState extends ChangeNotifier {
         ),
     );
 
-    /// TODO: 4/11/21 待处理 默认显示50张，通过下来刷新显示剩余图片
-    /// FIXME: 4/11/21 待增加容错处理
-    if (galleryList[0].assetCount != 0) {
-      _photos = await galleryList[0]
-          .getAssetListRange(start: 0, end: galleryList[0].assetCount);
+    _phonePhotoCount = 0;
+    _photos.clear();
+    await loadPhonePhoto();
+  }
 
-      final DateTime now = DateTime.now();
-      _photoGroup = groupBy(_photos, (photo) {
-        if (now.year != photo.modifiedDateTime.year) {
-          // ignore: lines_longer_than_80_chars
-          return '${photo.modifiedDateTime.year}年${photo.modifiedDateTime.month}月${photo.modifiedDateTime.day}日';
-        } else if (photo.modifiedDateTime.month == now.month) {
-          if (now.day == photo.modifiedDateTime.day) {
-            return '今天';
-          } else if (now.day - 1 == photo.modifiedDateTime.day) {
-            return '昨天';
-          } else {
+  Future<bool> loadPhonePhoto() async {
+    int count = showUnit;
+
+    if (_galleryList != null) {
+      if (_galleryList![0].assetCount - _phonePhotoCount < count) {
+        count = _galleryList![0].assetCount - _phonePhotoCount;
+      }
+
+      if (_galleryList![0].assetCount != 0) {
+        _photos.addAll(await _galleryList![0].getAssetListRange(
+            start: _phonePhotoCount, end: _phonePhotoCount + count));
+
+        /// 更新当前数量
+        _phonePhotoCount += count;
+
+        final DateTime now = DateTime.now();
+        _photoGroup = groupBy(_photos, (photo) {
+          if (now.year != photo.modifiedDateTime.year) {
             // ignore: lines_longer_than_80_chars
+            return '${photo.modifiedDateTime.year}年${photo.modifiedDateTime.month}月${photo.modifiedDateTime.day}日';
+          } else if (photo.modifiedDateTime.month == now.month) {
+            if (now.day == photo.modifiedDateTime.day) {
+              return '今天';
+            } else if (now.day - 1 == photo.modifiedDateTime.day) {
+              return '昨天';
+            } else {
+              // ignore: lines_longer_than_80_chars
+              return '${photo.modifiedDateTime.month}月${photo.modifiedDateTime.day}日';
+            }
+          } else {
             return '${photo.modifiedDateTime.month}月${photo.modifiedDateTime.day}日';
           }
-        } else {
-          return '${photo.modifiedDateTime.month}月${photo.modifiedDateTime.day}日';
-        }
-      });
+        });
+      }
+      notifyListeners();
+      return _phonePhotoCount == _galleryList![0].assetCount;
+    } else {
+      notifyListeners();
+      return true;
     }
-
-    notifyListeners();
   }
+
+  /// 当前要显示的相机照片总数
+  int _cameraPhotoCount = 0;
 
   /// 所有文件
   List<CameraFile>? _allFile;
@@ -88,24 +116,30 @@ class PhotoState extends ChangeNotifier {
       _allFile!.removeAt(index);
     }
 
-    _currentCount--;
-    groupByCameraFile();
+    _cameraPhotoCount--;
+    loadCameraFile();
   }
 
   set allFile(List<CameraFile>? value) {
     _allFile = value;
-    groupByCameraFile();
+
+    /// 当数据重新被设置后应该初始化
+    _cameraPhotoCount = 0;
+    loadCameraFile();
   }
 
-  void groupByCameraFile() {
+  /// 返回是否还有更多
+  bool loadCameraFile() {
+    _cameraPhotoCount += 20;
+
     if (_allFile != null) {
-      if (_currentCount > _allFile!.length) {
-        _currentCount = _allFile!.length;
+      if (_cameraPhotoCount > _allFile!.length) {
+        _cameraPhotoCount = _allFile!.length;
       }
 
-      /// NOTE: 4/21/21 待注意 此处可以进行优化
+      /// FIXME 4/21/21 待修复 每次都从0开始获取，当数据非常大的时候会导致一次获取失败
       final List<CameraFile> currentCameraFile =
-          _allFile!.slice(0, _currentCount);
+          _allFile!.slice(0, _cameraPhotoCount);
 
       final now = DateTime.now();
       _groupFileList = groupBy(currentCameraFile, (CameraFile photo) {
@@ -128,23 +162,16 @@ class PhotoState extends ChangeNotifier {
         }
       });
     }
+
     notifyListeners();
+
+    return _cameraPhotoCount == (allFile?.length ?? 0);
   }
 
   /// 当前分组
   Map<String, List<CameraFile>>? _groupFileList;
 
   Map<String, List<CameraFile>>? get groupFileList => _groupFileList;
-
-  /// 当前要显示的总数
-  int _currentCount = 0;
-
-  int get currentCount => _currentCount;
-
-  set currentCount(int value) {
-    _currentCount = value;
-    notifyListeners();
-  }
 
   /// 是否进入多选状态
   bool _isMultipleSelect = false;
