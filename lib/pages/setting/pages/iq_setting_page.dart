@@ -341,7 +341,7 @@ class _IQSettingPageState extends State<IQSettingPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(
-                  width: 32,
+                  width: 40,
                   child: Text(text),
                 ),
                 Icon(
@@ -583,7 +583,7 @@ class _IQSettingPageState extends State<IQSettingPage> {
                     child: TextButton(
                         onPressed: () {
                           DioUtils.instance.requestNetwork<CmdStatusEntity>(
-                              Method.get, '${HttpApi.setEV}$_currentISOIndex',
+                              Method.get, '${HttpApi.setISO}$_currentISOIndex',
                               onSuccess: (cmdStatusEntity) {
                             if (cmdStatusEntity?.function?.status == 0) {
                               setState(() {
