@@ -21,7 +21,7 @@ class MyButton extends StatelessWidget {
   }) : super(key: key);
 
   final double minWidth;
-  final Null Function() onPressed;
+  final Null Function()? onPressed;
   final String buttonText;
   final double vertical;
 
@@ -34,6 +34,7 @@ class MyButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
       ),
       color: Theme.of(context).buttonColor,
+      disabledColor: Colors.grey,
       onPressed: onPressed,
       child: Text(
         buttonText,

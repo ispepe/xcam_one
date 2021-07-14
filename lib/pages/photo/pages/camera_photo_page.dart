@@ -46,6 +46,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
     with AutomaticKeepAliveClientMixin {
   late PhotoState _watchPhotoState;
   late PhotoState _photoState;
+  late GlobalState _watchGlobalState;
 
   late EasyRefreshController _refreshController;
 
@@ -115,6 +116,7 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
   Widget build(BuildContext context) {
     super.build(context);
     _watchPhotoState = context.watch<PhotoState>();
+    _watchGlobalState = context.watch<GlobalState>();
     _photoState = context.read<PhotoState>();
 
     if (context.watch<GlobalState>().isConnect) {
@@ -176,10 +178,12 @@ class _CameraPhotoPageState extends State<CameraPhotoPage>
                 padding: const EdgeInsets.only(top: 140.0),
                 child: MyButton(
                     minWidth: 248,
-                    onPressed: () {
-                      AppSettings.openWIFISettings();
-                    },
-                    buttonText: '去连接'),
+                    onPressed: _watchGlobalState.isInit
+                        ? null
+                        : () {
+                            AppSettings.openWIFISettings();
+                          },
+                    buttonText: _watchGlobalState.isInit ? '初始化中' : '去连接'),
               ),
             ],
           ),

@@ -33,4 +33,14 @@ class GlobalState extends ChangeNotifier {
     _isCapture = value;
     notifyListeners();
   }
+
+  /// 是否正在初始化中
+  bool _isInitApp = false;
+
+  bool get isInit => _isInitApp;
+
+  set isInit(bool value) {
+    _isInitApp = value;
+    notifyListeners();
+  }
 }

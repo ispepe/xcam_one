@@ -12,7 +12,10 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 
 import 'package:transparent_image/transparent_image.dart';
+import 'package:provider/provider.dart';
 
+import 'package:xcam_one/notifiers/camera_state.dart';
+import 'package:xcam_one/notifiers/global_state.dart';
 import 'package:xcam_one/res/resources.dart';
 import 'package:xcam_one/widgets/my_button.dart';
 
@@ -27,6 +30,8 @@ class CameraConnectPage extends StatefulWidget {
 
 class _CameraConnectPageState extends State<CameraConnectPage>
     with AutomaticKeepAliveClientMixin {
+  late GlobalState _watchGlobalState;
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +45,7 @@ class _CameraConnectPageState extends State<CameraConnectPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    _watchGlobalState = context.watch<GlobalState>();
 
     final size = MediaQuery.of(context).size;
     final imageHeight = 283 * size.width / 375;
@@ -84,10 +90,12 @@ class _CameraConnectPageState extends State<CameraConnectPage>
           ),
           MyButton(
               minWidth: 248,
-              onPressed: () {
-                AppSettings.openWIFISettings();
-              },
-              buttonText: '去连接'),
+              onPressed: _watchGlobalState.isInit
+                  ? null
+                  : () {
+                      AppSettings.openWIFISettings();
+                    },
+              buttonText: _watchGlobalState.isInit ? '初始化中' : '去连接'),
         ],
       ),
     );

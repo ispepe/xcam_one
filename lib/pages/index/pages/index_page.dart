@@ -358,6 +358,7 @@ class _IndexPageState extends State<IndexPage> {
           if (data?.function?.status == '0') {
             if (!_globalState.isConnect) {
               /// NOTE: 2021/7/13 待注意 获取标定压缩文件，并解压缩至SSID同名目录
+              _globalState.isInit = true;
               await _initMapFiles(onDeon: () {
                 _globalState.isConnect = true;
 
@@ -476,12 +477,18 @@ class _IndexPageState extends State<IndexPage> {
       if (!File('${savePath}Maps/maps_size').existsSync()) {
         final url = '${GlobalStore.config[EConfig.baseUrl]}Maps.zip';
         final Dio dio = Dio();
-        dio.download(url, '$saveZipPath', onReceiveProgress: (received, total) {
-          if (total != -1) {
-            ///当前下载的百分比例
-            print((received / total * 100).toStringAsFixed(0) + '%');
-          }
-        }).then((value) {
+        dio
+            .download(url, '$saveZipPath',
+                onReceiveProgress: true
+                    ? null
+                    : (received, total) {
+                        if (total != -1) {
+                          ///当前下载的百分比例
+                          print((received / total * 100).toStringAsFixed(0) +
+                              '%');
+                        }
+                      })
+            .then((value) {
           final file = File('$saveZipPath');
           final fileBytes = file.readAsBytesSync();
           final archive = ZipDecoder().decodeBytes(fileBytes);
@@ -490,10 +497,10 @@ class _IndexPageState extends State<IndexPage> {
             if (file.isFile) {
               final data = file.content as List<int>;
               File('$savePath' + filename)
-                ..create(recursive: true)
-                ..writeAsBytes(data);
+                ..createSync(recursive: true)
+                ..writeAsBytesSync(data);
             } else {
-              Directory('$savePath' + filename).create(recursive: true);
+              Directory('$savePath' + filename).createSync(recursive: true);
             }
           }
           onDeon();
@@ -509,6 +516,7 @@ class _IndexPageState extends State<IndexPage> {
       if (msg != null) showToast(msg);
 
       _globalState.isConnect = false;
+      _globalState.isInit = false;
       _cameraState.clearSpaceData();
       try {
         final bool? isPlay =
@@ -843,32 +851,35 @@ class _IndexPageState extends State<IndexPage> {
             final mapPath =
                 '${GlobalStore.applicationPath}/${_globalState.currentSSID}/Maps/';
 
-            final ffi.Pointer<native_lib.ImageInfo> fuseResult =
-                calloc.call<native_lib.ImageInfo>(1);
-
             /// 2.进行缝合
-            nativeLib.fuse(
+            final int result = nativeLib.fuse(
                 destFiles[0].toNativeUtf8().cast<ffi.Int8>(),
                 destFiles[1].toNativeUtf8().cast<ffi.Int8>(),
                 mapPath.toNativeUtf8().cast<ffi.Int8>(),
                 ('${savePath}fuse.jpg').toNativeUtf8().cast<ffi.Int8>());
-
-            /// 3.保存图片至相册
-            await PhotoManager.editor
-                .saveImageWithPath('${savePath}fuse.jpg')
-                .then((asset) {
-              if (asset != null) {
-                // showToast('保存成功');
-                showToast('拍摄成功,请在相册中查看');
-              } else {
-                showToast('保存失败');
-              }
-
-              stitchLib.releaseImageInfo(fuseResult);
+            print('返回状态:$result');
+            if (result != 1) {
+              showToast('保存失败');
               if (onDone != null) {
                 onDone();
               }
-            });
+            } else {
+              /// 3.保存图片至相册
+              await PhotoManager.editor
+                  .saveImageWithPath('${savePath}fuse.jpg')
+                  .then((asset) {
+                if (asset != null) {
+                  // showToast('保存成功');
+                  showToast('拍摄成功,请在相册中查看');
+                } else {
+                  showToast('保存失败');
+                }
+
+                if (onDone != null) {
+                  onDone();
+                }
+              });
+            }
           }
         });
       });
