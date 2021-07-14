@@ -41,8 +41,9 @@ class Log {
         _printMap(data);
       } else if (data is List) {
         _printList(data);
-      } else
+      } else {
         LogUtil.v(msg, tag: tag);
+      }
     }
   }
 

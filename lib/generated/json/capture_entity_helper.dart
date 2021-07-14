@@ -21,10 +21,10 @@ captureFunctionFromJson(CaptureFunction data, Map<String, dynamic> json) {
 		data.status = json['Status'].toString();
 	}
 	if (json['File'] != null) {
-		data.file = CaptureFunctionFile().fromJson(json['File']);
+		data.file = (json['File'] as List).map((v) => CaptureFunctionFile().fromJson(v)).toList();
 	}
 	if (json['FREEPICNUM'] != null) {
-		data.freePicNum = json['FREEPICNUM'].toString();
+		data.fREEPICNUM = json['FREEPICNUM'].toString();
 	}
 	return data;
 }
@@ -33,24 +33,24 @@ Map<String, dynamic> captureFunctionToJson(CaptureFunction entity) {
 	final Map<String, dynamic> data = new Map<String, dynamic>();
 	data['Cmd'] = entity.cmd;
 	data['Status'] = entity.status;
-	data['File'] = entity.file?.toJson();
-	data['FREEPICNUM'] = entity.freePicNum;
+	data['File'] =  entity.file?.map((v) => v.toJson())?.toList();
+	data['FREEPICNUM'] = entity.fREEPICNUM;
 	return data;
 }
 
 captureFunctionFileFromJson(CaptureFunctionFile data, Map<String, dynamic> json) {
 	if (json['NAME'] != null) {
-		data.name = json['NAME'].toString();
+		data.nAME = json['NAME'].toString();
 	}
 	if (json['FPATH'] != null) {
-		data.fPath = json['FPATH'].toString();
+		data.fPATH = json['FPATH'].toString();
 	}
 	return data;
 }
 
 Map<String, dynamic> captureFunctionFileToJson(CaptureFunctionFile entity) {
 	final Map<String, dynamic> data = new Map<String, dynamic>();
-	data['NAME'] = entity.name;
-	data['FPATH'] = entity.fPath;
+	data['NAME'] = entity.nAME;
+	data['FPATH'] = entity.fPATH;
 	return data;
 }

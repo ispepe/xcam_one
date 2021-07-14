@@ -30,7 +30,7 @@ enum EConfig {
 class GlobalStore {
   static bool _isDebug = true;
 
-  // /// TODO: 3/28/21  第一次需要显示引导操作
+  /// 第一次需要显示引导操作
   static bool first = true;
 
   /// 临时目录 eg: cookie
@@ -45,8 +45,17 @@ class GlobalStore {
   /// 缩略图OSS URL
   static final String thumbsUrl = "https://cdn.jing-pei.cn/avatar/";
 
+  /// 临时目录
+  static String? tempPath;
+
+  /// 程序文档目录
+  static String? applicationPath;
+
   /// 移除所有监听
   static void removeListener() {}
+
+  /// 心跳检测开关
+  static bool startHeartbeat = true;
 
   static Future<void> init(bool isDebug) async {
     _isDebug = isDebug;

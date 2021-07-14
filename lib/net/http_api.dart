@@ -129,4 +129,10 @@ class HttpApi {
   //     ISO_ID_MAX,
   // }
   static const String setISO = '?custom=1&cmd=3046&par=';
+
+  /// 获取标定数据包
+  static const String mapFile = 'http://192.168.1.254/Maps.zip';
+
+  /// 获取SSID和Password
+  static const String getSSIDAndPassphrase = '?custom=1&cmd=3029';
 }

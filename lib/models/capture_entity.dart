@@ -12,24 +12,24 @@ import 'package:xcam_one/generated/json/base/json_convert_content.dart';
 import 'package:xcam_one/generated/json/base/json_field.dart';
 
 class CaptureEntity with JsonConvert<CaptureEntity> {
-  @JSONField(name: "Function")
-  CaptureFunction? function;
+	@JSONField(name: "Function")
+	CaptureFunction? function;
 }
 
 class CaptureFunction with JsonConvert<CaptureFunction> {
-  @JSONField(name: "Cmd")
-  String? cmd;
-  @JSONField(name: "Status")
-  String? status;
-  @JSONField(name: "File")
-  CaptureFunctionFile? file;
-  @JSONField(name: "FREEPICNUM")
-  String? freePicNum;
+	@JSONField(name: "Cmd")
+	String? cmd;
+	@JSONField(name: "Status")
+	String? status;
+	@JSONField(name: "File")
+	List<CaptureFunctionFile>? file;
+	@JSONField(name: "FREEPICNUM")
+	String? fREEPICNUM;
 }
 
 class CaptureFunctionFile with JsonConvert<CaptureFunctionFile> {
-  @JSONField(name: "NAME")
-  String? name;
-  @JSONField(name: "FPATH")
-  String? fPath;
+	@JSONField(name: "NAME")
+	String? nAME;
+	@JSONField(name: "FPATH")
+	String? fPATH;
 }

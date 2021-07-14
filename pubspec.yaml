@@ -29,7 +29,7 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
+  cupertino_icons: ^1.0.3
 
   # 状态管理 https://github.com/rrousselGit/provider
   provider: ^5.0.0
@@ -48,13 +48,13 @@ dependencies:
   oktoast: ^3.0.0
 
   # WebView插件，不支持web端，可以考虑easy_web_view，或自行封装 https://github.com/flutter/plugins/tree/master/packages/webview_flutter
-  webview_flutter: ^2.0.2
+  webview_flutter: ^2.0.9
 
   # 透明占位符，用于loading
   transparent_image: ^2.0.0
 
   # 图片拾取（从手机相册获取存取照片）https://github.com/flutter/plugins/tree/master/packages/image_picker/image_picker
-  image_picker: ^0.7.4
+  image_picker: ^0.8.1+3
 
   # 照片查看 https://github.com/fireslime/photo_view
   photo_view: ^0.11.1
@@ -64,14 +64,14 @@ dependencies:
 
   # 连接wifi https://github.com/flutter/plugins/tree/master/packages/connectivity/connectivity
   #  connectivity: ^3.0.3
-  wifi_info_flutter: ^2.0.0
-  connectivity_plus: ^1.0.0
+  wifi_info_flutter: ^2.0.2
+  connectivity_plus: ^1.0.5
 
   # Wi-Fi 查看wifi列表 https://github.com/alternadom/WiFiFlutter
   #  wifi_iot: ^0.3.0
 
   # 打开app设置 https://github.com/spencerccf/app_settings
-  app_settings: ^4.1.0
+  app_settings: ^4.1.1
 
   # 网络库 https://github.com/flutterchina/dio
   dio: ^4.0.0
@@ -80,33 +80,33 @@ dependencies:
   sprintf: ^6.0.0
 
   # RTSP流播放 https://github.com/solid-software/flutter_vlc_player/
-  flutter_vlc_player: 6.0.1
+  flutter_vlc_player: ^6.0.2
 
   # bilibi RTSP流播放 https://github.com/befovy/fijkplayer
-  # fijkplayer: ^0.8.7
+  #  fijkplayer: ^0.10.0
 
   # XML解析 https://github.com/renggli/dart-xml
-  xml: ^5.0.2
+  xml: ^5.1.2
 
   # xml to json  https://github.com/shamblett/xml2json
-  xml2json: ^5.0.0
+  xml2json: ^5.3.1
 
   #  # 权限检测 https://github.com/Baseflow/flutter-permission-handler
   #  permission_handler: ^6.1.1
 
   # 相册管理 https://github.com/CaiJingLong/flutter_photo_manager
-  photo_manager: ^1.1.2
+  photo_manager: ^1.2.5
 
   cached_network_image: ^3.0.0
 
   # 包含图片编辑功能、缩放平移操作
-  extended_image: ^4.0.1
+  extended_image: ^4.1.0
 
   # 两个拉动刷新
-  pull_to_refresh: ^1.6.5
+  pull_to_refresh: ^2.0.0
   flutter_easyrefresh: ^2.2.1
 
-  package_info: ^2.0.0
+  package_info: ^2.0.2
 
   # 倒计时
   #  timer_count_down: ^2.0.1
@@ -115,8 +115,21 @@ dependencies:
   # 全景照片查看器
   panorama: ^0.4.1
 
+  # 路径检测
+  path_provider: ^2.0.2
+
+  # 解压缩
+  archive: ^3.1.2
   # socket client https://github.com/rikulo/socket.io-client-dart
   # socket_io_client: ^2.0.0-beta.3-nullsafety.0
+
+  native_lib:
+    # When depending on this package from a real application you should use:
+    #   native_lib: ^x.y.z
+    # See https://dart.dev/tools/pub/dependencies#version-constraints
+    # The example app is bundled with the plugin so we use a path dependency on
+    # the parent directory to use the current plugin's version.
+    path: ../native_lib/
 
   # 按钮按下动画放大缩小动画效果
   # bouncing_widget

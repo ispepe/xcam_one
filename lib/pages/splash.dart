@@ -8,9 +8,12 @@
  *  Created by Pepe
  */
 
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:xcam_one/global/constants.dart';
 import 'package:xcam_one/global/global_store.dart';
@@ -37,6 +40,13 @@ class _SplashPageState extends State<SplashPage> {
       /// 进行初始化操作
       await GlobalStore.init(!kReleaseMode);
       _initDio();
+
+      /// 保存当前临时目录和文档目录
+      final Directory tempDir = await getTemporaryDirectory();
+      GlobalStore.tempPath = tempDir.path;
+
+      final Directory applicationDir = await getApplicationDocumentsDirectory();
+      GlobalStore.applicationPath = applicationDir.path;
 
       if (GlobalStore.first) {
         /// 进入欢迎页面

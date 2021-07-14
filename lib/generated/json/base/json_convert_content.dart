@@ -17,6 +17,8 @@ import 'package:xcam_one/models/battery_level_entity.dart';
 import 'package:xcam_one/generated/json/battery_level_entity_helper.dart';
 import 'package:xcam_one/models/cmd_status_entity.dart';
 import 'package:xcam_one/generated/json/cmd_status_entity_helper.dart';
+import 'package:xcam_one/models/ssid_pass_entity.dart';
+import 'package:xcam_one/generated/json/ssid_pass_entity_helper.dart';
 import 'package:xcam_one/models/wifi_app_mode_entity.dart';
 import 'package:xcam_one/generated/json/wifi_app_mode_entity_helper.dart';
 import 'package:xcam_one/models/hearbeat_entity.dart';
@@ -36,7 +38,7 @@ class JsonConvert<T> {
   }
 
   static _getFromJson<T>(Type type, data, json) {
-    switch (type) {
+		switch (type) {
 			case IQInfoEntity:
 				return iQInfoEntityFromJson(data as IQInfoEntity, json) as T;
 			case IQInfoFunction:
@@ -69,6 +71,10 @@ class JsonConvert<T> {
 				return cmdStatusEntityFromJson(data as CmdStatusEntity, json) as T;
 			case CmdStatusFunction:
 				return cmdStatusFunctionFromJson(data as CmdStatusFunction, json) as T;
+			case SsidPassEntity:
+				return ssidPassEntityFromJson(data as SsidPassEntity, json) as T;
+			case SsidPassLIST:
+				return ssidPassLISTFromJson(data as SsidPassLIST, json) as T;
 			case WifiAppModeEntity:
 				return wifiAppModeEntityFromJson(data as WifiAppModeEntity, json) as T;
 			case WifiAppModeFunction:
@@ -87,8 +93,8 @@ class JsonConvert<T> {
 				return cmdStatusValueEntityFromJson(data as CmdStatusValueEntity, json) as T;
 			case CmdStatusValueFunction:
 				return cmdStatusValueFunctionFromJson(data as CmdStatusValueFunction, json) as T;    }
-    return data as T;
-  }
+		return data as T;
+	}
 
   static _getToJson<T>(Type type, data) {
 		switch (type) {
@@ -124,6 +130,10 @@ class JsonConvert<T> {
 				return cmdStatusEntityToJson(data as CmdStatusEntity);
 			case CmdStatusFunction:
 				return cmdStatusFunctionToJson(data as CmdStatusFunction);
+			case SsidPassEntity:
+				return ssidPassEntityToJson(data as SsidPassEntity);
+			case SsidPassLIST:
+				return ssidPassLISTToJson(data as SsidPassLIST);
 			case WifiAppModeEntity:
 				return wifiAppModeEntityToJson(data as WifiAppModeEntity);
 			case WifiAppModeFunction:
@@ -150,55 +160,86 @@ class JsonConvert<T> {
 		String type = M.toString();
 		if(type == (IQInfoEntity).toString()){
 			return IQInfoEntity().fromJson(json);
-		}	else if(type == (IQInfoFunction).toString()){
+		}
+		if(type == (IQInfoFunction).toString()){
 			return IQInfoFunction().fromJson(json);
-		}	else if(type == (DiskFreeSpaceEntity).toString()){
+		}
+		if(type == (DiskFreeSpaceEntity).toString()){
 			return DiskFreeSpaceEntity().fromJson(json);
-		}	else if(type == (DiskFreeSpaceFunction).toString()){
+		}
+		if(type == (DiskFreeSpaceFunction).toString()){
 			return DiskFreeSpaceFunction().fromJson(json);
-		}	else if(type == (VersionEntity).toString()){
+		}
+		if(type == (VersionEntity).toString()){
 			return VersionEntity().fromJson(json);
-		}	else if(type == (VersionFunction).toString()){
+		}
+		if(type == (VersionFunction).toString()){
 			return VersionFunction().fromJson(json);
-		}	else if(type == (NotifyStatusEntity).toString()){
+		}
+		if(type == (NotifyStatusEntity).toString()){
 			return NotifyStatusEntity().fromJson(json);
-		}	else if(type == (NotifyStatusFunction).toString()){
+		}
+		if(type == (NotifyStatusFunction).toString()){
 			return NotifyStatusFunction().fromJson(json);
-		}	else if(type == (CameraFileListEntity).toString()){
+		}
+		if(type == (CameraFileListEntity).toString()){
 			return CameraFileListEntity().fromJson(json);
-		}	else if(type == (CameraFileList).toString()){
+		}
+		if(type == (CameraFileList).toString()){
 			return CameraFileList().fromJson(json);
-		}	else if(type == (CameraFile).toString()){
+		}
+		if(type == (CameraFile).toString()){
 			return CameraFile().fromJson(json);
-		}	else if(type == (CameraFileInfo).toString()){
+		}
+		if(type == (CameraFileInfo).toString()){
 			return CameraFileInfo().fromJson(json);
-		}	else if(type == (BatteryLevelEntity).toString()){
+		}
+		if(type == (BatteryLevelEntity).toString()){
 			return BatteryLevelEntity().fromJson(json);
-		}	else if(type == (BatteryLevelFunction).toString()){
+		}
+		if(type == (BatteryLevelFunction).toString()){
 			return BatteryLevelFunction().fromJson(json);
-		}	else if(type == (CmdStatusEntity).toString()){
+		}
+		if(type == (CmdStatusEntity).toString()){
 			return CmdStatusEntity().fromJson(json);
-		}	else if(type == (CmdStatusFunction).toString()){
+		}
+		if(type == (CmdStatusFunction).toString()){
 			return CmdStatusFunction().fromJson(json);
-		}	else if(type == (WifiAppModeEntity).toString()){
+		}
+		if(type == (SsidPassEntity).toString()){
+			return SsidPassEntity().fromJson(json);
+		}
+		if(type == (SsidPassLIST).toString()){
+			return SsidPassLIST().fromJson(json);
+		}
+		if(type == (WifiAppModeEntity).toString()){
 			return WifiAppModeEntity().fromJson(json);
-		}	else if(type == (WifiAppModeFunction).toString()){
+		}
+		if(type == (WifiAppModeFunction).toString()){
 			return WifiAppModeFunction().fromJson(json);
-		}	else if(type == (HearbeatEntity).toString()){
+		}
+		if(type == (HearbeatEntity).toString()){
 			return HearbeatEntity().fromJson(json);
-		}	else if(type == (HearbeatFunction).toString()){
+		}
+		if(type == (HearbeatFunction).toString()){
 			return HearbeatFunction().fromJson(json);
-		}	else if(type == (CaptureEntity).toString()){
+		}
+		if(type == (CaptureEntity).toString()){
 			return CaptureEntity().fromJson(json);
-		}	else if(type == (CaptureFunction).toString()){
+		}
+		if(type == (CaptureFunction).toString()){
 			return CaptureFunction().fromJson(json);
-		}	else if(type == (CaptureFunctionFile).toString()){
+		}
+		if(type == (CaptureFunctionFile).toString()){
 			return CaptureFunctionFile().fromJson(json);
-		}	else if(type == (CmdStatusValueEntity).toString()){
+		}
+		if(type == (CmdStatusValueEntity).toString()){
 			return CmdStatusValueEntity().fromJson(json);
-		}	else if(type == (CmdStatusValueFunction).toString()){
+		}
+		if(type == (CmdStatusValueFunction).toString()){
 			return CmdStatusValueFunction().fromJson(json);
-		}	
+		}
+
 		return null;
 	}
 
@@ -206,63 +247,94 @@ class JsonConvert<T> {
 	static M _getListChildType<M>(List data) {
 		if(<IQInfoEntity>[] is M){
 			return data.map<IQInfoEntity>((e) => IQInfoEntity().fromJson(e)).toList() as M;
-		}	else if(<IQInfoFunction>[] is M){
+		}
+		if(<IQInfoFunction>[] is M){
 			return data.map<IQInfoFunction>((e) => IQInfoFunction().fromJson(e)).toList() as M;
-		}	else if(<DiskFreeSpaceEntity>[] is M){
+		}
+		if(<DiskFreeSpaceEntity>[] is M){
 			return data.map<DiskFreeSpaceEntity>((e) => DiskFreeSpaceEntity().fromJson(e)).toList() as M;
-		}	else if(<DiskFreeSpaceFunction>[] is M){
+		}
+		if(<DiskFreeSpaceFunction>[] is M){
 			return data.map<DiskFreeSpaceFunction>((e) => DiskFreeSpaceFunction().fromJson(e)).toList() as M;
-		}	else if(<VersionEntity>[] is M){
+		}
+		if(<VersionEntity>[] is M){
 			return data.map<VersionEntity>((e) => VersionEntity().fromJson(e)).toList() as M;
-		}	else if(<VersionFunction>[] is M){
+		}
+		if(<VersionFunction>[] is M){
 			return data.map<VersionFunction>((e) => VersionFunction().fromJson(e)).toList() as M;
-		}	else if(<NotifyStatusEntity>[] is M){
+		}
+		if(<NotifyStatusEntity>[] is M){
 			return data.map<NotifyStatusEntity>((e) => NotifyStatusEntity().fromJson(e)).toList() as M;
-		}	else if(<NotifyStatusFunction>[] is M){
+		}
+		if(<NotifyStatusFunction>[] is M){
 			return data.map<NotifyStatusFunction>((e) => NotifyStatusFunction().fromJson(e)).toList() as M;
-		}	else if(<CameraFileListEntity>[] is M){
+		}
+		if(<CameraFileListEntity>[] is M){
 			return data.map<CameraFileListEntity>((e) => CameraFileListEntity().fromJson(e)).toList() as M;
-		}	else if(<CameraFileList>[] is M){
+		}
+		if(<CameraFileList>[] is M){
 			return data.map<CameraFileList>((e) => CameraFileList().fromJson(e)).toList() as M;
-		}	else if(<CameraFile>[] is M){
+		}
+		if(<CameraFile>[] is M){
 			return data.map<CameraFile>((e) => CameraFile().fromJson(e)).toList() as M;
-		}	else if(<CameraFileInfo>[] is M){
+		}
+		if(<CameraFileInfo>[] is M){
 			return data.map<CameraFileInfo>((e) => CameraFileInfo().fromJson(e)).toList() as M;
-		}	else if(<BatteryLevelEntity>[] is M){
+		}
+		if(<BatteryLevelEntity>[] is M){
 			return data.map<BatteryLevelEntity>((e) => BatteryLevelEntity().fromJson(e)).toList() as M;
-		}	else if(<BatteryLevelFunction>[] is M){
+		}
+		if(<BatteryLevelFunction>[] is M){
 			return data.map<BatteryLevelFunction>((e) => BatteryLevelFunction().fromJson(e)).toList() as M;
-		}	else if(<CmdStatusEntity>[] is M){
+		}
+		if(<CmdStatusEntity>[] is M){
 			return data.map<CmdStatusEntity>((e) => CmdStatusEntity().fromJson(e)).toList() as M;
-		}	else if(<CmdStatusFunction>[] is M){
+		}
+		if(<CmdStatusFunction>[] is M){
 			return data.map<CmdStatusFunction>((e) => CmdStatusFunction().fromJson(e)).toList() as M;
-		}	else if(<WifiAppModeEntity>[] is M){
+		}
+		if(<SsidPassEntity>[] is M){
+			return data.map<SsidPassEntity>((e) => SsidPassEntity().fromJson(e)).toList() as M;
+		}
+		if(<SsidPassLIST>[] is M){
+			return data.map<SsidPassLIST>((e) => SsidPassLIST().fromJson(e)).toList() as M;
+		}
+		if(<WifiAppModeEntity>[] is M){
 			return data.map<WifiAppModeEntity>((e) => WifiAppModeEntity().fromJson(e)).toList() as M;
-		}	else if(<WifiAppModeFunction>[] is M){
+		}
+		if(<WifiAppModeFunction>[] is M){
 			return data.map<WifiAppModeFunction>((e) => WifiAppModeFunction().fromJson(e)).toList() as M;
-		}	else if(<HearbeatEntity>[] is M){
+		}
+		if(<HearbeatEntity>[] is M){
 			return data.map<HearbeatEntity>((e) => HearbeatEntity().fromJson(e)).toList() as M;
-		}	else if(<HearbeatFunction>[] is M){
+		}
+		if(<HearbeatFunction>[] is M){
 			return data.map<HearbeatFunction>((e) => HearbeatFunction().fromJson(e)).toList() as M;
-		}	else if(<CaptureEntity>[] is M){
+		}
+		if(<CaptureEntity>[] is M){
 			return data.map<CaptureEntity>((e) => CaptureEntity().fromJson(e)).toList() as M;
-		}	else if(<CaptureFunction>[] is M){
+		}
+		if(<CaptureFunction>[] is M){
 			return data.map<CaptureFunction>((e) => CaptureFunction().fromJson(e)).toList() as M;
-		}	else if(<CaptureFunctionFile>[] is M){
+		}
+		if(<CaptureFunctionFile>[] is M){
 			return data.map<CaptureFunctionFile>((e) => CaptureFunctionFile().fromJson(e)).toList() as M;
-		}	else if(<CmdStatusValueEntity>[] is M){
+		}
+		if(<CmdStatusValueEntity>[] is M){
 			return data.map<CmdStatusValueEntity>((e) => CmdStatusValueEntity().fromJson(e)).toList() as M;
-		}	else if(<CmdStatusValueFunction>[] is M){
+		}
+		if(<CmdStatusValueFunction>[] is M){
 			return data.map<CmdStatusValueFunction>((e) => CmdStatusValueFunction().fromJson(e)).toList() as M;
 		}
-		throw Exception("not fond");
+
+		throw Exception("not found");
 	}
 
   static M fromJsonAsT<M>(json) {
-    if (json is List) {
-      return _getListChildType<M>(json);
-    } else {
-      return _fromJsonSingle<M>(json) as M;
-    }
-  }
+		if (json is List) {
+			return _getListChildType<M>(json);
+		} else {
+			return _fromJsonSingle<M>(json) as M;
+		}
+	}
 }

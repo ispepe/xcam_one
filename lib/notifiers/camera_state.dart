@@ -34,6 +34,7 @@ class CameraState extends ChangeNotifier {
 
   /// /// FIXME: 4/22/21 解决连接成功后应该先初始化成功后才能显示player的问题
   bool _isShowVLCPlayer = false;
+
   bool get isShowVLCPlayer => _isShowVLCPlayer;
 
   set isShowVLCPlayer(bool value) {
@@ -166,6 +167,15 @@ class CameraState extends ChangeNotifier {
     _freeSpaceData = 1;
 
     _diskSpaceData = 1;
+    notifyListeners();
+  }
+
+  String _captureType = '拍摄中';
+
+  String get captureType => _captureType;
+
+  set captureType(String value) {
+    _captureType = value;
     notifyListeners();
   }
 }

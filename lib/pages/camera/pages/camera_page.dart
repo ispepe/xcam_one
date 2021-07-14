@@ -253,7 +253,7 @@ class _CameraPageState extends State<CameraPage>
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                '拍摄中',
+                _watchCameraState.captureType,
                 style: TextStyles.textBold20.copyWith(
                   color: Colors.white,
                 ),

@@ -15,6 +15,8 @@ class GlobalState extends ChangeNotifier {
   /// 默认没有连接全景相机
   bool _isConnect = false;
 
+  String? currentSSID;
+
   bool get isConnect => _isConnect;
 
   set isConnect(bool value) {

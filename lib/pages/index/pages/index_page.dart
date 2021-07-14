@@ -9,7 +9,11 @@
  */
 
 import 'dart:async';
+import 'dart:ffi' as ffi;
+import 'dart:io';
 
+import 'package:archive/archive.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -18,16 +22,19 @@ import 'package:flutter/services.dart';
 import 'package:connectivity_plus/connectivity_plus.dart'
     show Connectivity, ConnectivityResult;
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
+import 'package:native_lib/native_lib.dart' as native_lib;
 import 'package:oktoast/oktoast.dart';
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
+import 'package:ffi/ffi.dart';
 
 import 'package:xcam_one/global/global_store.dart';
-import 'package:xcam_one/models/battery_level_entity.dart';
 import 'package:xcam_one/models/capture_entity.dart';
 import 'package:xcam_one/models/cmd_status_entity.dart';
 import 'package:xcam_one/models/hearbeat_entity.dart';
 import 'package:xcam_one/models/notify_status_entity.dart';
+import 'package:xcam_one/models/ssid_pass_entity.dart';
 import 'package:xcam_one/models/wifi_app_mode_entity.dart';
 import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/camera_state.dart';
@@ -59,7 +66,7 @@ class _IndexPageState extends State<IndexPage> {
         width: 32,
         height: 32,
       ),
-      label: "相册",
+      label: '相册',
     ),
     BottomNavigationBarItem(
       icon: Image.asset(
@@ -85,7 +92,7 @@ class _IndexPageState extends State<IndexPage> {
         width: 32,
         height: 32,
       ),
-      label: "设置",
+      label: '设置',
     ),
   ];
 
@@ -101,7 +108,7 @@ class _IndexPageState extends State<IndexPage> {
         width: 32,
         height: 32,
       ),
-      label: "相册",
+      label: '相册',
     ),
     BottomNavigationBarItem(
       icon: Image.asset(
@@ -127,7 +134,7 @@ class _IndexPageState extends State<IndexPage> {
         width: 32,
         height: 32,
       ),
-      label: "设置",
+      label: '设置',
     ),
   ];
 
@@ -144,7 +151,7 @@ class _IndexPageState extends State<IndexPage> {
         width: 32,
         height: 32,
       ),
-      label: "相册",
+      label: '相册',
     ),
     BottomNavigationBarItem(
       icon: Image.asset(
@@ -165,7 +172,7 @@ class _IndexPageState extends State<IndexPage> {
         width: 32,
         height: 32,
       ),
-      label: "设置",
+      label: '设置',
     ),
   ];
 
@@ -183,12 +190,15 @@ class _IndexPageState extends State<IndexPage> {
 
   late Timer _batteryCheckTimer;
 
-  late GlobalState globalState;
-  late CameraState cameraState;
+  late GlobalState _globalState;
+  late CameraState _cameraState;
 
   PageController pageController = PageController();
 
   late BuildContext _context;
+
+  late native_lib.NativeLibrary nativeLib;
+  late native_lib.StitchLibrary stitchLib;
 
   void onError(error, StackTrace trace) {
     switchConnect(false, msg: '连接已断开');
@@ -298,6 +308,9 @@ class _IndexPageState extends State<IndexPage> {
   @override
   void initState() {
     super.initState();
+    nativeLib = native_lib.NativeLibrary();
+    stitchLib = native_lib.StitchLibrary();
+
     initVlcPlayer();
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
@@ -307,15 +320,15 @@ class _IndexPageState extends State<IndexPage> {
 
       _timer = Timer.periodic(Duration(seconds: 5), (timer) {
         /// NOTE: 4/9/21 待注意 由于IOS没有Wi-Fi检测的方式方法，则定时检测操作
-        if (!kIsWeb && !globalState.isCapture && mounted) {
+        if (!kIsWeb && !_globalState.isCapture && mounted) {
           _updateConnectionStatus(ConnectivityResult.none);
         }
       });
 
       /// 拍照检测一次、进入拍照界面检测一次、每60s检测一次电量
       _batteryCheckTimer = Timer.periodic(Duration(seconds: 60), (timer) {
-        if (globalState.isConnect && !globalState.isCapture && mounted) {
-          cameraState.batteryLevelCheck();
+        if (_globalState.isConnect && !_globalState.isCapture && mounted) {
+          _cameraState.batteryLevelCheck();
         }
       });
     });
@@ -338,101 +351,165 @@ class _IndexPageState extends State<IndexPage> {
     /// 判断如果没有连接才进行心跳检测
     if (ConnectivityResult.wifi == result ||
         ConnectivityResult.none == result) {
-      DioUtils.instance.asyncRequestNetwork<HearbeatEntity>(
-          Method.get, HttpApi.heartbeat, onSuccess: (data) async {
-        if (data?.function?.status == '0') {
-          if (!globalState.isConnect) {
-            globalState.isConnect = true;
+      if (GlobalStore.startHeartbeat) {
+        GlobalStore.startHeartbeat = false;
+        await DioUtils.instance.requestNetwork<HearbeatEntity>(
+            Method.get, HttpApi.heartbeat, onSuccess: (data) async {
+          if (data?.function?.status == '0') {
+            if (!_globalState.isConnect) {
+              /// NOTE: 2021/7/13 待注意 获取标定压缩文件，并解压缩至SSID同名目录
+              await _initMapFiles(onDeon: () {
+                _globalState.isConnect = true;
 
-            /// NOTE: 4/21/21 待注意 模式必须要重置一次，并且不能进行任何切换操作
-            showCupertinoLoading(_context);
+                /// NOTE: 4/21/21 待注意 模式必须要重置一次，并且不能进行任何切换操作
+                showCupertinoLoading(_context);
 
-            /// NOTE: 4/22/21 待注意 添加Socket 初始化操作
-            await SocketUtils()
-                .initSocket(host: '192.168.1.254', port: 3333)
-                .then((value) {
-              /// 重新添加监听
-              SocketUtils().listen(
-                onCameraStatus,
-                onError,
-              );
-            });
+                /// NOTE: 4/22/21 待注意 添加Socket 初始化操作
+                SocketUtils()
+                    .initSocket(host: '192.168.1.254', port: 3333)
+                    .then((value) {
+                  /// 重新添加监听
+                  SocketUtils().listen(
+                    onCameraStatus,
+                    onError,
+                  );
+                });
 
-            /// NOTE: 4/21/21 待注意 判断当前所在页面：相册页面重置为wifiAppModePlayback，相机为wifiAppModePhoto
-            DioUtils.instance.asyncRequestNetwork<WifiAppModeEntity>(
-                Method.get,
-                HttpApi.appModeChange +
-                    WifiAppMode.wifiAppModePhoto.index.toString(),
-                onSuccess: (modeEntity) {
-              GlobalStore.wifiAppMode = WifiAppMode.wifiAppModePhoto;
+                /// NOTE: 4/21/21 待注意 判断当前所在页面：相册页面重置为wifiAppModePlayback，相机为wifiAppModePhoto
+                DioUtils.instance.asyncRequestNetwork<WifiAppModeEntity>(
+                    Method.get,
+                    HttpApi.appModeChange +
+                        WifiAppMode.wifiAppModePhoto.index.toString(),
+                    onSuccess: (modeEntity) {
+                  GlobalStore.wifiAppMode = WifiAppMode.wifiAppModePhoto;
 
-              /// NOTE: 4/22/21 待注意 断开后，又连接，必须要进行一次初始化操作
-              initVlcPlayer();
-              cameraState.isShowVLCPlayer = true;
+                  /// NOTE: 4/22/21 待注意 断开后，又连接，必须要进行一次初始化操作
+                  initVlcPlayer();
+                  _cameraState.isShowVLCPlayer = true;
 
-              /// 计算空间
-              cameraState.diskSpaceCheck();
+                  /// 计算空间
+                  _cameraState.diskSpaceCheck();
 
-              /// NOTE: 4/21/21 【重置日期】
-              final now = DateTime.now();
-              DioUtils.instance.asyncRequestNetwork<CmdStatusEntity>(Method.get,
-                  '${HttpApi.setDate}${now.year}-${now.month}-${now.day}',
-                  onSuccess: (dateCmdStatus) {
-                if (dateCmdStatus?.function?.status != 0) {
+                  /// NOTE: 4/21/21 【重置日期】
+                  final now = DateTime.now();
+                  DioUtils.instance.asyncRequestNetwork<CmdStatusEntity>(
+                      Method.get,
+                      '${HttpApi.setDate}${now.year}-${now.month}-${now.day}',
+                      onSuccess: (dateCmdStatus) {
+                    if (dateCmdStatus?.function?.status != 0) {
+                      NavigatorUtils.goBack(_context);
+                      showToast('初始化日期失败');
+                    }
+                  }, onError: (code, msg) {
+                    NavigatorUtils.goBack(_context);
+                    showToast('初始化日期请求失败');
+                  });
+
+                  /// NOTE: 4/21/21 【重置时间】
+                  DioUtils.instance.asyncRequestNetwork<CmdStatusEntity>(
+                      Method.get,
+                      '${HttpApi.setTime}${now.hour}:${now.minute}:${now.second}',
+                      onSuccess: (timeCmdStatus) {
+                    NavigatorUtils.goBack(_context);
+                    if (timeCmdStatus?.function?.status != 0) {
+                      showToast('初始化时间失败');
+                    }
+                  }, onError: (code, msg) {
+                    NavigatorUtils.goBack(_context);
+                    showToast('初始化时间请求失败');
+                  });
+                }, onError: (code, msg) {
+                  /// NOTE: 4/22/21 切换失败实际上依然是处于连接状态，只是播放预览画面出不来
+                  _globalState.isConnect = true;
+                  _cameraState.diskSpaceCheck();
                   NavigatorUtils.goBack(_context);
-                  showToast('初始化日期失败');
-                }
-              }, onError: (code, msg) {
-                NavigatorUtils.goBack(_context);
-                showToast('初始化日期请求失败');
-              });
+                  showToast('切换相机模式失败');
+                  _cameraState.isShowVLCPlayer = false;
+                });
 
-              /// NOTE: 4/21/21 【重置时间】
-              DioUtils.instance.asyncRequestNetwork<CmdStatusEntity>(Method.get,
-                  '${HttpApi.setTime}${now.hour}:${now.minute}:${now.second}',
-                  onSuccess: (timeCmdStatus) {
-                NavigatorUtils.goBack(_context);
-                if (timeCmdStatus?.function?.status != 0) {
-                  showToast('初始化时间失败');
-                }
-              }, onError: (code, msg) {
-                NavigatorUtils.goBack(_context);
-                showToast('初始化时间请求失败');
+                GlobalStore.startHeartbeat = true;
               });
-            }, onError: (code, msg) {
-              /// NOTE: 4/22/21 切换失败实际上依然是处于连接状态，只是播放预览画面出不来
-              globalState.isConnect = true;
-              cameraState.diskSpaceCheck();
-              NavigatorUtils.goBack(_context);
-              showToast('切换相机模式失败');
-              cameraState.isShowVLCPlayer = false;
+            }
+          } else {
+            await switchConnect(false, msg: '检测连接失败，请检查Wi-Fi是否正确连接');
+          }
+        }, onError: (e, m) async {
+          if (_globalState.isConnect) {
+            /// TODO: 4/22/21 待处理 确认为掉线
+            await Future.delayed(Duration(seconds: 1), () async {
+              await DioUtils.instance.requestNetwork<HearbeatEntity>(
+                  Method.get, HttpApi.heartbeat, onError: (e, m) async {
+                await switchConnect(false, msg: '设备掉线，请重新连接');
+              });
             });
           }
-        } else {
-          await switchConnect(false, msg: '检测连接失败，请检查Wi-Fi是否正确连接');
-        }
-      }, onError: (e, m) async {
-        if (globalState.isConnect) {
-          /// TODO: 4/22/21 待处理 确认为掉线
-          await Future.delayed(Duration(seconds: 1), () async {
-            await DioUtils.instance.requestNetwork<HearbeatEntity>(
-                Method.get, HttpApi.heartbeat, onError: (e, m) async {
-              await switchConnect(false, msg: '设备掉线，请重新连接');
-            });
-          });
-        }
-      });
+          GlobalStore.startHeartbeat = true;
+        });
+      }
     } else {
-      await switchConnect(false, msg: 'wifi连接中断');
+      /// NOTE: 2021/7/13 待注意 wifi链接不稳定，会导致突然断开链接，进行两次检测
+      if (_globalState.isConnect) {
+        await Future.delayed(Duration(seconds: 1), () async {
+          await DioUtils.instance.requestNetwork<HearbeatEntity>(
+              Method.get, HttpApi.heartbeat, onError: (e, m) async {
+            await switchConnect(false, msg: 'wifi连接中断');
+          });
+        });
+      } else {
+        await switchConnect(false, msg: 'wifi连接中断');
+      }
     }
   }
 
+  Future<void> _initMapFiles({required Function() onDeon}) async {
+    /// NOTE: 2021/7/13 待注意 获取标定压缩文件，并解压缩至SSID同名目录
+    return DioUtils.instance.requestNetwork<SsidPassEntity>(
+        Method.get, HttpApi.getSSIDAndPassphrase, onSuccess: (ssidPassEntity) {
+      if (_globalState.currentSSID != ssidPassEntity?.xLIST?.sSID) {
+        _globalState.currentSSID = ssidPassEntity?.xLIST?.sSID ?? 'xCam_one';
+      }
+
+      final savePath =
+          '${GlobalStore.applicationPath}/${_globalState.currentSSID}/';
+      final saveZipPath =
+          '${GlobalStore.applicationPath}/${_globalState.currentSSID}/Maps.zip';
+      if (!File('${savePath}Maps/maps_size').existsSync()) {
+        final url = '${GlobalStore.config[EConfig.baseUrl]}Maps.zip';
+        final Dio dio = Dio();
+        dio.download(url, '$saveZipPath', onReceiveProgress: (received, total) {
+          if (total != -1) {
+            ///当前下载的百分比例
+            print((received / total * 100).toStringAsFixed(0) + '%');
+          }
+        }).then((value) {
+          final file = File('$saveZipPath');
+          final fileBytes = file.readAsBytesSync();
+          final archive = ZipDecoder().decodeBytes(fileBytes);
+          for (final file in archive) {
+            final filename = file.name;
+            if (file.isFile) {
+              final data = file.content as List<int>;
+              File('$savePath' + filename)
+                ..create(recursive: true)
+                ..writeAsBytes(data);
+            } else {
+              Directory('$savePath' + filename).create(recursive: true);
+            }
+          }
+          onDeon();
+        });
+      } else {
+        onDeon();
+      }
+    });
+  }
+
   Future switchConnect(bool isConnect, {String? msg}) async {
-    if (globalState.isConnect != isConnect) {
+    if (_globalState.isConnect != isConnect) {
       if (msg != null) showToast(msg);
 
-      globalState.isConnect = false;
-      cameraState.clearSpaceData();
+      _globalState.isConnect = false;
+      _cameraState.clearSpaceData();
       try {
         final bool? isPlay =
             await GlobalStore.videoPlayerController?.isPlaying();
@@ -445,7 +522,7 @@ class _IndexPageState extends State<IndexPage> {
 
       // 关闭socket
       SocketUtils().dispose();
-      cameraState.isShowVLCPlayer = false;
+      _cameraState.isShowVLCPlayer = false;
     }
   }
 
@@ -519,8 +596,8 @@ class _IndexPageState extends State<IndexPage> {
 
   @override
   Widget build(BuildContext context) {
-    globalState = context.read<GlobalState>();
-    cameraState = context.read<CameraState>();
+    _globalState = context.read<GlobalState>();
+    _cameraState = context.read<CameraState>();
 
     _context = context;
     final watchGlobalState = context.watch<GlobalState>();
@@ -562,19 +639,19 @@ class _IndexPageState extends State<IndexPage> {
   }
 
   void _changePage(int index) {
-    if (globalState.isCapture) {
+    if (_globalState.isCapture) {
       showToast('拍摄中，请稍等');
       return;
     }
 
     if (index != _currentIndex) {
       /// TODO: 4/17/21 快速点击拍摄存在异常，不止是从相册界面切换回来
-      if (index == 1 && globalState.isConnect) {
+      if (index == 1 && _globalState.isConnect) {
         /// 立即进行一次电量检测
-        cameraState.batteryLevelCheck();
+        _cameraState.batteryLevelCheck();
 
         /// NOTE: 4/21/21 待注意 按理说每次拍照结束后都需要进行一次检测,但是可以通过异常状态检测获取是否空间够用
-        cameraState.diskSpaceCheck();
+        _cameraState.diskSpaceCheck();
 
         if (GlobalStore.wifiAppMode != WifiAppMode.wifiAppModePhoto) {
           /// 切换相机模式，并且进行播放
@@ -611,7 +688,7 @@ class _IndexPageState extends State<IndexPage> {
 
       pageController.jumpToPage(index);
       // 1 表示已进入相机界面，二次点击开始拍照
-    } else if (index == 1 && globalState.isConnect) {
+    } else if (index == 1 && _globalState.isConnect) {
       try {
         /// NOTE: 4/21/21 待注意 如果画面还在加载中，应该返回
         GlobalStore.videoPlayerController?.isPlaying().then((isPlaying) {
@@ -623,7 +700,7 @@ class _IndexPageState extends State<IndexPage> {
             //     cameraState.batteryStatus == BatteryStatus.batteryExhausted) {
             //   showToast('低电量，拍摄失败');
             // } else
-            if (cameraState.countdown != CountdownEnum.close) {
+            if (_cameraState.countdown != CountdownEnum.close) {
               showCupertinoDialog(
                   barrierDismissible: true,
                   context: context,
@@ -634,7 +711,7 @@ class _IndexPageState extends State<IndexPage> {
                           color: Colors.transparent,
                           child: Center(
                             child: CircularCountDownTimer(
-                              duration: cameraState.countdown.value,
+                              duration: _cameraState.countdown.value,
                               initialDuration: 0,
                               controller: CountDownController(),
                               width: 64,
@@ -683,7 +760,8 @@ class _IndexPageState extends State<IndexPage> {
 
   void _capture() {
     // 1 表示已进入相机界面，二次点击开始拍照
-    globalState.isCapture = true;
+    _cameraState.captureType = '拍摄中';
+    _globalState.isCapture = true;
     GlobalStore.videoPlayerController?.stop().then((value) {
       DioUtils.instance.asyncRequestNetwork<CaptureEntity>(
         Method.get,
@@ -692,8 +770,15 @@ class _IndexPageState extends State<IndexPage> {
           final status = data?.function?.status ?? '';
           switch (int.parse(status)) {
             case 0:
-              showToast('拍摄成功,请在相机相册查看');
-              break;
+              _saveImage(data!.function!.file, () {
+                _globalState.isCapture = false;
+                try {
+                  GlobalStore.videoPlayerController?.play();
+                } catch (e) {
+                  debugPrint(e.toString());
+                }
+              });
+              return;
             case -5:
               showToast('文件错误，拍摄失败');
               break;
@@ -708,7 +793,7 @@ class _IndexPageState extends State<IndexPage> {
               break;
           }
 
-          globalState.isCapture = false;
+          _globalState.isCapture = false;
           try {
             GlobalStore.videoPlayerController?.play();
           } catch (e) {
@@ -716,7 +801,7 @@ class _IndexPageState extends State<IndexPage> {
           }
         },
         onError: (code, msg) {
-          globalState.isCapture = false;
+          _globalState.isCapture = false;
           try {
             GlobalStore.videoPlayerController?.play();
           } catch (e) {
@@ -725,5 +810,68 @@ class _IndexPageState extends State<IndexPage> {
         },
       );
     });
+  }
+
+  Future<void> _saveImage(List<CaptureFunctionFile>? files, onDone) async {
+    if (files != null) {
+      final List<String> destFiles = [];
+      final savePath =
+          '${GlobalStore.applicationPath}/${_globalState.currentSSID}/';
+      files.forEach((element) async {
+        String filePath = element.fPATH ?? '';
+        filePath = filePath.substring(3, filePath.length);
+        filePath = filePath.replaceAll('\\', '/');
+        final url = '${GlobalStore.config[EConfig.baseUrl]}$filePath';
+
+        _cameraState.captureType = '下载中';
+        final Dio dio = Dio();
+        await dio
+            .download(url, '$savePath${element.nAME}'
+                /** onReceiveProgress: (received, total) {
+              if (total != -1) {
+              ///当前下载的百分比例
+              print(element.nAME! +
+              (received / total * 100).toStringAsFixed(0) +
+              '%');
+              }
+              } **/
+                )
+            .then((value) async {
+          destFiles.add('$savePath${element.nAME}');
+          if (destFiles.length == 2) {
+            _cameraState.captureType = '缝合中';
+            final mapPath =
+                '${GlobalStore.applicationPath}/${_globalState.currentSSID}/Maps/';
+
+            final ffi.Pointer<native_lib.ImageInfo> fuseResult =
+                calloc.call<native_lib.ImageInfo>(1);
+
+            /// 2.进行缝合
+            nativeLib.fuse(
+                destFiles[0].toNativeUtf8().cast<ffi.Int8>(),
+                destFiles[1].toNativeUtf8().cast<ffi.Int8>(),
+                mapPath.toNativeUtf8().cast<ffi.Int8>(),
+                ('${savePath}fuse.jpg').toNativeUtf8().cast<ffi.Int8>());
+
+            /// 3.保存图片至相册
+            await PhotoManager.editor
+                .saveImageWithPath('${savePath}fuse.jpg')
+                .then((asset) {
+              if (asset != null) {
+                // showToast('保存成功');
+                showToast('拍摄成功,请在相册中查看');
+              } else {
+                showToast('保存失败');
+              }
+
+              stitchLib.releaseImageInfo(fuseResult);
+              if (onDone != null) {
+                onDone();
+              }
+            });
+          }
+        });
+      });
+    }
   }
 }

@@ -51,8 +51,9 @@ class DioUtils {
       receiveTimeout: _receiveTimeout,
       sendTimeout: _sendTimeout,
       headers: {
-        "accept":"*/*",
+        "accept": "*/*",
       },
+
       /// dio默认json解析，这里指定返回UTF8字符串，自己处理解析。（可也以自定义Transformer实现）
       responseType: ResponseType.plain,
       validateStatus: (_) {
@@ -113,19 +114,70 @@ class DioUtils {
       /// 使用compute条件：数据大于10KB（粗略使用10 * 1024）且当前不是集成测试（后面可能会根据Web环境进行调整）
       /// 主要目的减少不必要的性能开销
       final bool isCompute = !Constant.isDriverTest && data.length > 10 * 1024;
-      debugPrint('isCompute:$isCompute');
       final Map<String, dynamic>? _map =
           isCompute ? await compute(parseData, data) : parseData(data);
       return BaseEntity<T>.fromJson(_map);
     } catch (e) {
-      debugPrint(e.toString());
       return BaseEntity<T>(ExceptionHandle.parse_error, '数据解析错误！', null);
+    }
+  }
+
+  /// 新增下载
+  Future<void> _download<T>(
+    String url,
+    dynamic savePath, {
+    ProgressCallback? onReceiveProgress,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    bool deleteOnError = true,
+    String lengthHeader = Headers.contentLengthHeader,
+    dynamic data,
+    Options? options,
+  }) async {
+    final Response response = await _dio!.download(url, savePath,
+        data: data,
+        onReceiveProgress: onReceiveProgress,
+        queryParameters: queryParameters,
+        cancelToken: cancelToken,
+        deleteOnError: deleteOnError,
+        lengthHeader: lengthHeader,
+        options: options);
+    if (response.statusCode != 200) {
+      Log.e('下载：$url失败, statusCode：$response.statusCode');
     }
   }
 
   Options _checkOptions(String method, Options options) {
     options.method = method;
     return options;
+  }
+
+  Future<void> downloadNetWork(
+    String url,
+    dynamic savePath, {
+    dynamic params,
+    NetErrorCallback? onError,
+    ProgressCallback? onReceiveProgress,
+    Function()? onSuccess,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    Options? options,
+  }) {
+    return _download(url, savePath,
+            data: params,
+            onReceiveProgress: onReceiveProgress,
+            queryParameters: queryParameters,
+            cancelToken: cancelToken,
+            options: options)
+        .then((value) {
+      if (onSuccess != null) {
+        onSuccess();
+      }
+    }, onError: (dynamic e) {
+      _cancelLogPrint(e, url);
+      final NetError error = ExceptionHandle.handleException(e);
+      _onError(error.code, error.msg, onError);
+    });
   }
 
   Future requestNetwork<T>(
