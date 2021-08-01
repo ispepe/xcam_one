@@ -53,4 +53,7 @@ class Constant {
   static const String refreshToken = 'refreshToken';
 
   static const String theme = 'AppTheme';
+
+  static const String FWString = 'xCam_0730_005';
+
 }

@@ -28,6 +28,7 @@ import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:ffi/ffi.dart';
+import 'package:xcam_one/global/constants.dart';
 
 import 'package:xcam_one/global/global_store.dart';
 import 'package:xcam_one/models/capture_entity.dart';
@@ -35,6 +36,7 @@ import 'package:xcam_one/models/cmd_status_entity.dart';
 import 'package:xcam_one/models/hearbeat_entity.dart';
 import 'package:xcam_one/models/notify_status_entity.dart';
 import 'package:xcam_one/models/ssid_pass_entity.dart';
+import 'package:xcam_one/models/version_entity.dart';
 import 'package:xcam_one/models/wifi_app_mode_entity.dart';
 import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/camera_state.dart';
@@ -358,7 +360,17 @@ class _IndexPageState extends State<IndexPage> {
           if (data?.function?.status == '0') {
             if (!_globalState.isConnect) {
               /// NOTE: 2021/7/13 待注意 获取标定压缩文件，并解压缩至SSID同名目录
-              _globalState.isInit = true;
+              _globalState.initType = InitType.checkFW;
+
+              /// 检测固件版本
+              if (await _updateFW()) {
+                GlobalStore.startHeartbeat = true;
+                return;
+              }
+
+              _globalState.initType = InitType.init;
+
+              /// 初始化Maps
               await _initMapFiles(onDeon: () {
                 _globalState.isConnect = true;
 
@@ -430,9 +442,12 @@ class _IndexPageState extends State<IndexPage> {
 
                 GlobalStore.startHeartbeat = true;
               });
+            } else {
+              GlobalStore.startHeartbeat = true;
             }
           } else {
             await switchConnect(false, msg: '检测连接失败，请检查Wi-Fi是否正确连接');
+            GlobalStore.startHeartbeat = true;
           }
         }, onError: (e, m) async {
           if (_globalState.isConnect) {
@@ -511,12 +526,90 @@ class _IndexPageState extends State<IndexPage> {
     });
   }
 
+  /// 更新固件，返回是否有更新
+  Future<bool> _updateFW() async {
+    /// NOTE: 2021/8/1 待注意 更新成功或者更新失败都返回false
+    bool retValue = true;
+
+    /// 1.检测固件版本
+    await DioUtils.instance
+        .requestNetwork<VersionEntity>(Method.get, HttpApi.queryVersion,
+            onSuccess: (VersionEntity? value) async {
+      if (value?.function?.status == 0) {
+        final String version = value!.function!.version!;
+        // 解析版本号 xCam_0729_005
+        final List<String> versionValues = version.split(r'_');
+        final List<String> myVersionValue = Constant.FWString.split(r'_');
+        if (versionValues[0] != myVersionValue[0]) {
+          showToast('固件厂商不匹配，固件更新失败');
+        } else {
+          // 检测固件是否需要升级
+          final int date = int.parse(versionValues[1]);
+          final int myDate = int.parse(myVersionValue[1]);
+          bool isUpdate = false;
+          if (myDate > date) {
+            isUpdate = true;
+          } else if (date == myDate) {
+            final int versionNum = int.parse(versionValues[2]);
+            final int myVersionNum = int.parse(myVersionValue[2]);
+            if (myVersionNum > versionNum) {
+              isUpdate = true;
+            }
+          }
+
+          if (isUpdate) {
+            _globalState.initType = InitType.updateFW;
+
+            /// 2.上传固件
+            final Map<String, dynamic> map = {};
+
+            final Dio dio = Dio();
+
+            final ByteData byteData =
+                await rootBundle.load('assets/FW/FW96660A.bin');
+
+            map['file'] = MultipartFile.fromBytes(byteData.buffer.asUint8List(),
+                filename: 'FW96660A.bin');
+
+            ///通过FormData
+            final FormData formData = FormData.fromMap(map);
+
+            // netUploadUrl
+            await dio.post(
+              'http://192.168.1.254',
+              data: formData,
+              // onSendProgress: (int progress, int total) {
+              //   print('当前进度是 $progress 总进度是 $total');
+              // },
+            );
+
+            /// 3.固件升级
+            await DioUtils.instance.requestNetwork<CmdStatusEntity>(
+                Method.get, HttpApi.firmwareUpdate,
+                onSuccess: (CmdStatusEntity? statusEntity) {
+              if (statusEntity?.function?.status != 0) {
+                showToast('固件更新失败');
+              } else {
+                showToast('固件更新成功');
+              }
+            });
+            _globalState.initType = InitType.reconnect;
+          } else {
+            retValue = false;
+          }
+        }
+      }
+    });
+
+    return Future.value(retValue);
+  }
+
   Future switchConnect(bool isConnect, {String? msg}) async {
     if (_globalState.isConnect != isConnect) {
       if (msg != null) showToast(msg);
 
       _globalState.isConnect = false;
-      _globalState.isInit = false;
+      _globalState.initType = InitType.connect;
       _cameraState.clearSpaceData();
       try {
         final bool? isPlay =
@@ -851,11 +944,19 @@ class _IndexPageState extends State<IndexPage> {
             final mapPath =
                 '${GlobalStore.applicationPath}/${_globalState.currentSSID}/Maps/';
 
+            /// NOTE: 2021/8/1 待注意 AB面缝合图片必须要有次序
+            final bool isSwap = destFiles[1].toLowerCase().endsWith('a.jpg');
+
             /// 2.进行缝合
             final int result = nativeLib.fuse(
-                destFiles[0].toNativeUtf8().cast<ffi.Int8>(),
-                destFiles[1].toNativeUtf8().cast<ffi.Int8>(),
+                isSwap
+                    ? destFiles[1].toNativeUtf8().cast<ffi.Int8>()
+                    : destFiles[0].toNativeUtf8().cast<ffi.Int8>(),
+                isSwap
+                    ? destFiles[0].toNativeUtf8().cast<ffi.Int8>()
+                    : destFiles[1].toNativeUtf8().cast<ffi.Int8>(),
                 mapPath.toNativeUtf8().cast<ffi.Int8>(),
+                ('${mapPath}vignet.txt').toNativeUtf8().cast<ffi.Int8>(),
                 ('${savePath}fuse.jpg').toNativeUtf8().cast<ffi.Int8>());
             print('返回状态:$result');
             if (result != 1) {
@@ -864,7 +965,28 @@ class _IndexPageState extends State<IndexPage> {
                 onDone();
               }
             } else {
-              /// 3.保存图片至相册
+              /// 3.回传图片至全景相机
+              destFiles[0].toLowerCase();
+
+              final filename = element.nAME!
+                  .replaceRange(element.nAME!.length - 5, null, '.jpg');
+
+              final Map<String, dynamic> map = {};
+              map['image'] = await MultipartFile.fromFile('${savePath}fuse.jpg',
+                  filename: filename);
+
+              ///通过FormData
+              final FormData formData = FormData.fromMap(map);
+              // netUploadUrl
+              await dio.post(
+                'http://192.168.1.254/NOVATEK/PHOTO/',
+                data: formData,
+                // onSendProgress: (int progress, int total) {
+                //   print('当前进度是 $progress 总进度是 $total');
+                // },
+              );
+
+              /// 4.保存图片至相册
               await PhotoManager.editor
                   .saveImageWithPath('${savePath}fuse.jpg')
                   .then((asset) {

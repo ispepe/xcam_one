@@ -54,7 +54,7 @@ class GlobalStore {
   /// 移除所有监听
   static void removeListener() {}
 
-  /// 心跳检测开关
+  /// 心跳检测开关 只有当前链接断开才进入心跳检测
   static bool startHeartbeat = true;
 
   static Future<void> init(bool isDebug) async {

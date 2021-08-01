@@ -10,6 +10,18 @@
 
 import 'package:flutter/cupertino.dart';
 
+enum InitType {
+  init, // 初始化中
+  checkFW, // 固件检测中
+  updateFW, // 更新固件中
+  connect, // 去连接
+  reconnect, // 重新连接
+}
+
+extension InitTypeExt on InitType {
+  String get value => ['初始化中', '固件检测中', '更新固件中', '去连接', '重新连接'][index];
+}
+
 /// 全局状态，设置会自动检测刷新
 class GlobalState extends ChangeNotifier {
   /// 默认没有连接全景相机
@@ -34,13 +46,12 @@ class GlobalState extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 是否正在初始化中
-  bool _isInitApp = false;
+  InitType _initType = InitType.connect;
 
-  bool get isInit => _isInitApp;
+  InitType get initType => _initType;
 
-  set isInit(bool value) {
-    _isInitApp = value;
+  set initType(InitType value) {
+    _initType = value;
     notifyListeners();
   }
 }

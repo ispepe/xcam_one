@@ -12,7 +12,7 @@ class HttpApi {
   /// 心跳检测,返回成功即可
   static const String heartbeat = '?custom=1&cmd=3016';
 
-  /// 检测固件版本 WIFIAPP_CMD_VERSION
+  /// 检测固件版本 规则：xCam_0729_001
   static const String queryVersion = '?custom=1&cmd=3012';
 
   /// 获取电量
@@ -135,4 +135,8 @@ class HttpApi {
 
   /// 获取SSID和Password
   static const String getSSIDAndPassphrase = '?custom=1&cmd=3029';
+
+  /// 更新FW
+  static const String firmwareUpdate = '?custom=1&cmd=3050';
+
 }

@@ -163,6 +163,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/FW/FW96660A.bin
     - assets/images/2.0x/
     - assets/images/3.0x/
 

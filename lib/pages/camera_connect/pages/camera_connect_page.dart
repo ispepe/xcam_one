@@ -89,13 +89,15 @@ class _CameraConnectPageState extends State<CameraConnectPage>
             ),
           ),
           MyButton(
-              minWidth: 248,
-              onPressed: _watchGlobalState.isInit
-                  ? null
-                  : () {
-                      AppSettings.openWIFISettings();
-                    },
-              buttonText: _watchGlobalState.isInit ? '初始化中' : '去连接'),
+            minWidth: 248,
+            onPressed: (_watchGlobalState.initType == InitType.connect ||
+                    _watchGlobalState.initType == InitType.reconnect)
+                ? () {
+                    AppSettings.openWIFISettings();
+                  }
+                : null,
+            buttonText: _watchGlobalState.initType.value,
+          ),
         ],
       ),
     );

@@ -10,14 +10,18 @@
 
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 
 import 'package:oktoast/oktoast.dart';
 import 'package:provider/provider.dart';
+import 'package:xcam_one/global/constants.dart';
 
 import 'package:xcam_one/models/cmd_status_entity.dart';
+import 'package:xcam_one/models/version_entity.dart';
 import 'package:xcam_one/net/net.dart';
 import 'package:xcam_one/notifiers/camera_state.dart';
 import 'package:xcam_one/notifiers/global_state.dart';
@@ -43,6 +47,7 @@ enum CameraSetting {
   HDR,
   formatCamera,
   IQSetting,
+  UpdateFW,
 }
 
 extension AppSettingExt on AppSetting {
@@ -62,7 +67,8 @@ extension CameraSettingExt on CameraSetting {
         '倒计时拍摄',
         'HDR',
         '格式化相机',
-        /* '重置相机设置',*/ 'IQ 设置'
+        /* '重置相机设置',*/ 'IQ 设置',
+        '固件升级'
       ][index];
 }
 
@@ -174,12 +180,17 @@ class _SettingPageState extends State<SettingPage>
                             onPressed = () => NavigatorUtils.push(
                                 context, '${SettingRouter.iQSetting}');
                             break;
+                          case CameraSetting.UpdateFW:
+                            onPressed =
+                                () => _buildUpdateFWBottomSheet(context);
+                            break;
                         }
 
                         return _buildTitle(context, value.text,
                             isEnable: globalState.isConnect,
                             onPressed: onPressed,
-                            isShowLine: value != CameraSetting.IQSetting);
+                            isShowLine:
+                                value.index != CameraSetting.values.length - 1);
                       }).toList(),
                     ),
                   );
@@ -365,6 +376,80 @@ class _SettingPageState extends State<SettingPage>
         );
       },
     );
+  }
+
+  void _buildUpdateFWBottomSheet(BuildContext context) {
+    showMyBottomSheet(context, '确定是否更新相机固件', okPressed: () {
+      /// 1.检测固件版本
+      DioUtils.instance
+          .requestNetwork<VersionEntity>(Method.get, HttpApi.queryVersion,
+              onSuccess: (VersionEntity? value) async {
+        if (value?.function?.status == 0) {
+          final String version = value!.function!.version!;
+          // 解析版本号 xCam_0729_005
+          final List<String> versionValues = version.split(r'_');
+          final List<String> myVersionValue = Constant.FWString.split(r'_');
+          if (versionValues[0] != myVersionValue[0]) {
+            showToast('固件厂商不匹配，固件更新失败');
+          } else {
+            // 检测固件是否需要升级
+            final int date = int.parse(versionValues[1]);
+            final int myDate = int.parse(myVersionValue[1]);
+            bool isUpdate = false;
+            if (myDate > date) {
+              isUpdate = true;
+            } else if (date == myDate) {
+              final int versionNum = int.parse(versionValues[2]);
+              final int myVersionNum = int.parse(myVersionValue[2]);
+              if (myVersionNum > versionNum) {
+                isUpdate = true;
+              }
+            }
+
+            if (isUpdate) {
+              /// 2.上传固件
+              final Map<String, dynamic> map = {};
+
+              final Dio dio = Dio();
+
+              final ByteData byteData =
+                  await rootBundle.load('assets/FW/FW96660A.bin');
+
+              map['file'] = MultipartFile.fromBytes(
+                  byteData.buffer.asUint8List(),
+                  filename: 'FW96660A.bin');
+
+              ///通过FormData
+              final FormData formData = FormData.fromMap(map);
+
+              // netUploadUrl
+              await dio.post(
+                'http://192.168.1.254',
+                data: formData,
+                // onSendProgress: (int progress, int total) {
+                //   print('当前进度是 $progress 总进度是 $total');
+                // },
+              );
+
+              /// 3.固件升级
+              await DioUtils.instance.requestNetwork<CmdStatusEntity>(
+                  Method.get, HttpApi.firmwareUpdate,
+                  onSuccess: (CmdStatusEntity? statusEntity) {
+                if (statusEntity?.function?.status != 0) {
+                  showToast('更新失败');
+                } else {
+                  showToast('更新成功');
+                }
+              });
+            } else {
+              showToast('固件已是最新');
+            }
+          }
+        }
+      });
+
+      NavigatorUtils.goBack(context);
+    });
   }
 
   Widget _buildTitleSwitch(BuildContext context, String title,
