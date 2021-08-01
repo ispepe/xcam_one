@@ -12,14 +12,26 @@ import 'package:flutter/cupertino.dart';
 
 enum InitType {
   init, // 初始化中
-  checkFW, // 固件检测中
+  // checkFW, // 固件检测中
   updateFW, // 更新固件中
+  checkMaps, // 检测标定文件
+  downMaps, // 下载标定文件
+  zipDecoderMaps, // 解压标定文件
   connect, // 去连接
   reconnect, // 重新连接
 }
 
 extension InitTypeExt on InitType {
-  String get value => ['初始化中', '固件检测中', '更新固件中', '去连接', '重新连接'][index];
+  String get value => [
+        '初始化中',
+        // '检测固件',
+        '固件升级中',
+        '检测标定文件',
+        '下载标定文件',
+        '解压标定文件',
+        '去连接',
+        '重新连接'
+      ][index];
 }
 
 /// 全局状态，设置会自动检测刷新

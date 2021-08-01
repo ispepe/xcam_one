@@ -54,6 +54,5 @@ class Constant {
 
   static const String theme = 'AppTheme';
 
-  static const String FWString = 'xCam_0730_005';
-
+  static const String FWString = 'xCam_0729_005';
 }

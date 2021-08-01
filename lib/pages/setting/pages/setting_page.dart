@@ -47,7 +47,7 @@ enum CameraSetting {
   HDR,
   formatCamera,
   IQSetting,
-  UpdateFW,
+  // UpdateFW,
 }
 
 extension AppSettingExt on AppSetting {
@@ -68,7 +68,7 @@ extension CameraSettingExt on CameraSetting {
         'HDR',
         '格式化相机',
         /* '重置相机设置',*/ 'IQ 设置',
-        '固件升级'
+        // '固件升级'
       ][index];
 }
 
@@ -180,10 +180,10 @@ class _SettingPageState extends State<SettingPage>
                             onPressed = () => NavigatorUtils.push(
                                 context, '${SettingRouter.iQSetting}');
                             break;
-                          case CameraSetting.UpdateFW:
-                            onPressed =
-                                () => _buildUpdateFWBottomSheet(context);
-                            break;
+                          // case CameraSetting.UpdateFW:
+                          //   onPressed =
+                          //       () => _buildUpdateFWBottomSheet(context);
+                          //   break;
                         }
 
                         return _buildTitle(context, value.text,

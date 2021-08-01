@@ -359,19 +359,29 @@ class _IndexPageState extends State<IndexPage> {
             Method.get, HttpApi.heartbeat, onSuccess: (data) async {
           if (data?.function?.status == '0') {
             if (!_globalState.isConnect) {
-              /// NOTE: 2021/7/13 待注意 获取标定压缩文件，并解压缩至SSID同名目录
-              _globalState.initType = InitType.checkFW;
-
               /// 检测固件版本
               if (await _updateFW()) {
-                GlobalStore.startHeartbeat = true;
+                /// 开启第二个定时器，用来检测是否升级成功，直接进入下一步操作
+                final timer =
+                    Timer.periodic(Duration(seconds: 5), (timer) async {
+                  /// NOTE: 4/9/21 待注意 由于IOS没有Wi-Fi检测的方式方法，则定时检测操作
+                  if (!kIsWeb && !_globalState.isCapture && mounted) {
+                    await DioUtils.instance.requestNetwork<HearbeatEntity>(
+                        Method.get, HttpApi.heartbeat,
+                        onError: (int? code, String? msg) {
+                      print('开启心跳检测');
+                      GlobalStore.startHeartbeat = true;
+                      timer.cancel();
+                    });
+                  }
+                });
                 return;
               }
 
-              _globalState.initType = InitType.init;
-
+              /// NOTE: 2021/7/13 待注意 获取标定压缩文件，并解压缩至SSID同名目录
               /// 初始化Maps
               await _initMapFiles(onDeon: () {
+                _globalState.initType = InitType.init;
                 _globalState.isConnect = true;
 
                 /// NOTE: 4/21/21 待注意 模式必须要重置一次，并且不能进行任何切换操作
@@ -478,6 +488,8 @@ class _IndexPageState extends State<IndexPage> {
   }
 
   Future<void> _initMapFiles({required Function() onDeon}) async {
+    _globalState.initType = InitType.checkMaps;
+
     /// NOTE: 2021/7/13 待注意 获取标定压缩文件，并解压缩至SSID同名目录
     return DioUtils.instance.requestNetwork<SsidPassEntity>(
         Method.get, HttpApi.getSSIDAndPassphrase, onSuccess: (ssidPassEntity) {
@@ -490,6 +502,7 @@ class _IndexPageState extends State<IndexPage> {
       final saveZipPath =
           '${GlobalStore.applicationPath}/${_globalState.currentSSID}/Maps.zip';
       if (!File('${savePath}Maps/maps_size').existsSync()) {
+        _globalState.initType = InitType.downMaps;
         final url = '${GlobalStore.config[EConfig.baseUrl]}Maps.zip';
         final Dio dio = Dio();
         dio
@@ -504,6 +517,7 @@ class _IndexPageState extends State<IndexPage> {
                         }
                       })
             .then((value) {
+          _globalState.initType = InitType.zipDecoderMaps;
           final file = File('$saveZipPath');
           final fileBytes = file.readAsBytesSync();
           final archive = ZipDecoder().decodeBytes(fileBytes);
