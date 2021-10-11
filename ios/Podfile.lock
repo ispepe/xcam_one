@@ -7,20 +7,22 @@ PODS:
   - Flutter (1.0.0)
   - flutter_vlc_player (3.0.2):
     - Flutter
-    - MobileVLCKit (~> 3.3.15)
+    - MobileVLCKit (~> 3.3.17)
   - FMDB (2.7.5):
     - FMDB/standard (= 2.7.5)
   - FMDB/standard (2.7.5)
   - image_picker (0.0.1):
     - Flutter
-  - MobileVLCKit (3.3.16.3)
+  - MobileVLCKit (3.3.17)
   - motion_sensors (0.0.1):
+    - Flutter
+  - native_lib (0.1.0):
     - Flutter
   - package_info (0.0.1):
     - Flutter
   - path_provider (0.0.1):
     - Flutter
-  - photo_manager (0.0.1):
+  - photo_manager (1.0.0):
     - Flutter
     - FlutterMacOS
   - Reachability (3.2)
@@ -29,7 +31,7 @@ PODS:
   - sqflite (0.0.2):
     - Flutter
     - FMDB (>= 2.7.5)
-  - webview_flutter (0.0.1):
+  - webview_flutter_wkwebview (0.0.1):
     - Flutter
   - wifi_info_flutter (0.0.1):
     - Flutter
@@ -41,12 +43,13 @@ DEPENDENCIES:
   - flutter_vlc_player (from `.symlinks/plugins/flutter_vlc_player/ios`)
   - image_picker (from `.symlinks/plugins/image_picker/ios`)
   - motion_sensors (from `.symlinks/plugins/motion_sensors/ios`)
+  - native_lib (from `.symlinks/plugins/native_lib/ios`)
   - package_info (from `.symlinks/plugins/package_info/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
   - photo_manager (from `.symlinks/plugins/photo_manager/ios`)
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
-  - webview_flutter (from `.symlinks/plugins/webview_flutter/ios`)
+  - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/ios`)
   - wifi_info_flutter (from `.symlinks/plugins/wifi_info_flutter/ios`)
 
 SPEC REPOS:
@@ -68,6 +71,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/image_picker/ios"
   motion_sensors:
     :path: ".symlinks/plugins/motion_sensors/ios"
+  native_lib:
+    :path: ".symlinks/plugins/native_lib/ios"
   package_info:
     :path: ".symlinks/plugins/package_info/ios"
   path_provider:
@@ -78,27 +83,28 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences/ios"
   sqflite:
     :path: ".symlinks/plugins/sqflite/ios"
-  webview_flutter:
-    :path: ".symlinks/plugins/webview_flutter/ios"
+  webview_flutter_wkwebview:
+    :path: ".symlinks/plugins/webview_flutter_wkwebview/ios"
   wifi_info_flutter:
     :path: ".symlinks/plugins/wifi_info_flutter/ios"
 
 SPEC CHECKSUMS:
   app_settings: d103828c9f5d515c4df9ee754dabd443f7cedcf3
-  connectivity_plus: f5e5e0b894ec1187bfab9816d6c2f034da8d46da
-  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
-  flutter_vlc_player: bb2059d1a5833e695ec30a25864336baf065fd9f
+  connectivity_plus: 5f0eb61093bec56935f21a1699dd2758bc895587
+  Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
+  flutter_vlc_player: 235ae431db52f5e02aa76d72f61806accb1841e3
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
-  image_picker: 50e7c7ff960e5f58faa4d1f4af84a771c671bc4a
-  MobileVLCKit: 2b408a9c5cc327353afab418fafbc942780b248a
+  image_picker: 9aa50e1d8cdacdbed739e925b7eea16d014367e6
+  MobileVLCKit: c5dd1b0ae933dc9c2348099840e753496dcdd908
   motion_sensors: 03f55b7c637a7e365a0b5f9697a449f9059d5d91
+  native_lib: ff5502c6285b82d6b06e816b2b866be40361ec07
   package_info: 873975fc26034f0b863a300ad47e7f1ac6c7ec62
-  path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
-  photo_manager: a8db3597a3b44e17ecb331fa099731c99b849496
+  path_provider: d1e9807085df1f9cc9318206cd649dc0b76be3de
+  photo_manager: 84fa94fbeb82e607333ea9a13c43b58e0903a463
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
-  shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
+  shared_preferences: 5033afbb22d372e15aff8ff766df9021b845f273
   sqflite: 6d358c025f5b867b29ed92fc697fd34924e11904
-  webview_flutter: 9f491a9b5a66f2573946a389b2677987b0ff8c0b
+  webview_flutter_wkwebview: 44aa025fbcf6730d808f1e0d86a5af5ac25fa8de
   wifi_info_flutter: 55d4c2469034f5b5c38063ccefa62f708a503a2b
 
 PODFILE CHECKSUM: 067ed3ce8e60e4833caeb58edd96415c95dcce47

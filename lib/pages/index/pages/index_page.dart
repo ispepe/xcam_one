@@ -200,7 +200,7 @@ class _IndexPageState extends State<IndexPage> {
   late BuildContext _context;
 
   late native_lib.NativeLibrary nativeLib;
-  late native_lib.StitchLibrary stitchLib;
+  // late native_lib.StitchLibrary stitchLib;
 
   void onError(error, StackTrace trace) {
     switchConnect(false, msg: '连接已断开');
@@ -311,7 +311,7 @@ class _IndexPageState extends State<IndexPage> {
   void initState() {
     super.initState();
     nativeLib = native_lib.NativeLibrary();
-    stitchLib = native_lib.StitchLibrary();
+    // stitchLib = native_lib.StitchLibrary();
 
     initVlcPlayer();
 
@@ -362,8 +362,7 @@ class _IndexPageState extends State<IndexPage> {
               /// 检测固件版本
               if (await _updateFW()) {
                 /// 开启第二个定时器，用来检测是否升级成功，直接进入下一步操作
-                final timer =
-                    Timer.periodic(Duration(seconds: 5), (timer) async {
+                Timer.periodic(Duration(seconds: 5), (timer) async {
                   /// NOTE: 4/9/21 待注意 由于IOS没有Wi-Fi检测的方式方法，则定时检测操作
                   if (!kIsWeb && !_globalState.isCapture && mounted) {
                     await DioUtils.instance.requestNetwork<HearbeatEntity>(
